@@ -7,14 +7,14 @@ const basePath = import.meta.env.BASE_URL;
 
 <Layout
 	title="Found in Space"
-	description="Found in Space is an educational platform for exploring, understanding, and building with Gaia-based data of the solar neighbourhood."
+	description="Explore the stars near the Sun through guided journeys, clear explanations, and open technical notes built on measurements from ESA's Gaia mission."
 >
 	<header class="site-header">
 		<a class="wordmark" href={basePath} aria-label="Found in Space home">
 			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
 			<span class="wordmark__text">
 				<span class="wordmark__title">Found in Space</span>
-				<span class="wordmark__meta">Solar neighbourhood platform</span>
+				<span class="wordmark__meta">Explore the nearby stars</span>
 			</span>
 		</a>
 		<nav class="site-nav" aria-label="Primary">
@@ -27,48 +27,50 @@ const basePath = import.meta.env.BASE_URL;
 
 	<main class="page">
 		<section class="hero">
-			<p class="eyebrow">Gaia data, public understanding, and the solar neighbourhood</p>
-			<h1>A platform for learning space through data, perspective, and interaction.</h1>
+			<p class="eyebrow">A guide to the stars near the Sun</p>
+			<h1>Start with the night sky you know. Discover the space it hides.</h1>
 			<p class="intro">
-				Found in Space turns astronomical data into an educational experience. It begins with the
-				stars around us, draws on Gaia's map of the solar neighbourhood, and opens that material up
-				for exploration, explanation, and new ways of building with it.
+				Found in Space is a growing home for exploring the solar neighbourhood: the stars nearest
+				to our Sun. Using measurements from ESA's Gaia mission, it turns catalogues and
+				visualisations into guided journeys, clear explanations, and tools people can actually
+				learn from.
 			</p>
 			<div class="hero__actions">
-				<a class="button button--primary" href="#explore">Start exploring</a>
-				<a class="button button--ghost" href="#build">See the stack</a>
+				<a class="button button--primary" href="#explore">Take a first look</a>
+				<a class="button button--ghost" href="#build">How it's built</a>
 			</div>
 			<div class="hero__note">
 				<p>
-					The site is being shaped as an educational platform rather than a project brochure: part
-					exhibit, part classroom, part lab.
+					Still early, but already taking shape as part exhibit, part classroom, part lab.
 				</p>
 			</div>
 		</section>
 
-		<section class="section-grid" aria-label="Core routes">
+		<section class="section-grid" aria-label="Choose your path">
 			<article class="panel panel--accent" id="explore">
 				<p class="panel__eyebrow">Explore</p>
-				<h2>Begin with the sky as people know it, then reveal the structure beneath it.</h2>
+				<h2>Follow guided journeys from familiar skies into depth, distance, and scale.</h2>
 				<p>
-					Guided journeys will use an interactive star map to move from familiar patterns such as
-					constellations into depth, distance, scale, and stellar neighbourhoods.
+					Start with constellations, bright stars, and recognisable patterns, then see what
+					changes when those same stars are placed in three-dimensional space.
 				</p>
 			</article>
 			<article class="panel" id="learn">
 				<p class="panel__eyebrow">Learn</p>
-				<h2>Support curiosity with clear concepts, activities, and teaching routes.</h2>
+				<h2>Turn curiosity into understanding with clear explainers and reusable learning routes.</h2>
 				<p>
-					Found in Space is being designed for self-directed learners, teachers, and students who
-					need more than spectacle. The aim is understanding, not just interaction.
+					This is for self-directed learners, students, and educators who want more than a pretty
+					simulation: plain-language concepts, structured pathways, and activities that can grow
+					into teaching material.
 				</p>
 			</article>
 			<article class="panel" id="build">
 				<p class="panel__eyebrow">Build</p>
-				<h2>Show how catalogue data becomes an explorable 3D environment.</h2>
+				<h2>See how astronomical measurements become something you can explore in a browser.</h2>
 				<p>
-					Behind the experience sits a pipeline, an octree, and a browser-based viewer. The site
-					will explain that stack in human terms and make the technical work reusable.
+					Behind the scenes are source catalogues, data cleaning, spatial indexing, and a
+					browser-based viewer. The technical side will stay open, inspectable, and explained in
+					human terms.
 				</p>
 			</article>
 		</section>
@@ -76,47 +78,55 @@ const basePath = import.meta.env.BASE_URL;
 		<section class="story">
 			<div class="story__lead">
 				<p class="eyebrow">Why this project exists</p>
-				<h2>The night sky is familiar. Its structure is not.</h2>
+				<h2>Wonder is a great starting point, but it should lead somewhere.</h2>
 			</div>
 			<div class="story__body">
 				<p>
-					Most people meet astronomy through images, headlines, or the visible sky. Found in Space
-					starts there, but does not stop there. It asks what becomes possible when the solar
-					neighbourhood is not only seen, but explored as data.
+					Most people meet astronomy through images, headlines, or the visible sky. That first
+					spark matters. Found in Space is about carrying it further: helping people move from
+					"that's beautiful" to "I understand what I'm looking at."
 				</p>
 				<p>
-					The project is grounded in Gaia, but its purpose is educational and public-facing: to
-					create routes from recognition to understanding, and from wonder to inquiry.
+					The solar neighbourhood is a good place to begin because scale becomes easier to feel when
+					it starts close to home. From there we can talk honestly about distance, measurement,
+					structure, and uncertainty without losing the sense of wonder that brought people here in
+					the first place.
 				</p>
 			</div>
 		</section>
 
 		<section class="bands">
 			<article class="band">
-				<p class="band__label">First journey</p>
+				<p class="band__label">Featured journey</p>
 				<h3>What constellations hide about 3D space</h3>
 				<p>
-					A familiar sky pattern becomes the entry point for perspective, measurement, and the fact
-					that stars which seem adjacent from Earth may be widely separated in space.
+					A familiar pattern in the night sky becomes an entry point for perspective, parallax, and
+					the fact that stars which look adjacent from Earth may be separated by huge distances.
 				</p>
 			</article>
 			<article class="band">
-				<p class="band__label">Launch shape</p>
-				<h3>Three routes into the platform</h3>
+				<p class="band__label">Choose your path</p>
+				<h3>Explore, learn, or build</h3>
 				<p>
-					`Explore` for guided experiences, `Learn` for structured explanation, and `Build` for the
-					technical architecture and open project layer.
+					Start with an experience, follow it with an explanation, or open up the technical stack.
+					Each route is different, but they are designed to connect.
 				</p>
 			</article>
 		</section>
 
 		<section class="about" id="about">
 			<p class="eyebrow">About</p>
-			<h2>Independent, but connected.</h2>
+			<h2>A labour of love for astronomy, data, and exploration.</h2>
 			<p>
-				Found in Space will live as its own platform while remaining lightly connected to
-				<a href="https://www.k-si.com/">k-si.com</a>. The intention is for this site to explain the
-				project itself: what it makes possible, how it works, and why it matters educationally.
+				Found in Space grows out of Kaj's long-standing love of astronomy, data science, and the joy of
+				exploration. It is an attempt to bring those things together in a form that feels open,
+				playful, and genuinely useful: something people can wander through, learn from, and build
+				on.
+			</p>
+			<p>
+				The hope is simple: to make the nearby
+				universe feel a little more legible, and a little more alive, for anyone who arrives here
+				curious.
 			</p>
 		</section>
 
