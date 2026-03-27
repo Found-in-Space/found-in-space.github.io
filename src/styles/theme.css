@@ -13,6 +13,8 @@
 	--fis-shadow: 0 24px 80px rgba(1, 5, 14, 0.38);
 	--fis-radius: 1.4rem;
 	--fis-max-width: 72rem;
+	--fis-font-body: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+	--fis-font-ui: 'Avenir Next', Avenir, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 html {
@@ -28,7 +30,7 @@ body {
 	width: 100%;
 	min-height: 100%;
 	color: var(--fis-text);
-	font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+	font-family: var(--fis-font-body);
 	background-color: var(--fis-bg);
 	background-image:
 		radial-gradient(circle at 20% 18%, rgba(141, 183, 255, 0.16), transparent 0 22rem),
