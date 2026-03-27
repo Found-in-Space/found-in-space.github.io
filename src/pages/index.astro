@@ -1,11 +1,443 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+	title="Found in Space"
+	description="Found in Space is an educational platform for exploring, understanding, and building with Gaia-based data of the solar neighbourhood."
+>
+	<header class="site-header">
+		<a class="wordmark" href="/" aria-label="Found in Space home">
+			<span class="wordmark__mark" aria-hidden="true"></span>
+			<span class="wordmark__text">
+				<span class="wordmark__title">Found in Space</span>
+				<span class="wordmark__meta">Solar neighbourhood platform</span>
+			</span>
+		</a>
+		<nav class="site-nav" aria-label="Primary">
+			<a href="#explore">Explore</a>
+			<a href="#learn">Learn</a>
+			<a href="#build">Build</a>
+			<a href="#about">About</a>
+		</nav>
+	</header>
+
+	<main class="page">
+		<section class="hero">
+			<p class="eyebrow">Gaia data, public understanding, and the solar neighbourhood</p>
+			<h1>A platform for learning space through data, perspective, and interaction.</h1>
+			<p class="intro">
+				Found in Space turns astronomical data into an educational experience. It begins with the
+				stars around us, draws on Gaia's map of the solar neighbourhood, and opens that material up
+				for exploration, explanation, and new ways of building with it.
+			</p>
+			<div class="hero__actions">
+				<a class="button button--primary" href="#explore">Start exploring</a>
+				<a class="button button--ghost" href="#build">See the stack</a>
+			</div>
+			<div class="hero__note">
+				<p>
+					The site is being shaped as an educational platform rather than a project brochure: part
+					exhibit, part classroom, part lab.
+				</p>
+			</div>
+		</section>
+
+		<section class="section-grid" aria-label="Core routes">
+			<article class="panel panel--accent" id="explore">
+				<p class="panel__eyebrow">Explore</p>
+				<h2>Begin with the sky as people know it, then reveal the structure beneath it.</h2>
+				<p>
+					Guided journeys will use an interactive star map to move from familiar patterns such as
+					constellations into depth, distance, scale, and stellar neighbourhoods.
+				</p>
+			</article>
+			<article class="panel" id="learn">
+				<p class="panel__eyebrow">Learn</p>
+				<h2>Support curiosity with clear concepts, activities, and teaching routes.</h2>
+				<p>
+					Found in Space is being designed for self-directed learners, teachers, and students who
+					need more than spectacle. The aim is understanding, not just interaction.
+				</p>
+			</article>
+			<article class="panel" id="build">
+				<p class="panel__eyebrow">Build</p>
+				<h2>Show how catalogue data becomes an explorable 3D environment.</h2>
+				<p>
+					Behind the experience sits a pipeline, an octree, and a browser-based viewer. The site
+					will explain that stack in human terms and make the technical work reusable.
+				</p>
+			</article>
+		</section>
+
+		<section class="story">
+			<div class="story__lead">
+				<p class="eyebrow">Why this project exists</p>
+				<h2>The night sky is familiar. Its structure is not.</h2>
+			</div>
+			<div class="story__body">
+				<p>
+					Most people meet astronomy through images, headlines, or the visible sky. Found in Space
+					starts there, but does not stop there. It asks what becomes possible when the solar
+					neighbourhood is not only seen, but explored as data.
+				</p>
+				<p>
+					The project is grounded in Gaia, but its purpose is educational and public-facing: to
+					create routes from recognition to understanding, and from wonder to inquiry.
+				</p>
+			</div>
+		</section>
+
+		<section class="bands">
+			<article class="band">
+				<p class="band__label">First journey</p>
+				<h3>What constellations hide about 3D space</h3>
+				<p>
+					A familiar sky pattern becomes the entry point for perspective, measurement, and the fact
+					that stars which seem adjacent from Earth may be widely separated in space.
+				</p>
+			</article>
+			<article class="band">
+				<p class="band__label">Launch shape</p>
+				<h3>Three routes into the platform</h3>
+				<p>
+					`Explore` for guided experiences, `Learn` for structured explanation, and `Build` for the
+					technical architecture and open project layer.
+				</p>
+			</article>
+		</section>
+
+		<section class="about" id="about">
+			<p class="eyebrow">About</p>
+			<h2>Independent, but connected.</h2>
+			<p>
+				Found in Space will live as its own platform while remaining lightly connected to
+				<a href="https://www.k-si.com/">k-si.com</a>. The intention is for this site to explain the
+				project itself: what it makes possible, how it works, and why it matters educationally.
+			</p>
+		</section>
+	</main>
 </Layout>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 4;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		max-width: calc(var(--fis-max-width) + 3rem);
+		margin: 0 auto;
+		padding: 1rem 1.5rem 0;
+		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
+		backdrop-filter: blur(12px);
+	}
+
+	.wordmark {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0.65rem 0.85rem;
+		border-radius: 999px;
+		background: rgba(8, 15, 27, 0.68);
+		border: 1px solid var(--fis-line);
+		box-shadow: var(--fis-shadow);
+		text-decoration: none;
+	}
+
+	.wordmark__mark {
+		position: relative;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 999px;
+		background:
+			radial-gradient(circle at 35% 35%, #fff6d8 0, #f2c879 24%, #a75b2f 56%, rgba(167, 91, 47, 0) 58%),
+			radial-gradient(circle at center, rgba(141, 183, 255, 0.14), transparent 70%);
+		box-shadow:
+			0 0 0 1px rgba(242, 200, 121, 0.16),
+			0 0 32px rgba(141, 183, 255, 0.16);
+	}
+
+	.wordmark__mark::after {
+		content: '';
+		position: absolute;
+		inset: -0.32rem;
+		border: 1px solid rgba(141, 183, 255, 0.35);
+		border-radius: 999px;
+		transform: rotate(-18deg);
+	}
+
+	.wordmark__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	.wordmark__title {
+		font-size: 1rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.wordmark__meta {
+		font-size: 0.78rem;
+		color: var(--fis-text-muted);
+	}
+
+	.site-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		font-size: 0.96rem;
+	}
+
+	.site-nav a {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.55rem;
+		padding: 0.55rem 0.9rem;
+		border-radius: 999px;
+		background: rgba(8, 15, 27, 0.62);
+		border: 1px solid rgba(141, 183, 255, 0.14);
+		color: var(--fis-text-soft);
+		text-decoration: none;
+		transition:
+			transform 160ms ease,
+			background-color 160ms ease,
+			border-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.site-nav a:hover {
+		transform: translateY(-1px);
+		background: rgba(15, 28, 50, 0.82);
+		border-color: rgba(242, 200, 121, 0.32);
+		color: var(--fis-text);
+	}
+
+	.page {
+		position: relative;
+		min-height: 100vh;
+		max-width: var(--fis-max-width);
+		padding: 3.5rem 1.5rem 5rem;
+		margin: 0 auto;
+	}
+
+	.eyebrow {
+		margin: 0 0 1rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.hero {
+		padding: 4.2rem 0 2.4rem;
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(3rem, 7vw, 6.25rem);
+		line-height: 0.95;
+		max-width: 12ch;
+	}
+
+	.intro {
+		max-width: 46rem;
+		font-size: 1.2rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+		margin: 1.5rem 0 2rem;
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.9rem;
+		padding: 0.75rem 1.15rem;
+		border-radius: 999px;
+		text-decoration: none;
+		font-size: 0.98rem;
+		transition:
+			transform 160ms ease,
+			box-shadow 160ms ease,
+			border-color 160ms ease;
+	}
+
+	.button:hover {
+		transform: translateY(-1px);
+	}
+
+	.button--primary {
+		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
+		color: #0d1524;
+		box-shadow: 0 16px 30px rgba(242, 200, 121, 0.18);
+	}
+
+	.button--ghost {
+		border: 1px solid var(--fis-line-strong);
+		background: rgba(9, 18, 33, 0.5);
+		color: var(--fis-text);
+	}
+
+	.hero__note,
+	.panel,
+	.band,
+	.about {
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.hero__note {
+		max-width: 36rem;
+		padding: 1.05rem 1.15rem;
+		border-color: rgba(141, 183, 255, 0.16);
+	}
+
+	.section-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 2rem 0 4rem;
+	}
+
+	.panel {
+		padding: 1.45rem;
+	}
+
+	.panel--accent {
+		background:
+			linear-gradient(180deg, rgba(242, 200, 121, 0.12), rgba(10, 20, 36, 0.78)),
+			var(--fis-panel);
+	}
+
+	.panel__eyebrow,
+	.band__label {
+		margin: 0 0 0.6rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.story {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+		gap: 2rem;
+		align-items: start;
+		margin-bottom: 2rem;
+	}
+
+	.story__lead h2 {
+		margin: 0;
+		font-size: clamp(2rem, 4vw, 3.2rem);
+		line-height: 1.02;
+		max-width: 11ch;
+	}
+
+	.story__body {
+		padding-top: 0.35rem;
+	}
+
+	.bands {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 4rem;
+	}
+
+	.band {
+		padding: 1.45rem;
+		background: var(--fis-panel-strong);
+	}
+
+	.about {
+		padding: 1.6rem;
+		max-width: 48rem;
+	}
+
+	h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.75rem;
+		line-height: 1.1;
+	}
+
+	h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		line-height: 1.15;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	section p + p {
+		margin-top: 1rem;
+	}
+
+	.about a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.46);
+	}
+
+	@media (max-width: 900px) {
+		.section-grid,
+		.story,
+		.bands {
+			grid-template-columns: 1fr;
+		}
+
+		.story__lead h2 {
+			max-width: none;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.site-header {
+			align-items: flex-start;
+			flex-direction: column;
+			padding-bottom: 0.25rem;
+		}
+
+		.page {
+			padding-top: 2.25rem;
+		}
+
+		h1 {
+			font-size: clamp(2.6rem, 14vw, 4.2rem);
+		}
+
+		h2 {
+			font-size: 1.5rem;
+		}
+
+		.intro {
+			font-size: 1.05rem;
+		}
+	}
+</style>

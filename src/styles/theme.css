@@ -1,0 +1,98 @@
+:root {
+	--fis-bg: #07111f;
+	--fis-bg-deep: #040914;
+	--fis-panel: rgba(10, 20, 36, 0.78);
+	--fis-panel-strong: rgba(12, 24, 43, 0.9);
+	--fis-line: rgba(242, 200, 121, 0.18);
+	--fis-line-strong: rgba(242, 200, 121, 0.3);
+	--fis-text: #f6f1e8;
+	--fis-text-soft: #d8deea;
+	--fis-text-muted: #aab7ca;
+	--fis-gold: #f2c879;
+	--fis-blue: #8db7ff;
+	--fis-shadow: 0 24px 80px rgba(1, 5, 14, 0.38);
+	--fis-radius: 1.4rem;
+	--fis-max-width: 72rem;
+}
+
+html {
+	margin: 0;
+	width: 100%;
+	min-height: 100%;
+	scroll-behavior: smooth;
+	background-color: var(--fis-bg-deep);
+}
+
+body {
+	margin: 0;
+	width: 100%;
+	min-height: 100%;
+	color: var(--fis-text);
+	font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+	background-color: var(--fis-bg);
+	background-image:
+		radial-gradient(circle at 20% 18%, rgba(141, 183, 255, 0.16), transparent 0 22rem),
+		radial-gradient(circle at 78% 12%, rgba(242, 200, 121, 0.1), transparent 0 18rem),
+		radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.4px),
+		radial-gradient(circle, rgba(141, 183, 255, 0.18) 0 1px, transparent 1.6px),
+		linear-gradient(180deg, #07111f 0%, #0d1730 40%, #162641 100%);
+	background-position:
+		center top,
+		center top,
+		0 0,
+		18px 24px,
+		center top;
+	background-size:
+		auto,
+		auto,
+		36px 36px,
+		52px 52px,
+		100% 100%;
+	background-repeat:
+		no-repeat,
+		no-repeat,
+		repeat,
+		repeat,
+		no-repeat;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background:
+		linear-gradient(180deg, rgba(4, 9, 20, 0.1), rgba(4, 9, 20, 0.5)),
+		radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 30%);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+a {
+	color: inherit;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.18em;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+}
+
+main {
+	position: relative;
+	z-index: 1;
+}
+
+::selection {
+	background: rgba(242, 200, 121, 0.28);
+	color: var(--fis-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
