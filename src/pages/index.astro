@@ -11,7 +11,7 @@ const basePath = import.meta.env.BASE_URL;
 >
 	<header class="site-header">
 		<a class="wordmark" href={basePath} aria-label="Found in Space home">
-			<span class="wordmark__mark" aria-hidden="true"></span>
+			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
 			<span class="wordmark__text">
 				<span class="wordmark__title">Found in Space</span>
 				<span class="wordmark__meta">Solar neighbourhood platform</span>
@@ -153,25 +153,10 @@ const basePath = import.meta.env.BASE_URL;
 	}
 
 	.wordmark__mark {
-		position: relative;
 		width: 2.25rem;
 		height: 2.25rem;
-		border-radius: 999px;
-		background:
-			radial-gradient(circle at 35% 35%, #fff6d8 0, #f2c879 24%, #a75b2f 56%, rgba(167, 91, 47, 0) 58%),
-			radial-gradient(circle at center, rgba(141, 183, 255, 0.14), transparent 70%);
-		box-shadow:
-			0 0 0 1px rgba(242, 200, 121, 0.16),
-			0 0 32px rgba(141, 183, 255, 0.16);
-	}
-
-	.wordmark__mark::after {
-		content: '';
-		position: absolute;
-		inset: -0.32rem;
-		border: 1px solid rgba(141, 183, 255, 0.35);
-		border-radius: 999px;
-		transform: rotate(-18deg);
+		flex: 0 0 auto;
+		object-fit: contain;
 	}
 
 	.wordmark__text {
