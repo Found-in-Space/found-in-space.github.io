@@ -10,6 +10,7 @@ import {
 	createViewer,
 	getDatasetSession,
 	ORION_CENTER_PC,
+	resolveFoundInSpaceDatasetOverrides,
 } from '@found-in-space/skykit';
 
 const DEFAULT_WESTERN_MANIFEST_URL =
@@ -31,6 +32,7 @@ const {
 const datasetSession = getDatasetSession(
 	createFoundInSpaceDatasetOptions({
 		id: 'website-learn-parallax',
+		...resolveFoundInSpaceDatasetOverrides(),
 		capabilities: {
 			sharedCaches: true,
 			bootstrapLoading: 'website-learn-parallax',
