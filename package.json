@@ -12,6 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.1.1"
+    "@found-in-space/skykit": "git+https://github.com/Found-in-Space/skykit.git#main",
+    "astro": "^6.1.1",
+    "three": "^0.170.0"
   }
 }

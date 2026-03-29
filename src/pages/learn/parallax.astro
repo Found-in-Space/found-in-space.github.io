@@ -1,0 +1,415 @@
+---
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import Layout from '../../layouts/Layout.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
+const debugPath = `${basePath}learn/parallax-debug/`;
+---
+
+<Layout
+	title="Parallax | Found in Space"
+	description="A SkyKit-powered parallax lesson that shifts the observing position around Orion with pointer or device motion."
+>
+	<header class="site-header">
+		<a class="wordmark" href={basePath} aria-label="Found in Space home">
+			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
+			<span class="wordmark__text">
+				<span class="wordmark__title">Found in Space</span>
+				<span class="wordmark__meta">Learn</span>
+			</span>
+		</a>
+		<nav class="site-nav" aria-label="Primary">
+			<a href={basePath}>Home</a>
+			<a href={`${basePath}#explore`}>Explore</a>
+			<a href={`${basePath}#learn`}>Learn</a>
+			<a href={`${basePath}#build`}>Build</a>
+			<a href={`${basePath}#about`}>About</a>
+		</nav>
+	</header>
+
+	<main class="page">
+		<section class="intro">
+			<p class="eyebrow">Learn</p>
+			<h1>Parallax</h1>
+			<p class="lede">
+				Parallax is the change in apparent position caused by a change in viewpoint. This example
+				keeps Orion as the target, then shifts the observing position a little from side to side so
+				you can watch nearby stars slide more than the distant background.
+			</p>
+			<div class="intro__actions">
+				<a class="button button--primary" href="#viewer">Try the lesson</a>
+				<a class="button button--ghost" href={constellationPath}>Back to the Orion fly-through</a>
+				<a class="button button--ghost" href={debugPath}>Open motion debug</a>
+			</div>
+		</section>
+
+		<section class="example" id="viewer">
+			<div class="guide panel">
+				<p class="panel__eyebrow">What to do</p>
+				<h2>Shift the viewpoint, keep the target fixed</h2>
+				<p>
+					Move the pointer across the viewer, or enable device motion on a tablet. The scene does
+					not rotate to a new target. Instead, Earth shifts sideways a little while Orion stays in
+					view, which makes the geometry easier to feel.
+				</p>
+				<div class="control-group">
+					<label for="parallax-offset">Observer offset</label>
+					<div class="control-row">
+						<input
+							id="parallax-offset"
+							data-parallax-offset
+							type="range"
+							min="0.02"
+							max="1.0"
+							step="0.01"
+							value="1.0"
+						/>
+						<span class="control-value" data-parallax-offset-value>0.12 pc</span>
+					</div>
+				</div>
+				<div class="guide__actions">
+					<button type="button" class="button button--ghost" data-action="enable-motion" hidden>
+						Enable Device Motion
+					</button>
+				</div>
+				<p class="meta-line">
+					Input mode: <span data-parallax-mode>pointer</span>
+				</p>
+				<p class="status">Status: <span data-parallax-status>Loading the parallax example…</span></p>
+			</div>
+
+			<div class="viewer-panel panel">
+				<div class="viewer-shell" data-example="parallax-viewer"></div>
+			</div>
+		</section>
+
+		<section class="notes">
+			<article class="panel">
+				<p class="panel__eyebrow">What to notice</p>
+				<h3>Not every star moves by the same amount</h3>
+				<p>
+					If all the stars were equally distant, they would shift together. The fact that they do
+					not is the clue that depth is hiding inside the familiar flat picture.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Why it matters</p>
+				<h3>Parallax is a measurement tool, not only a visual trick</h3>
+				<p>
+					In astronomy, parallax is one of the foundations of distance measurement. The same basic
+					geometry that makes this page work also helps us map the nearby galaxy.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Try next</p>
+				<h3>Compare it with free movement</h3>
+				<p>
+					The fly-through adds larger motion and open navigation. This page narrows the motion down
+					to a single idea so you can recognise the effect before you see it in a bigger journey.
+				</p>
+				<p class="notes__link">
+					<a href={constellationPath}>Open the constellation fly-through</a>
+				</p>
+				<p class="notes__link">
+					<a href={debugPath}>Open the motion debug sandbox</a>
+				</p>
+			</article>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<script>
+	import '../../scripts/examples/parallax-demo.js';
+</script>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 4;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		max-width: calc(var(--fis-max-width) + 3rem);
+		margin: 0 auto;
+		padding: 1rem 1.5rem 0;
+		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
+		backdrop-filter: blur(12px);
+	}
+
+	.wordmark {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0.65rem 0.85rem;
+		border-radius: 999px;
+		background: rgba(8, 15, 27, 0.68);
+		border: 1px solid var(--fis-line);
+		box-shadow: var(--fis-shadow);
+		text-decoration: none;
+	}
+
+	.wordmark__mark {
+		width: 2.25rem;
+		height: 2.25rem;
+		flex: 0 0 auto;
+		object-fit: contain;
+	}
+
+	.wordmark__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	.wordmark__title {
+		font-size: 1rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.wordmark__meta {
+		font-size: 0.78rem;
+		color: var(--fis-text-muted);
+	}
+
+	.site-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		font-size: 0.96rem;
+	}
+
+	.site-nav a,
+	.button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.7rem;
+		padding: 0.65rem 1rem;
+		border-radius: 999px;
+		border: 1px solid rgba(141, 183, 255, 0.18);
+		background: rgba(8, 15, 27, 0.62);
+		color: var(--fis-text-soft);
+		text-decoration: none;
+		transition:
+			transform 160ms ease,
+			border-color 160ms ease,
+			background-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.site-nav a:hover,
+	.button:hover {
+		transform: translateY(-1px);
+		border-color: rgba(242, 200, 121, 0.32);
+		background: rgba(15, 28, 50, 0.82);
+		color: var(--fis-text);
+	}
+
+	.button {
+		cursor: pointer;
+		font: inherit;
+	}
+
+	.button--primary {
+		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
+		border-color: rgba(242, 200, 121, 0.35);
+		color: #0d1524;
+	}
+
+	.button--ghost {
+		color: var(--fis-text);
+	}
+
+	.page {
+		max-width: var(--fis-max-width);
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.eyebrow,
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.intro {
+		padding: 2rem 0 1.5rem;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		font-size: clamp(2.8rem, 7vw, 5.2rem);
+		line-height: 0.94;
+		max-width: 8ch;
+	}
+
+	h2 {
+		font-size: 1.8rem;
+		line-height: 1.05;
+		margin-bottom: 0.75rem;
+	}
+
+	h3 {
+		font-size: 1.35rem;
+		line-height: 1.1;
+		margin-bottom: 0.7rem;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 0.95rem;
+	}
+
+	.lede {
+		max-width: 46rem;
+		margin-top: 1.25rem;
+		font-size: 1.12rem;
+	}
+
+	.intro__actions,
+	.guide__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		margin-top: 1.5rem;
+	}
+
+	.example,
+	.notes {
+		display: grid;
+		gap: 1rem;
+	}
+
+	.example {
+		grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+		align-items: start;
+		margin: 1.5rem 0 2rem;
+	}
+
+	.notes {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		margin-bottom: 2rem;
+	}
+
+	.panel {
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.guide,
+	.notes .panel {
+		padding: 1.45rem;
+	}
+
+	.viewer-panel {
+		padding: 1rem;
+	}
+
+	.viewer-shell {
+		width: 100%;
+		min-height: 36rem;
+		border-radius: calc(var(--fis-radius) - 0.25rem);
+		overflow: hidden;
+		background:
+			radial-gradient(circle at top, rgba(148, 220, 255, 0.08), transparent 20%),
+			#02040b;
+	}
+
+	.control-group {
+		margin-top: 1.35rem;
+	}
+
+	label {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: var(--fis-text);
+		font-size: 0.95rem;
+		font-family: var(--fis-font-ui);
+	}
+
+	.control-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.8rem;
+		align-items: center;
+	}
+
+	input[type='range'] {
+		width: 100%;
+	}
+
+	.control-value {
+		min-width: 3.8rem;
+		font-family: var(--fis-font-ui);
+		color: var(--fis-gold);
+		text-align: right;
+	}
+
+	.meta-line,
+	.status {
+		margin-top: 1rem;
+		font-size: 0.95rem;
+	}
+
+	.meta-line span,
+	.status span,
+	.notes__link a {
+		color: var(--fis-gold);
+	}
+
+	.notes__link a {
+		text-decoration-color: rgba(242, 200, 121, 0.42);
+	}
+
+	@media (max-width: 980px) {
+		.example,
+		.notes {
+			grid-template-columns: 1fr;
+		}
+
+		.viewer-shell {
+			min-height: 28rem;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.site-header {
+			align-items: flex-start;
+			flex-direction: column;
+			padding-bottom: 0.25rem;
+		}
+
+		.page {
+			padding-top: 2.2rem;
+		}
+
+		h1 {
+			font-size: clamp(2.4rem, 13vw, 4rem);
+		}
+	}
+</style>

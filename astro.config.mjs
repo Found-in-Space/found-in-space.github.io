@@ -13,10 +13,24 @@ const site =
 	(isGitHubActions && repository && repositoryOwner
 		? `https://${repositoryOwner}.github.io${isUserSite ? '/' : base}`
 		: undefined);
-
 // https://astro.build/config
 export default defineConfig({
 	output: 'static',
 	site,
 	base,
+	server: {
+		host: true,
+	},
+	vite: {
+		server: {
+			host: true,
+			// Local phone testing through tunnels can present many transient hostnames.
+			// Keep this open in dev rather than chasing each forwarded hostname.
+			allowedHosts: true,
+		},
+		preview: {
+			host: true,
+			allowedHosts: true,
+		},
+	},
 });

@@ -3,6 +3,8 @@ import MadeByKaj from '../components/MadeByKaj.astro';
 import Layout from '../layouts/Layout.astro';
 
 const basePath = import.meta.env.BASE_URL;
+const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
+const parallaxPath = `${basePath}learn/parallax/`;
 ---
 
 <Layout
@@ -36,7 +38,7 @@ const basePath = import.meta.env.BASE_URL;
 				learn from.
 			</p>
 			<div class="hero__actions">
-				<a class="button button--primary" href="#explore">Take a first look</a>
+				<a class="button button--primary" href={constellationFlyThroughPath}>Take a first look</a>
 				<a class="button button--ghost" href="#build">How it's built</a>
 			</div>
 			<div class="hero__note">
@@ -54,6 +56,15 @@ const basePath = import.meta.env.BASE_URL;
 					Start with constellations, bright stars, and recognisable patterns, then see what
 					changes when those same stars are placed in three-dimensional space.
 				</p>
+				<div class="panel__feature">
+					<p class="panel__feature-label">Now live</p>
+					<h3>Constellation fly-through</h3>
+					<p>
+						Begin with Orion, keep the familiar shape in view, and move through the local stars
+						until the flat pattern starts to open into depth.
+					</p>
+					<a class="panel__link" href={constellationFlyThroughPath}>Open the Orion example</a>
+				</div>
 			</article>
 			<article class="panel" id="learn">
 				<p class="panel__eyebrow">Learn</p>
@@ -63,6 +74,15 @@ const basePath = import.meta.env.BASE_URL;
 					simulation: plain-language concepts, structured pathways, and activities that can grow
 					into teaching material.
 				</p>
+				<div class="panel__feature">
+					<p class="panel__feature-label">First lesson</p>
+					<h3>Parallax</h3>
+					<p>
+						Shift the viewpoint with mouse or tablet motion and watch the nearby stars move
+						against the distant background, like a browser-native version of the GitHub 404 idea.
+					</p>
+					<a class="panel__link" href={parallaxPath}>Open the parallax lesson</a>
+				</div>
 			</article>
 			<article class="panel" id="build">
 				<p class="panel__eyebrow">Build</p>
@@ -103,6 +123,9 @@ const basePath = import.meta.env.BASE_URL;
 					A familiar pattern in the night sky becomes an entry point for perspective, parallax, and
 					the fact that stars which look adjacent from Earth may be separated by huge distances.
 				</p>
+				<p class="band__link">
+					<a href={constellationFlyThroughPath}>Start with the Orion fly-through</a>
+				</p>
 			</article>
 			<article class="band">
 				<p class="band__label">Choose your path</p>
@@ -110,6 +133,9 @@ const basePath = import.meta.env.BASE_URL;
 				<p>
 					Start with an experience, follow it with an explanation, or open up the technical stack.
 					Each route is different, but they are designed to connect.
+				</p>
+				<p class="band__link">
+					<a href={parallaxPath}>See the first Learn example</a>
 				</p>
 			</article>
 		</section>
@@ -327,6 +353,26 @@ const basePath = import.meta.env.BASE_URL;
 		padding: 1.45rem;
 	}
 
+	.panel__feature {
+		margin-top: 1.4rem;
+		padding-top: 1.15rem;
+		border-top: 1px solid rgba(141, 183, 255, 0.12);
+	}
+
+	.panel__feature-label {
+		margin-bottom: 0.45rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--fis-blue);
+	}
+
+	.panel__link,
+	.band__link a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.42);
+	}
+
 	.panel--accent {
 		background:
 			linear-gradient(180deg, rgba(242, 200, 121, 0.12), rgba(10, 20, 36, 0.78)),
@@ -371,6 +417,10 @@ const basePath = import.meta.env.BASE_URL;
 	.band {
 		padding: 1.45rem;
 		background: var(--fis-panel-strong);
+	}
+
+	.band__link {
+		margin-top: 1rem;
 	}
 
 	.about {

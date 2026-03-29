@@ -1,0 +1,406 @@
+---
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import Layout from '../../layouts/Layout.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const parallaxPath = `${basePath}learn/parallax/`;
+---
+
+<Layout
+	title="Constellations and 3D Space | Found in Space"
+	description="Fly through Orion to see how a familiar constellation changes when the stars are placed in three dimensions."
+>
+	<header class="site-header">
+		<a class="wordmark" href={basePath} aria-label="Found in Space home">
+			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
+			<span class="wordmark__text">
+				<span class="wordmark__title">Found in Space</span>
+				<span class="wordmark__meta">Explore</span>
+			</span>
+		</a>
+		<nav class="site-nav" aria-label="Primary">
+			<a href={basePath}>Home</a>
+			<a href={`${basePath}#explore`}>Explore</a>
+			<a href={`${basePath}#learn`}>Learn</a>
+			<a href={`${basePath}#build`}>Build</a>
+			<a href={`${basePath}#about`}>About</a>
+		</nav>
+	</header>
+
+	<main class="page">
+		<section class="intro">
+			<p class="eyebrow">Explore</p>
+			<h1>Constellations and 3D Space</h1>
+			<p class="lede">
+				Orion is a good starting point because almost everyone recognises it. This example keeps
+				the familiar shape in view, then lets you move through the local stars to see how quickly
+				the pattern loosens when perspective changes.
+			</p>
+			<div class="intro__actions">
+				<a class="button button--primary" href="#viewer">Open the fly-through</a>
+				<a class="button button--ghost" href={parallaxPath}>Next: learn parallax</a>
+			</div>
+		</section>
+
+		<section class="example" id="viewer">
+			<div class="guide panel">
+				<p class="panel__eyebrow">How to use it</p>
+				<h2>Fly through Orion</h2>
+				<p>
+					Drag to look around. Use <code>WASD</code> to move, with <code>Q/E</code> or
+					<code>Shift/Space</code> for vertical motion. If you get lost, jump back to the starting
+					view.
+				</p>
+				<div class="control-group">
+					<label for="constellation-mag-limit">Magnitude limit</label>
+					<div class="control-row">
+						<input
+							id="constellation-mag-limit"
+							data-constellation-mag-limit
+							type="range"
+							min="5"
+							max="9.5"
+							step="0.5"
+							value="7.5"
+						/>
+						<span class="control-value" data-constellation-mag-limit-value>7.5</span>
+					</div>
+				</div>
+				<div class="guide__actions">
+					<button type="button" class="button button--ghost" data-action="recenter-constellation">
+						Return to Orion
+					</button>
+				</div>
+				<p class="status">Status: <span data-constellation-status>Loading the Orion fly-through…</span></p>
+			</div>
+
+			<div class="viewer-panel panel">
+				<div class="viewer-shell" data-example="constellation-viewer"></div>
+			</div>
+		</section>
+
+		<section class="notes">
+			<article class="panel">
+				<p class="panel__eyebrow">Try this</p>
+				<h3>Move sideways, not only forward</h3>
+				<p>
+					Sideways motion is where the constellation starts to give itself away. The stars do not
+					all slide together because they are not all the same distance from Earth.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Notice</p>
+				<h3>A picture in the sky is not a structure in space</h3>
+				<p>
+					Constellations are patterns on our sky, not tight physical groups. They can still be
+					useful guides, but they are the beginning of the story, not the end.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Next step</p>
+				<h3>Learn what causes the shift</h3>
+				<p>
+					The parallax example keeps the target fixed and changes only the observing position, so
+					you can isolate the geometric effect behind what this fly-through makes visible.
+				</p>
+				<p class="notes__link">
+					<a href={parallaxPath}>Open the parallax lesson</a>
+				</p>
+			</article>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<script>
+	import '../../scripts/examples/constellation-fly-through.js';
+</script>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 4;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		max-width: calc(var(--fis-max-width) + 3rem);
+		margin: 0 auto;
+		padding: 1rem 1.5rem 0;
+		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
+		backdrop-filter: blur(12px);
+	}
+
+	.wordmark {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0.65rem 0.85rem;
+		border-radius: 999px;
+		background: rgba(8, 15, 27, 0.68);
+		border: 1px solid var(--fis-line);
+		box-shadow: var(--fis-shadow);
+		text-decoration: none;
+	}
+
+	.wordmark__mark {
+		width: 2.25rem;
+		height: 2.25rem;
+		flex: 0 0 auto;
+		object-fit: contain;
+	}
+
+	.wordmark__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+
+	.wordmark__title {
+		font-size: 1rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.wordmark__meta {
+		font-size: 0.78rem;
+		color: var(--fis-text-muted);
+	}
+
+	.site-nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		font-size: 0.96rem;
+	}
+
+	.site-nav a,
+	.button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.7rem;
+		padding: 0.65rem 1rem;
+		border-radius: 999px;
+		border: 1px solid rgba(141, 183, 255, 0.18);
+		background: rgba(8, 15, 27, 0.62);
+		color: var(--fis-text-soft);
+		text-decoration: none;
+		transition:
+			transform 160ms ease,
+			border-color 160ms ease,
+			background-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.site-nav a:hover,
+	.button:hover {
+		transform: translateY(-1px);
+		border-color: rgba(242, 200, 121, 0.32);
+		background: rgba(15, 28, 50, 0.82);
+		color: var(--fis-text);
+	}
+
+	.button {
+		cursor: pointer;
+		font: inherit;
+	}
+
+	.button--primary {
+		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
+		border-color: rgba(242, 200, 121, 0.35);
+		color: #0d1524;
+	}
+
+	.button--ghost {
+		color: var(--fis-text);
+	}
+
+	.page {
+		max-width: var(--fis-max-width);
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.eyebrow,
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.intro {
+		padding: 2rem 0 1.5rem;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		font-size: clamp(2.8rem, 7vw, 5.2rem);
+		line-height: 0.94;
+		max-width: 10ch;
+	}
+
+	h2 {
+		font-size: 1.8rem;
+		line-height: 1.05;
+		margin-bottom: 0.75rem;
+	}
+
+	h3 {
+		font-size: 1.35rem;
+		line-height: 1.1;
+		margin-bottom: 0.7rem;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 0.95rem;
+	}
+
+	.lede {
+		max-width: 44rem;
+		margin-top: 1.25rem;
+		font-size: 1.12rem;
+	}
+
+	.intro__actions,
+	.guide__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		margin-top: 1.5rem;
+	}
+
+	.example,
+	.notes {
+		display: grid;
+		gap: 1rem;
+	}
+
+	.example {
+		grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+		align-items: start;
+		margin: 1.5rem 0 2rem;
+	}
+
+	.notes {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		margin-bottom: 2rem;
+	}
+
+	.panel {
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.guide,
+	.notes .panel {
+		padding: 1.45rem;
+	}
+
+	.viewer-panel {
+		padding: 1rem;
+	}
+
+	.viewer-shell {
+		width: 100%;
+		min-height: 36rem;
+		border-radius: calc(var(--fis-radius) - 0.25rem);
+		overflow: hidden;
+		background:
+			radial-gradient(circle at top, rgba(148, 220, 255, 0.08), transparent 20%),
+			#02040b;
+	}
+
+	.control-group {
+		margin-top: 1.35rem;
+	}
+
+	label {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: var(--fis-text);
+		font-size: 0.95rem;
+		font-family: var(--fis-font-ui);
+	}
+
+	.control-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.8rem;
+		align-items: center;
+	}
+
+	input[type='range'] {
+		width: 100%;
+	}
+
+	.control-value {
+		min-width: 2.6rem;
+		font-family: var(--fis-font-ui);
+		color: var(--fis-gold);
+	}
+
+	.status {
+		margin-top: 1.15rem;
+		font-size: 0.95rem;
+		color: var(--fis-blue);
+	}
+
+	code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.92em;
+	}
+
+	.notes__link a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.42);
+	}
+
+	@media (max-width: 980px) {
+		.example,
+		.notes {
+			grid-template-columns: 1fr;
+		}
+
+		.viewer-shell {
+			min-height: 28rem;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.site-header {
+			align-items: flex-start;
+			flex-direction: column;
+			padding-bottom: 0.25rem;
+		}
+
+		.page {
+			padding-top: 2.2rem;
+		}
+
+		h1 {
+			font-size: clamp(2.4rem, 13vw, 4rem);
+		}
+	}
+</style>
