@@ -100,7 +100,7 @@ async function mountViewer() {
 			invertX: true,
 		},
 		motion: {
-			swapAxes: true,
+			swapAxes: false,
 			invertX: true,
 		},
 		onModeChange: setMode,

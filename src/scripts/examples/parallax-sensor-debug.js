@@ -75,6 +75,11 @@ const tiltTracker = createDeviceTiltTracker({
 		setValue('raw-beta', state.raw.beta.toFixed(2));
 		setValue('raw-gamma', state.raw.gamma.toFixed(2));
 		setValue('screen-angle-deg', `${state.screen.angleDeg.toFixed(1)} deg`);
+		setValue(
+			'screen-compensated-angle-deg',
+			`${(state.screen.compensatedAngleDeg ?? state.screen.angleDeg).toFixed(1)} deg`,
+		);
+		setValue('landscape-native', state.screen.landscapeNative ? 'yes' : 'no');
 		setValue('projected-x', state.projected.x.toFixed(4));
 		setValue('projected-y', state.projected.y.toFixed(4));
 		setValue('clamped-x', state.clamped.x.toFixed(4));
