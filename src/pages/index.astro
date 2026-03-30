@@ -6,6 +6,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 const basePath = import.meta.env.BASE_URL;
 const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
 const learnPath = `${basePath}learn/`;
+const aboutPath = `${basePath}about/`;
 ---
 
 <Layout
@@ -129,17 +130,15 @@ const learnPath = `${basePath}learn/`;
 
 		<section class="about" id="about">
 			<p class="eyebrow">About</p>
-			<h2>A labour of love for astronomy, data, and exploration.</h2>
+			<h2>Teaching through data. Learning through wonder.</h2>
 			<p>
-				Found in Space grows out of Kaj's long-standing love of astronomy, data science, and the joy of
-				exploration. It is an attempt to bring those things together in a form that feels open,
-				playful, and genuinely useful: something people can wander through, learn from, and build
-				on.
+				Found in Space exists because data is a wonderful way to learn about the universe, and
+				the universe is a wonderful way to learn about data. It takes real astronomical
+				measurements, shares the entire process of turning them into something explorable, and
+				uses what emerges to teach — asking questions as often as it provides answers.
 			</p>
-			<p>
-				The hope is simple: to make the nearby
-				universe feel a little more legible, and a little more alive, for anyone who arrives here
-				curious.
+			<p class="about__link">
+				<a href={aboutPath}>Read more about the project</a>
 			</p>
 		</section>
 
@@ -356,6 +355,10 @@ const learnPath = `${basePath}learn/`;
 	.about a {
 		color: var(--fis-gold);
 		text-decoration-color: rgba(242, 200, 121, 0.46);
+	}
+
+	.about__link {
+		margin-top: 1rem;
 	}
 
 	@media (max-width: 900px) {

@@ -1,0 +1,238 @@
+---
+import MadeByKaj from '../components/MadeByKaj.astro';
+import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const githubUrl = 'https://github.com/Found-in-Space';
+const kajUrl = 'https://www.k-si.com/';
+---
+
+<Layout
+	title="About | Found in Space"
+	description="Why Found in Space exists: teaching astronomy through data, exploration, and open code built on ESA's Gaia mission and beyond."
+>
+	<SiteHeader section="About the project" />
+
+	<main class="page">
+		<section class="about-hero">
+			<p class="eyebrow">About</p>
+			<h1>Teaching through data. Learning through wonder.</h1>
+			<p class="intro">
+				Found in Space exists because data is a wonderful way to learn about the universe, and
+				the universe is a wonderful way to learn about data. The two things feed each other, and
+				this project is an attempt to let that loop run in the open.
+			</p>
+		</section>
+
+		<section class="about-body" aria-label="About Found in Space">
+			<div class="panel panel--wide">
+				<h2>What this project is</h2>
+				<p>
+					At its heart, Found in Space is an educational project. It takes real astronomical
+					data — starting with ESA's extraordinary
+					<a href="https://www.cosmos.esa.int/web/gaia" rel="noopener noreferrer">Gaia mission</a>,
+					but reaching into many other catalogues too — and tries to make that data come alive
+					through interactive visualisations, guided explorations, and clear explanations.
+				</p>
+				<p>
+					But it doesn't stop at showing you a pretty picture. The whole pipeline is on display:
+					how to find and download stellar catalogues, how to clean and process them, how to
+					analyse and index them for the browser, and how to turn them into something you can
+					actually explore. Every step is shared, every line of code is
+					<a href={githubUrl}>open on GitHub</a>.
+				</p>
+				<p>
+					The site is part exhibit, part classroom, part lab. It might show you a constellation
+					and then pull the stars apart to reveal the depths behind the flat pattern. It might ask
+					you a question instead of giving you an answer, because the best way to understand
+					something is often to work it out for yourself.
+				</p>
+			</div>
+
+			<div class="panel">
+				<h2>Why Gaia?</h2>
+				<p>
+					The Gaia spacecraft has measured the positions, distances, motions, and colours of
+					nearly two billion stars with astonishing precision. It is one of the richest scientific
+					datasets ever assembled, and almost all of it is publicly available. That combination —
+					depth, precision, and openness — makes it an ideal foundation for teaching and
+					exploration.
+				</p>
+				<p>
+					Gaia is the starting point, but not the boundary. Found in Space pulls in data from
+					other missions and surveys wherever it helps tell a richer story, from photometric
+					catalogues to exoplanet databases.
+				</p>
+			</div>
+
+			<div class="panel">
+				<h2>Questions over answers</h2>
+				<p>
+					A lot of educational material tells you facts and asks you to remember them. Found in
+					Space tries something different: it sets up situations where curiosity can do the
+					work. Why do these stars look different colours? What happens to a constellation
+					when you leave Earth behind? How far away is "nearby" in astronomical terms?
+				</p>
+				<p>
+					The hope is that by exploring data directly — rotating a star field, comparing
+					measurements, following a guided journey — ideas click in a way that reading alone
+					can't quite achieve.
+				</p>
+			</div>
+
+			<div class="panel panel--wide">
+				<h2>Open everything</h2>
+				<p>
+					All the code behind Found in Space is published at
+					<a href={githubUrl}>github.com/Found-in-Space</a>: the data pipelines,
+					the spatial indexing, the streaming formats, the interactive viewer, and the website
+					itself. If you want to see how a visualisation works, you can read the source. If you
+					want to build on it, you can fork it.
+				</p>
+				<p>
+					This isn't openness for its own sake. It's because the process of turning raw
+					measurements into something people can explore is itself a lesson worth sharing.
+					Understanding how data becomes knowledge is just as valuable as the knowledge itself.
+				</p>
+			</div>
+		</section>
+
+		<section class="about-personal">
+			<div class="panel panel--accent">
+				<h2>Who's behind this</h2>
+				<p>
+					Found in Space is built by <a href={kajUrl}>Kaj Siebert</a> — an astrophysicist
+					by training who went on to spend two decades in data science and technology, mostly
+					working on projects that try to make complex systems more legible and more humane.
+				</p>
+				<p>
+					But astronomy never really went away. The PhD might be a long time ago, but the
+					fascination with what's out there, and the belief that data is a beautiful way to
+					get closer to it, stuck around. Found in Space is what happens when that thread
+					finally gets pulled properly: a return to the stars, armed with everything learned
+					along the way about data, code, visualisation, and — maybe most importantly — how
+					people actually learn.
+				</p>
+				<p>
+					Kaj has spent the last decade running science outreach with CERN through
+					<a href="https://www.bigbangcollective.com/" rel="noopener noreferrer">The Big Bang Collective</a>,
+					and has always believed that the best learning happens through play. Found in Space
+					carries that same spirit: serious data, but never a dry lecture. The aim is to build
+					something people can wander through, get curious about, and genuinely enjoy.
+				</p>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		position: relative;
+		min-height: 100vh;
+		max-width: var(--fis-max-width);
+		padding: 3.5rem 1.5rem 5rem;
+		margin: 0 auto;
+	}
+
+	.eyebrow {
+		margin: 0 0 1rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.about-hero {
+		max-width: 52rem;
+		padding: 4.2rem 0 2.4rem;
+	}
+
+	.intro {
+		max-width: 46rem;
+		font-size: 1.15rem;
+		line-height: 1.7;
+	}
+
+	h1,
+	h2 {
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		margin: 0 0 1.2rem;
+		font-size: clamp(2.5rem, 6vw, 4.4rem);
+		line-height: 0.98;
+		max-width: 18ch;
+	}
+
+	h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.6rem;
+		line-height: 1.1;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 1rem;
+	}
+
+	a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.46);
+	}
+
+	.about-body {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.about-personal {
+		margin-bottom: 4rem;
+	}
+
+	.panel {
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+		padding: 1.5rem;
+	}
+
+	.panel--wide {
+		grid-column: 1 / -1;
+	}
+
+	.panel--accent {
+		background:
+			linear-gradient(180deg, rgba(242, 200, 121, 0.10), rgba(10, 20, 36, 0.78)),
+			var(--fis-panel);
+	}
+
+	@media (max-width: 900px) {
+		.about-body {
+			grid-template-columns: 1fr;
+		}
+
+		.panel--wide {
+			grid-column: auto;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.page {
+			padding-top: 2.25rem;
+		}
+	}
+</style>
