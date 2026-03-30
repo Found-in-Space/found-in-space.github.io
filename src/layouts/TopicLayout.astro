@@ -1,0 +1,87 @@
+---
+import Layout from './Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import TopicNext from '../components/TopicNext.astro';
+import MadeByKaj from '../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../components/TopicSkykitViewer.astro';
+
+interface Props {
+	title: string;
+	summary: string;
+	topicNumber: number;
+	nextTopics: Array<{ slug: string; title: string }>;
+	viewer: {
+		variant: 'neighbourhood' | 'constellation' | 'parsec' | 'lightyear';
+		topic: string;
+		highlight?: string;
+		showHr?: boolean;
+		offsetPc?: number;
+		maxSpeed?: number;
+	};
+}
+
+const { title, summary, topicNumber, nextTopics, viewer } = Astro.props;
+const hasViewerGuide = Astro.slots.has('viewer-guide');
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page page--narrow">
+		<article class="topic-content">
+			<p class="eyebrow">Topic {String(topicNumber).padStart(2, '0')}</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<slot />
+			</section>
+
+			<TopicSkykitViewer
+				variant={viewer.variant}
+				topic={viewer.topic}
+				highlight={viewer.highlight}
+				showHr={viewer.showHr}
+				offsetPc={viewer.offsetPc}
+				maxSpeed={viewer.maxSpeed}
+			>
+				{hasViewerGuide && <slot name="viewer-guide" slot="guide" />}
+			</TopicSkykitViewer>
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body :global(p) {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.body :global(.callout h3) {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+</style>

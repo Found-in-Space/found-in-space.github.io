@@ -1,0 +1,114 @@
+/* ───────────────────────────────────────────────────
+   components.css — Shared UI primitives
+   ─────────────────────────────────────────────────── */
+
+/* ── Page container ────────────────────────────── */
+
+.page {
+	max-width: var(--fis-max-width);
+	margin: 0 auto;
+	padding: 3.2rem 1.5rem 5rem;
+}
+
+.page--narrow {
+	max-width: 48rem;
+}
+
+/* ── Typography helpers ────────────────────────── */
+
+.eyebrow {
+	margin: 0 0 0.8rem;
+	font-size: 0.8rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--fis-gold);
+}
+
+.lede {
+	margin-top: 1.5rem;
+	font-size: 1.25rem;
+	line-height: 1.7;
+	color: var(--fis-text-soft);
+}
+
+/* ── Buttons ───────────────────────────────────── */
+
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.8rem;
+	padding: 0.75rem 1.25rem;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	background: transparent;
+	text-decoration: none;
+	font: inherit;
+	font-size: 0.96rem;
+	cursor: pointer;
+	transition: transform 160ms ease;
+}
+
+.button:hover {
+	transform: translateY(-1px);
+}
+
+.button--primary {
+	background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
+	border-color: rgba(242, 200, 121, 0.35);
+	color: #0d1524;
+}
+
+.button--ghost {
+	border-color: var(--fis-line-strong);
+	color: var(--fis-text);
+}
+
+/* ── Panel / card ──────────────────────────────── */
+
+.panel {
+	background: var(--fis-panel);
+	border: 1px solid var(--fis-line);
+	border-radius: var(--fis-radius);
+	backdrop-filter: blur(10px);
+	box-shadow: var(--fis-shadow);
+	padding: 1.45rem;
+}
+
+.panel--accent {
+	background:
+		linear-gradient(180deg, rgba(242, 200, 121, 0.12), rgba(10, 20, 36, 0.78)),
+		var(--fis-panel);
+}
+
+.panel--featured {
+	background:
+		linear-gradient(165deg, rgba(242, 200, 121, 0.08), transparent 60%),
+		var(--fis-panel);
+	border-color: rgba(242, 200, 121, 0.25);
+}
+
+.panel--wide {
+	grid-column: 1 / -1;
+}
+
+.panel__eyebrow {
+	margin: 0 0 0.8rem;
+	font-size: 0.8rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--fis-gold);
+}
+
+/* ── Callout (used with .panel) ────────────────── */
+
+.callout {
+	margin: 3rem 0;
+	padding: 2rem;
+}
+
+@media (max-width: 900px) {
+	.panel--wide {
+		grid-column: auto;
+	}
+}

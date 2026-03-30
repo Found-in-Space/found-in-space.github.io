@@ -112,36 +112,6 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 </script>
 
 <style>
-	.button {
-		cursor: pointer;
-		font: inherit;
-	}
-
-	.button--primary {
-		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
-		border-color: rgba(242, 200, 121, 0.35);
-		color: #0d1524;
-	}
-
-	.button--ghost {
-		color: var(--fis-text);
-	}
-
-	.page {
-		max-width: var(--fis-max-width);
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.eyebrow,
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
 	.intro {
 		padding: 2rem 0 1.5rem;
 	}
@@ -211,19 +181,6 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 	.notes {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		margin-bottom: 2rem;
-	}
-
-	.panel {
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-		box-shadow: var(--fis-shadow);
-	}
-
-	.guide,
-	.notes .panel {
-		padding: 1.45rem;
 	}
 
 	.viewer-panel {

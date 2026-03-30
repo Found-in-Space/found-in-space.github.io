@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'What Gaia measures';
 const summary = 'Gaia measures position, parallax, motion, and brightness for an enormous number of stars, giving us an unprecedented 3D map of the sky.';
@@ -13,118 +9,37 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={6}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'neighbourhood', topic: 'what-gaia-measures' }}
+>
+	<p>
+		Gaia is a space observatory operated by the European Space Agency (ESA). Launched
+		in 2013, its mission is to create the most precise three-dimensional map of our
+		galaxy.
+	</p>
+	<p>
+		Gaia scans the sky continuously, measuring the positions, distances (via parallax),
+		and motions (proper motion) of nearly two billion stars. It also measures the
+		brightness and colour of these stars, which allows astronomers to calculate
+		their temperatures and luminosities.
+	</p>
+	<p>
+		The data from Gaia has revolutionised our understanding of the Milky Way. It has
+		revealed evidence of ancient galactic mergers, the structure of our spiral arms,
+		and the existence of many previously unknown nearby stars and brown dwarfs.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 06</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					Gaia is a space observatory operated by the European Space Agency (ESA). Launched
-					in 2013, its mission is to create the most precise three-dimensional map of our
-					galaxy.
-				</p>
-				<p>
-					Gaia scans the sky continuously, measuring the positions, distances (via parallax),
-					and motions (proper motion) of nearly two billion stars. It also measures the
-					brightness and colour of these stars, which allows astronomers to calculate
-					their temperatures and luminosities.
-				</p>
-				<p>
-					The data from Gaia has revolutionised our understanding of the Milky Way. It has
-					revealed evidence of ancient galactic mergers, the structure of our spiral arms,
-					and the existence of many previously unknown nearby stars and brown dwarfs.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">Precision Data</p>
-					<h3>Astrometry at its peak</h3>
-					<p>
-						Gaia's measurements are so precise that they have revealed small ripples in the
-						motions of stars caused by the gravitational pull of orbiting planets and
-						even the invisible dark matter that surrounds our galaxy.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer variant="neighbourhood" topic="what-gaia-measures" />
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">Precision Data</p>
+		<h3>Astrometry at its peak</h3>
+		<p>
+			Gaia's measurements are so precise that they have revealed small ripples in the
+			motions of stars caused by the gravitational pull of orbiting planets and
+			even the invisible dark matter that surrounds our galaxy.
+		</p>
+	</div>
+</TopicLayout>

@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'Open clusters and moving groups';
 const summary = 'Some stars share common origins and motions, allowing Gaia to reveal loose families and dissolved clusters across the sky.';
@@ -13,125 +9,40 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={14}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'neighbourhood', topic: 'open-clusters-and-moving-groups', showHr: true }}
+>
+	<p>
+		Stars are rarely born alone. They usually form in large clouds of gas and dust
+		that collapse and fragment into dozens, hundreds, or even thousands of
+		individual stars. These newborn stars are initially held together by gravity
+		in "open clusters."
+	</p>
+	<p>
+		Over time, these clusters slowly dissolve as the stars drift away from each other.
+		However, they still share a common origin, a common chemical composition,
+		and a common motion through the galaxy. These loose collections are called
+		"moving groups."
+	</p>
+	<p>
+		By measuring the precise positions and velocities of stars, Gaia has revealed
+		many hidden families of stars that were previously thought to be unrelated.
+		Finding these groups helps astronomers piece together the history of star
+		formation in the Milky Way and the movements of our galaxy's disc.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 14</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					Stars are rarely born alone. They usually form in large clouds of gas and dust
-					that collapse and fragment into dozens, hundreds, or even thousands of
-					individual stars. These newborn stars are initially held together by gravity
-					in "open clusters."
-				</p>
-				<p>
-					Over time, these clusters slowly dissolve as the stars drift away from each other.
-					However, they still share a common origin, a common chemical composition,
-					and a common motion through the galaxy. These loose collections are called
-					"moving groups."
-				</p>
-				<p>
-					By measuring the precise positions and velocities of stars, Gaia has revealed
-					many hidden families of stars that were previously thought to be unrelated.
-					Finding these groups helps astronomers piece together the history of star
-					formation in the Milky Way and the movements of our galaxy's disc.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">Stellar Genealogy</p>
-					<h3>Tracing the Past</h3>
-					<p>
-						In the solar neighbourhood, Gaia has identified several moving groups that
-						originated from the same star-forming region millions of years ago. These
-						stars are now spread across the sky, yet their shared motion remains a
-						clue to their common birth.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer
-				variant="neighbourhood"
-				topic="open-clusters-and-moving-groups"
-				showHr={true}
-			/>
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">Stellar Genealogy</p>
+		<h3>Tracing the Past</h3>
+		<p>
+			In the solar neighbourhood, Gaia has identified several moving groups that
+			originated from the same star-forming region millions of years ago. These
+			stars are now spread across the sky, yet their shared motion remains a
+			clue to their common birth.
+		</p>
+	</div>
+</TopicLayout>

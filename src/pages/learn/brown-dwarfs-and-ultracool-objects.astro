@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'Brown dwarfs and ultracool objects';
 const summary = 'Brown dwarfs are too small to sustain ordinary hydrogen fusion. They are faint, cool, and hard for optical surveys like Gaia to detect at larger distances.';
@@ -13,123 +9,37 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={12}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'neighbourhood', topic: 'brown-dwarfs-and-ultracool-objects', highlight: 'brown-dwarfs', showHr: true }}
+>
+	<p>
+		Not every object formed in space becomes a star. Brown dwarfs are often called
+		"failed stars" because they do not have enough mass (less than 8% of the Sun's mass)
+		to ignite hydrogen fusion in their cores.
+	</p>
+	<p>
+		These objects are essentially the link between the most massive planets (like Jupiter)
+		and the smallest stars (red dwarfs). They emit heat as they cool down, but
+		they do not shine with their own light like main-sequence stars do.
+	</p>
+	<p>
+		Because they are so cool and faint, brown dwarfs are very difficult to detect, especially
+		at larger distances. Many "ultracool dwarfs" have only been discovered recently,
+		thanks to Gaia's ability to measure the faint infrared light they emit and their
+		slight gravitational pull on nearby objects.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 12</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					Not every object formed in space becomes a star. Brown dwarfs are often called
-					"failed stars" because they do not have enough mass (less than 8% of the Sun's mass)
-					to ignite hydrogen fusion in their cores.
-				</p>
-				<p>
-					These objects are essentially the link between the most massive planets (like Jupiter)
-					and the smallest stars (red dwarfs). They emit heat as they cool down, but
-					they do not shine with their own light like main-sequence stars do.
-				</p>
-				<p>
-					Because they are so cool and faint, brown dwarfs are very difficult to detect, especially
-					at larger distances. Many "ultracool dwarfs" have only been discovered recently,
-					thanks to Gaia's ability to measure the faint infrared light they emit and their
-					slight gravitational pull on nearby objects.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">A Growing Inventory</p>
-					<h3>Mapping the Faint</h3>
-					<p>
-						A key part of modern astronomy is completing our inventory of the solar
-						neighbourhood. Brown dwarfs are almost certainly the most common objects in the
-						local galaxy, yet we have only just begun to find them all.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer
-				variant="neighbourhood"
-				topic="brown-dwarfs-and-ultracool-objects"
-				highlight="brown-dwarfs"
-				showHr={true}
-			/>
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">A Growing Inventory</p>
+		<h3>Mapping the Faint</h3>
+		<p>
+			A key part of modern astronomy is completing our inventory of the solar
+			neighbourhood. Brown dwarfs are almost certainly the most common objects in the
+			local galaxy, yet we have only just begun to find them all.
+		</p>
+	</div>
+</TopicLayout>

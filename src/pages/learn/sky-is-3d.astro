@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'The sky is 3D';
 const summary = 'Constellations look flat from Earth, but the stars that make them are spread through space at very different distances.';
@@ -14,118 +10,37 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={1}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'constellation', topic: 'sky-is-3d' }}
+>
+	<p>
+		When we look up at night, the sky feels like a single, distant canopy. The stars of
+		Orion or the Big Dipper seem to belong together because they form a recognisable
+		pattern on that flat surface. In reality, that flatness is an illusion of perspective.
+	</p>
+	<p>
+		A constellation is a human-made grouping. If you were to move even a few dozen
+		light-years away from Earth, the stars that make up Orion would begin to drift apart.
+		Some stars are "nearby" (within 20–50 light-years), while others in the same pattern
+		might be hundreds or thousands of light-years further away.
+	</p>
+	<p>
+		To truly understand the galaxy, we have to stop seeing the sky as a map on a sphere and
+		start seeing it as a volume of space. This shift from 2D to 3D is the core of modern
+		astrometry.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 01</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					When we look up at night, the sky feels like a single, distant canopy. The stars of
-					Orion or the Big Dipper seem to belong together because they form a recognisable
-					pattern on that flat surface. In reality, that flatness is an illusion of perspective.
-				</p>
-				<p>
-					A constellation is a human-made grouping. If you were to move even a few dozen
-					light-years away from Earth, the stars that make up Orion would begin to drift apart.
-					Some stars are "nearby" (within 20–50 light-years), while others in the same pattern
-					might be hundreds or thousands of light-years further away.
-				</p>
-				<p>
-					To truly understand the galaxy, we have to stop seeing the sky as a map on a sphere and
-					start seeing it as a volume of space. This shift from 2D to 3D is the core of modern
-					astrometry.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">Key Idea</p>
-					<h3>Perspective is everything</h3>
-					<p>
-						If you could view the Solar System from the side, you would see that the "flat"
-						night sky is actually a deep corridor of stars, each at a vastly different stage of
-						life and distance from us.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer variant="constellation" topic="sky-is-3d" />
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">Key Idea</p>
+		<h3>Perspective is everything</h3>
+		<p>
+			If you could view the Solar System from the side, you would see that the "flat"
+			night sky is actually a deep corridor of stars, each at a vastly different stage of
+			life and distance from us.
+		</p>
+	</div>
+</TopicLayout>

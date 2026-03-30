@@ -77,22 +77,8 @@ const parallaxPath = `${basePath}learn/parallax/`;
 </Layout>
 
 <style>
-	.page {
-		max-width: var(--fis-max-width);
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
 	.hero {
 		padding: 2rem 0 3rem;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
 	}
 
 	h1 {
@@ -105,10 +91,7 @@ const parallaxPath = `${basePath}learn/parallax/`;
 
 	.lede {
 		max-width: 44rem;
-		margin-top: 1.5rem;
 		font-size: 1.18rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
 	}
 
 	.section-grid {
@@ -122,25 +105,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 		display: flex;
 		flex-direction: column;
 		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-		box-shadow: var(--fis-shadow);
-	}
-
-	.panel--featured {
-		background: linear-gradient(165deg, rgba(242, 200, 121, 0.08), transparent 60%),
-			var(--fis-panel);
-		border-color: rgba(242, 200, 121, 0.25);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.85rem;
-		font-size: 0.78rem;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
 	}
 
 	h2 {
@@ -155,32 +119,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 		margin: 0 0 1.5rem;
 		line-height: 1.7;
 		color: var(--fis-text-soft);
-	}
-
-	.button {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 2.8rem;
-		padding: 0.75rem 1.25rem;
-		border-radius: 999px;
-		text-decoration: none;
-		font-size: 0.96rem;
-		transition: transform 160ms ease;
-	}
-
-	.button:hover {
-		transform: translateY(-1px);
-	}
-
-	.button--primary {
-		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
-		color: #0d1524;
-	}
-
-	.button--ghost {
-		border: 1px solid var(--fis-line-strong);
-		color: var(--fis-text);
 	}
 
 	.notes {

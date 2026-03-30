@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'Apparent magnitude and absolute magnitude';
 const summary = 'A star can look bright because it is nearby, or because it is intrinsically luminous. Magnitude helps separate those ideas.';
@@ -13,118 +9,37 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={7}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'neighbourhood', topic: 'apparent-vs-absolute-magnitude' }}
+>
+	<p>
+		In astronomy, magnitude is the measure of a star's brightness. Apparent magnitude
+		is how bright a star looks to us on Earth. This depends on both the star's real
+		brightness (luminosity) and its distance from us.
+	</p>
+	<p>
+		A star can look very bright just because it is extremely close (like Sirius),
+		even if it isn't unusually luminous. Conversely, a very luminous star can look
+		faint if it is far away (like Rigel).
+	</p>
+	<p>
+		To compare stars fairly, astronomers use absolute magnitude. This is the magnitude
+		a star would have if it were placed at a standard distance of 10 parsecs
+		(about 32.6 light-years). Absolute magnitude measures a star's intrinsic luminosity.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 07</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					In astronomy, magnitude is the measure of a star's brightness. Apparent magnitude
-					is how bright a star looks to us on Earth. This depends on both the star's real
-					brightness (luminosity) and its distance from us.
-				</p>
-				<p>
-					A star can look very bright just because it is extremely close (like Sirius),
-					even if it isn't unusually luminous. Conversely, a very luminous star can look
-					faint if it is far away (like Rigel).
-				</p>
-				<p>
-					To compare stars fairly, astronomers use absolute magnitude. This is the magnitude
-					a star would have if it were placed at a standard distance of 10 parsecs
-					(about 32.6 light-years). Absolute magnitude measures a star's intrinsic luminosity.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">Inverse Square Law</p>
-					<h3>Brightness drops quickly</h3>
-					<p>
-						As you move away from a star, its apparent brightness drops off with the square
-						of the distance. Double the distance, and the star becomes four times fainter.
-						This is why distance measurement is so crucial for understanding the real
-						nature of the stars we see.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer variant="neighbourhood" topic="apparent-vs-absolute-magnitude" />
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">Inverse Square Law</p>
+		<h3>Brightness drops quickly</h3>
+		<p>
+			As you move away from a star, its apparent brightness drops off with the square
+			of the distance. Double the distance, and the star becomes four times fainter.
+			This is why distance measurement is so crucial for understanding the real
+			nature of the stars we see.
+		</p>
+	</div>
+</TopicLayout>

@@ -1,9 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import SiteHeader from '../../components/SiteHeader.astro';
-import TopicNext from '../../components/TopicNext.astro';
-import MadeByKaj from '../../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+import TopicLayout from '../../layouts/TopicLayout.astro';
 
 const title = 'White dwarfs: dead stars still glowing';
 const summary = 'White dwarfs are the dense cooling remnants of ordinary stars and form a distinct faint branch in stellar-population plots.';
@@ -13,123 +9,37 @@ const nextTopics = [
 ];
 ---
 
-<Layout title={`${title} | Learn | Found in Space`}>
-	<SiteHeader section="Learn" />
+<TopicLayout
+	title={title}
+	summary={summary}
+	topicNumber={11}
+	nextTopics={nextTopics}
+	viewer={{ variant: 'neighbourhood', topic: 'white-dwarfs-dead-stars-still-glowing', highlight: 'white-dwarfs', showHr: true }}
+>
+	<p>
+		When a star like our Sun runs out of fuel, it doesn't just disappear. Instead, it
+		expels its outer layers (forming a planetary nebula) and leaves behind its
+		extremely dense, hot core. This core is a white dwarf.
+	</p>
+	<p>
+		White dwarfs are roughly the size of the Earth, but they have the mass of a full
+		Sun. This means their density is almost unimaginable: a single teaspoon of
+		white dwarf material would weigh as much as a mountain.
+	</p>
+	<p>
+		Because they are no longer undergoing fusion, white dwarfs are essentially "dead"
+		stars. They are simply cooling down over billions of years. In the nearby solar
+		neighbourhood, many of the faintest objects we can detect are these cooling
+		corpses of ancient stars.
+	</p>
 
-	<main class="page">
-		<article class="topic-content">
-			<p class="eyebrow">Topic 11</p>
-			<h1>{title}</h1>
-			<p class="lede">{summary}</p>
-
-			<section class="body">
-				<p>
-					When a star like our Sun runs out of fuel, it doesn't just disappear. Instead, it
-					expels its outer layers (forming a planetary nebula) and leaves behind its
-					extremely dense, hot core. This core is a white dwarf.
-				</p>
-				<p>
-					White dwarfs are roughly the size of the Earth, but they have the mass of a full
-					Sun. This means their density is almost unimaginable: a single teaspoon of
-					white dwarf material would weigh as much as a mountain.
-				</p>
-				<p>
-					Because they are no longer undergoing fusion, white dwarfs are essentially "dead"
-					stars. They are simply cooling down over billions of years. In the nearby solar
-					neighbourhood, many of the faintest objects we can detect are these cooling
-					corpses of ancient stars.
-				</p>
-
-				<div class="callout panel">
-					<p class="panel__eyebrow">The Future of the Sun</p>
-					<h3>Our Sun’s Ultimate Destiny</h3>
-					<p>
-						In about five billion years, our own Sun will become a white dwarf. It will
-						slowly cool over many billions more years until it eventually becomes a cold,
-						black dwarf—a fate it will share with most of the stars in the Milky Way.
-					</p>
-				</div>
-			</section>
-
-			<TopicSkykitViewer
-				variant="neighbourhood"
-				topic="white-dwarfs-dead-stars-still-glowing"
-				highlight="white-dwarfs"
-				showHr={true}
-			/>
-
-			<TopicNext topics={nextTopics} />
-		</article>
-
-		<MadeByKaj />
-	</main>
-</Layout>
-
-<style>
-	.page {
-		max-width: 48rem;
-		margin: 0 auto;
-		padding: 3.2rem 1.5rem 5rem;
-	}
-
-	.topic-content {
-		padding: 2rem 0;
-	}
-
-	.eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	h1 {
-		font-size: clamp(2.4rem, 6vw, 3.8rem);
-		line-height: 1.05;
-		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		margin-top: 1.5rem;
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	.body {
-		margin-top: 3rem;
-	}
-
-	.body p {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.callout {
-		margin: 3rem 0;
-		padding: 2rem;
-		background: var(--fis-panel);
-		border: 1px solid var(--fis-line);
-		border-radius: var(--fis-radius);
-		backdrop-filter: blur(10px);
-	}
-
-	.callout h3 {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
-	}
-
-	.panel__eyebrow {
-		margin: 0 0 0.8rem;
-		font-size: 0.8rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-</style>
+	<div class="callout panel">
+		<p class="panel__eyebrow">The Future of the Sun</p>
+		<h3>Our Sun's Ultimate Destiny</h3>
+		<p>
+			In about five billion years, our own Sun will become a white dwarf. It will
+			slowly cool over many billions more years until it eventually becomes a cold,
+			black dwarf—a fate it will share with most of the stars in the Milky Way.
+		</p>
+	</div>
+</TopicLayout>
