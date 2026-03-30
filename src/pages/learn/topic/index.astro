@@ -1,0 +1,139 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+
+const topics = (await getCollection('topics'))
+	.sort((a, b) => a.data.topic_number - b.data.topic_number);
+---
+
+<Layout
+	title="Topics | Learn | Found in Space"
+	description="Concise astronomical explainers covering distance, brightness, stellar types, and the structure of the solar neighbourhood."
+>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<header class="hero">
+			<p class="eyebrow">Learn</p>
+			<h1>Topics</h1>
+			<p class="lede">
+				Each topic is a short, self-contained explainer built on real data from ESA's Gaia
+				mission. Read them in order or jump to whatever catches your eye.
+			</p>
+		</header>
+
+		<section class="topic-list">
+			<div class="topic-grid">
+				{
+					topics.map((topic, index) => (
+						<article class="topic-card">
+							<span class="topic-number">{String(index + 1).padStart(2, '0')}</span>
+							<div class="topic-card__content">
+								<h3>{topic.data.title}</h3>
+								<p>{topic.data.summary}</p>
+								<a href={`${basePath}learn/topic/${topic.id}/`} class="topic-card__link">
+									Read topic
+								</a>
+							</div>
+						</article>
+					))
+				}
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 4rem 0 3rem;
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 4.2rem);
+		line-height: 1.05;
+		margin: 0 0 1.5rem;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		max-width: 44rem;
+		margin-bottom: 2rem;
+	}
+
+	.topic-grid {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	.topic-card {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 2rem;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.topic-card:hover {
+		border-color: rgba(242, 200, 121, 0.3);
+		transform: translateX(8px);
+	}
+
+	.topic-number {
+		font-size: 3rem;
+		font-weight: 700;
+		line-height: 1;
+		color: rgba(242, 200, 121, 0.15);
+		font-family: var(--fis-font-ui);
+	}
+
+	.topic-card h3 {
+		margin: 0 0 0.6rem;
+		font-size: 1.45rem;
+		font-weight: 600;
+		color: var(--fis-text);
+	}
+
+	.topic-card p {
+		margin: 0 0 1.25rem;
+		line-height: 1.65;
+		color: var(--fis-text-soft);
+		max-width: 42rem;
+	}
+
+	.topic-card__link {
+		display: inline-flex;
+		color: var(--fis-gold);
+		font-size: 0.94rem;
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	@media (max-width: 720px) {
+		.topic-card {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+			padding: 1.5rem;
+		}
+
+		.topic-number {
+			font-size: 2rem;
+		}
+
+		.topic-card:hover {
+			transform: none;
+		}
+	}
+</style>

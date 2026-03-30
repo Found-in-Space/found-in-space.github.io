@@ -13,7 +13,7 @@ const basePath = import.meta.env.BASE_URL;
 		<div class="topic-next__grid">
 			{
 				topics.map((topic) => (
-					<a href={`${basePath}learn/${topic.slug}/`} class="topic-next__link">
+					<a href={`${basePath}learn/topic/${topic.slug}/`} class="topic-next__link">
 						<h3>{topic.title}</h3>
 						<span class="topic-next__arrow">→</span>
 					</a>

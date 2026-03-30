@@ -1,0 +1,41 @@
+---
+import { getCollection, render } from 'astro:content';
+import TopicLayout from '../../../layouts/TopicLayout.astro';
+
+export async function getStaticPaths() {
+	const topics = await getCollection('topics');
+	return topics.map((entry) => ({
+		params: { slug: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const allTopics = await getCollection('topics');
+const topicIndex = new Map(allTopics.map((t) => [t.id, t.data.title]));
+
+const nextTopics = entry.data.next_topics
+	.filter((slug) => {
+		if (!topicIndex.has(slug)) {
+			console.warn(`[topics] "${entry.id}" references next_topic "${slug}" which does not exist`);
+			return false;
+		}
+		return true;
+	})
+	.map((slug) => ({ slug, title: topicIndex.get(slug)! }));
+---
+
+<TopicLayout
+	title={entry.data.title}
+	summary={entry.data.summary}
+	topicNumber={entry.data.topic_number}
+	nextTopics={nextTopics}
+	viewer={entry.data.viewer}
+>
+	<Content />
+	{entry.data.viewer_guide && (
+		<Fragment slot="viewer-guide" set:html={entry.data.viewer_guide} />
+	)}
+</TopicLayout>

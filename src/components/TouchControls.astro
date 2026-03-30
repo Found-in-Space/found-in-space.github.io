@@ -1,0 +1,254 @@
+---
+/**
+ * On-screen directional controls for touch devices.
+ *
+ * Renders a d-pad that synthesises keyboard events (WASD / arrow keys /
+ * Shift / Space) so the existing skykit controllers work without changes.
+ * Hidden by default — the client script shows the controls only when the
+ * device capabilities module reports a touch-primary input.
+ *
+ * Usage:
+ *   <TouchControls />
+ *   <TouchControls variant="arrows" />       ← arrow-key d-pad only
+ *   <TouchControls variant="wasd" />          ← WASD + vertical only
+ *   <TouchControls variant="full" />          ← both clusters (default)
+ */
+interface Props {
+	variant?: 'full' | 'wasd' | 'arrows';
+}
+
+const { variant = 'full' } = Astro.props;
+const showWasd = variant === 'full' || variant === 'wasd';
+const showArrows = variant === 'full' || variant === 'arrows';
+---
+
+<div class="touch-controls" data-touch-controls hidden>
+	{showWasd && (
+		<div class="touch-controls__cluster" data-cluster="wasd">
+			<button type="button" class="tc-btn tc-btn--up" data-tc-key="KeyW" aria-label="Forward (W)">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--left" data-tc-key="KeyA" aria-label="Strafe left (A)">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l9-7v14z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--right" data-tc-key="KeyD" aria-label="Strafe right (D)">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12l-9 7V5z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--down" data-tc-key="KeyS" aria-label="Backward (S)">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l-7-9h14z"/></svg>
+			</button>
+			<div class="tc-verticals">
+				<button type="button" class="tc-btn tc-btn--sm" data-tc-key="Space" aria-label="Up (Space)">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>
+				</button>
+				<button type="button" class="tc-btn tc-btn--sm" data-tc-key="ShiftLeft" aria-label="Down (Shift)">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l-7-9h14z"/></svg>
+				</button>
+			</div>
+		</div>
+	)}
+
+	{showArrows && (
+		<div class="touch-controls__cluster" data-cluster="arrows">
+			<button type="button" class="tc-btn tc-btn--up" data-tc-key="ArrowUp" aria-label="Pitch up">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l7 9H5z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--left" data-tc-key="ArrowLeft" aria-label="Roll left">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l9-7v14z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--right" data-tc-key="ArrowRight" aria-label="Roll right">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12l-9 7V5z"/></svg>
+			</button>
+			<button type="button" class="tc-btn tc-btn--down" data-tc-key="ArrowDown" aria-label="Pitch down">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l-7-9h14z"/></svg>
+			</button>
+		</div>
+	)}
+</div>
+
+<script>
+	import { showTouchControls, onKeyboardDetected } from '../scripts/device-capabilities.js';
+
+	function initTouchControls(root) {
+		if (!showTouchControls) {
+			return;
+		}
+
+		root.hidden = false;
+
+		const buttons = root.querySelectorAll('[data-tc-key]');
+		const activeButtons = new Set();
+
+		function synthesiseKey(code, type) {
+			window.dispatchEvent(
+				new KeyboardEvent(type, {
+					code,
+					key: code,
+					bubbles: true,
+					cancelable: true,
+				}),
+			);
+		}
+
+		function onPointerDown(event) {
+			const button = event.currentTarget;
+			const code = button.dataset.tcKey;
+			if (!code || activeButtons.has(code)) {
+				return;
+			}
+
+			event.preventDefault();
+			activeButtons.add(code);
+			button.classList.add('tc-btn--active');
+			button.setPointerCapture(event.pointerId);
+			synthesiseKey(code, 'keydown');
+		}
+
+		function onPointerUp(event) {
+			const button = event.currentTarget;
+			const code = button.dataset.tcKey;
+			if (!code) {
+				return;
+			}
+
+			activeButtons.delete(code);
+			button.classList.remove('tc-btn--active');
+			synthesiseKey(code, 'keyup');
+		}
+
+		for (const button of buttons) {
+			button.addEventListener('pointerdown', onPointerDown);
+			button.addEventListener('pointerup', onPointerUp);
+			button.addEventListener('pointercancel', onPointerUp);
+			button.addEventListener('pointerleave', onPointerUp);
+		}
+
+		onKeyboardDetected(() => {
+			root.classList.add('touch-controls--keyboard-detected');
+		});
+	}
+
+	document.querySelectorAll('[data-touch-controls]').forEach(initTouchControls);
+</script>
+
+<style>
+	.touch-controls {
+		display: flex;
+		gap: 1.8rem;
+		justify-content: center;
+		padding: 0.8rem 0;
+		user-select: none;
+		-webkit-user-select: none;
+		touch-action: none;
+	}
+
+	.touch-controls--keyboard-detected {
+		opacity: 0.4;
+		transition: opacity 600ms ease;
+	}
+
+	.touch-controls--keyboard-detected:active,
+	.touch-controls--keyboard-detected:focus-within {
+		opacity: 1;
+	}
+
+	/* ── Cluster (d-pad grid) ──────────────────── */
+
+	.touch-controls__cluster {
+		display: grid;
+		grid-template-columns: auto auto auto;
+		grid-template-rows: auto auto auto;
+		gap: 0.35rem;
+		align-items: center;
+		justify-items: center;
+	}
+
+	.touch-controls__cluster[data-cluster='wasd'] {
+		grid-template-columns: auto auto auto auto;
+	}
+
+	/* ── Button placement ──────────────────────── */
+
+	.tc-btn--up {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	.tc-btn--left {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.tc-btn--right {
+		grid-column: 3;
+		grid-row: 2;
+	}
+
+	.tc-btn--down {
+		grid-column: 2;
+		grid-row: 3;
+	}
+
+	.tc-verticals {
+		grid-column: 4;
+		grid-row: 1 / 4;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		justify-content: center;
+		margin-left: 0.45rem;
+		padding-left: 0.55rem;
+		border-left: 1px solid var(--fis-line);
+	}
+
+	/* ── Button styling ────────────────────────── */
+
+	.tc-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.2rem;
+		height: 3.2rem;
+		padding: 0;
+		border: 1px solid var(--fis-line-strong);
+		border-radius: 0.65rem;
+		background: var(--fis-panel);
+		color: var(--fis-text-soft);
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+		transition:
+			background 120ms ease,
+			border-color 120ms ease,
+			transform 80ms ease;
+	}
+
+	.tc-btn--sm {
+		width: 2.6rem;
+		height: 2.6rem;
+	}
+
+	.tc-btn svg {
+		width: 1rem;
+		height: 1rem;
+		fill: currentColor;
+	}
+
+	.tc-btn--sm svg {
+		width: 0.85rem;
+		height: 0.85rem;
+	}
+
+	.tc-btn--active,
+	.tc-btn:active {
+		background: rgba(242, 200, 121, 0.18);
+		border-color: var(--fis-gold);
+		color: var(--fis-gold);
+		transform: scale(0.92);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.touch-controls {
+			display: none !important;
+		}
+	}
+</style>
