@@ -1,0 +1,135 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'Red dwarfs: the Galaxy’s quiet majority';
+const summary = 'Red dwarfs are small, cool, faint, and incredibly common. They dominate the stellar population of the Milky Way.';
+const nextTopics = [
+	{ slug: 'hr-diagram', title: 'The Hertzsprung-Russell diagram' },
+	{ slug: 'how-much-matter-can-we-actually-see', title: 'How much matter can we actually see?' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 10</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					If you could see every star in the galaxy, you would find that most of them are
+					faint and red. These "red dwarfs" (technically M-dwarfs) account for about 75%
+					of all the stars in the Milky Way.
+				</p>
+				<p>
+					Red dwarfs are much smaller than our Sun, with masses between 8% and 50% of
+					the solar mass. Because they are so small and have low surface temperatures,
+					they are extremely faint. Not a single red dwarf is visible to the naked eye
+					from Earth—even Proxima Centauri, our closest stellar neighbour.
+				</p>
+				<p>
+					But what they lack in brightness, they make up for in longevity. Red dwarfs burn
+					their fuel so slowly that they can live for trillions of years, which is
+					longer than the current age of the universe.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Local Reality</p>
+					<h3>A Faint Neighbourhood</h3>
+					<p>
+						Of the roughly 60 stars within 15 light-years of the Sun, about 50 are red
+						dwarfs. This means our local solar neighbourhood is populated mostly by stars
+						we cannot see with the naked eye.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer
+				variant="neighbourhood"
+				topic="red-dwarfs-quiet-majority"
+				highlight="red-dwarfs"
+				showHr={true}
+			/>
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

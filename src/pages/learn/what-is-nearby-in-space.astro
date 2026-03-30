@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'What is nearby in space?';
+const summary = 'A tour of the Solar System, the nearest stars, and the idea of a local stellar neighbourhood.';
+const nextTopics = [
+	{ slug: 'how-far-is-a-light-year', title: 'How far is a light-year?' },
+	{ slug: 'what-is-a-parsec', title: 'What is a parsec?' },
+	{ slug: 'what-gaia-measures', title: 'What Gaia measures' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 02</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					In the context of a galaxy 100,000 light-years across, our Sun's neighbourhood is an
+					extremely small volume. But even "nearby" in space is huge in human terms.
+				</p>
+				<p>
+					The closest star system to our Sun is Alpha Centauri, about 4.37 light-years away.
+					The nearest single star, Proxima Centauri, is slightly closer (4.24 light-years).
+					If you could travel at the speed of a modern spacecraft (like Voyager 1), it would still
+					take about 70,000 years to reach those closest neighbours.
+				</p>
+				<p>
+					When we talk about the "solar neighbourhood," we usually mean the stars within 100
+					to 200 light-years. This area—our "local bubble"—is what the Gaia mission is currently
+					mapping with incredible detail.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Scale Check</p>
+					<h3>A tiny corner of a huge galaxy</h3>
+					<p>
+						There are hundreds of billions of stars in the Milky Way. We can only really
+						"see" and map the local stars with high accuracy. This local region is our small,
+						well-measured home in a vast dynamical system.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer variant="neighbourhood" topic="what-is-nearby-in-space" />
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

@@ -1,31 +1,18 @@
 ---
 import MadeByKaj from '../components/MadeByKaj.astro';
 import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 
 const basePath = import.meta.env.BASE_URL;
 const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
-const parallaxPath = `${basePath}learn/parallax/`;
+const learnPath = `${basePath}learn/`;
 ---
 
 <Layout
 	title="Found in Space"
 	description="Explore the stars near the Sun through guided journeys, clear explanations, and open technical notes built on measurements from ESA's Gaia mission."
 >
-	<header class="site-header">
-		<a class="wordmark" href={basePath} aria-label="Found in Space home">
-			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
-			<span class="wordmark__text">
-				<span class="wordmark__title">Found in Space</span>
-				<span class="wordmark__meta">Explore the nearby stars</span>
-			</span>
-		</a>
-		<nav class="site-nav" aria-label="Primary">
-			<a href="#explore">Explore</a>
-			<a href="#learn">Learn</a>
-			<a href="#build">Build</a>
-			<a href="#about">About</a>
-		</nav>
-	</header>
+	<SiteHeader />
 
 	<main class="page">
 		<section class="hero">
@@ -81,7 +68,7 @@ const parallaxPath = `${basePath}learn/parallax/`;
 						Shift the viewpoint with mouse or tablet motion and watch the nearby stars move
 						against the distant background, like a browser-native version of the GitHub 404 idea.
 					</p>
-					<a class="panel__link" href={parallaxPath}>Open the parallax lesson</a>
+					<a class="panel__link" href={learnPath}>Open the Learn section</a>
 				</div>
 			</article>
 			<article class="panel" id="build">
@@ -135,7 +122,7 @@ const parallaxPath = `${basePath}learn/parallax/`;
 					Each route is different, but they are designed to connect.
 				</p>
 				<p class="band__link">
-					<a href={parallaxPath}>See the first Learn example</a>
+					<a href={learnPath}>See the Learn section</a>
 				</p>
 			</article>
 		</section>
@@ -161,90 +148,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 </Layout>
 
 <style>
-	.site-header {
-		position: sticky;
-		top: 0;
-		z-index: 4;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		max-width: calc(var(--fis-max-width) + 3rem);
-		margin: 0 auto;
-		padding: 1rem 1.5rem 0;
-		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
-		backdrop-filter: blur(12px);
-	}
-
-	.wordmark {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.85rem;
-		padding: 0.65rem 0.85rem;
-		border-radius: 999px;
-		background: rgba(8, 15, 27, 0.68);
-		border: 1px solid var(--fis-line);
-		box-shadow: var(--fis-shadow);
-		text-decoration: none;
-	}
-
-	.wordmark__mark {
-		width: 2.25rem;
-		height: 2.25rem;
-		flex: 0 0 auto;
-		object-fit: contain;
-	}
-
-	.wordmark__text {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-
-	.wordmark__title {
-		font-size: 1rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	.wordmark__meta {
-		font-size: 0.78rem;
-		color: var(--fis-text-muted);
-	}
-
-	.site-nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.55rem;
-		font-size: 0.96rem;
-	}
-
-	.site-nav a {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 2.55rem;
-		padding: 0.55rem 0.9rem;
-		border-radius: 999px;
-		background: rgba(8, 15, 27, 0.62);
-		border: 1px solid rgba(141, 183, 255, 0.14);
-		color: var(--fis-text-soft);
-		text-decoration: none;
-		transition:
-			transform 160ms ease,
-			background-color 160ms ease,
-			border-color 160ms ease,
-			color 160ms ease;
-	}
-
-	.site-nav a:hover {
-		transform: translateY(-1px);
-		background: rgba(15, 28, 50, 0.82);
-		border-color: rgba(242, 200, 121, 0.32);
-		color: var(--fis-text);
-	}
-
 	.page {
 		position: relative;
 		min-height: 100vh;
@@ -468,12 +371,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 	}
 
 	@media (max-width: 720px) {
-		.site-header {
-			align-items: flex-start;
-			flex-direction: column;
-			padding-bottom: 0.25rem;
-		}
-
 		.page {
 			padding-top: 2.25rem;
 		}

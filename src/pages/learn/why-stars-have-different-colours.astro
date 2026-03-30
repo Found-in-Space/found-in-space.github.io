@@ -1,0 +1,134 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'Why stars have different colours';
+const summary = 'Stellar colour is closely linked to temperature, and helps us understand what kind of star we are looking at.';
+const nextTopics = [
+	{ slug: 'main-sequence', title: 'The main sequence' },
+	{ slug: 'hr-diagram', title: 'The Hertzsprung-Russell diagram' },
+	{ slug: 'brown-dwarfs-and-ultracool-objects', title: 'Brown dwarfs and ultracool objects' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 08</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					In the night sky, stars look like points of white light. But if you look closely—or
+					through a telescope—you will see that they have distinct colours. Some stars are
+					clearly blue, while others are yellow, orange, or deep red.
+				</p>
+				<p>
+					These colours are not just for decoration; they tell us about the star's
+					temperature. Just as a piece of metal glows red when it is hot and turns white
+					or blue as it gets hotter, stars follow the same physical law.
+				</p>
+				<p>
+					Blue stars are the hottest, with surface temperatures of 20,000°C or more. Red
+					stars are the coolest, with temperatures around 3,000°C. Our Sun is a middle-of-the-road
+					yellow-white star, with a temperature of about 5,500°C.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Key Idea</p>
+					<h3>Colour is Temperature</h3>
+					<p>
+						By measuring the colour of a star (its photometry), Gaia can estimate how
+						hot its surface is, which is the first step toward understanding its mass and
+						where it is in its life cycle.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer
+				variant="neighbourhood"
+				topic="why-stars-have-different-colours"
+				highlight="cool-stars"
+			/>
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

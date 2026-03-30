@@ -1,0 +1,128 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'What is a parsec?';
+const summary = 'The parsec comes directly from parallax and is the natural distance unit for nearby stars.';
+const nextTopics = [
+	{ slug: 'how-we-measure-stellar-distance', title: 'How we measure stellar distance' },
+	{ slug: 'what-gaia-measures', title: 'What Gaia measures' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 04</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					The word "parsec" is short for "parallax second." It is a unit of distance based
+					directly on geometry. One parsec is the distance at which a star's parallax angle
+					is exactly one arcsecond.
+				</p>
+				<p>
+					In terms of light-years, one parsec is about 3.26. While light-years are easier to
+					talk about in everyday language, parsecs are the natural unit for mapping stars.
+					This is because we measure the distance of nearby stars using geometry, not time.
+				</p>
+				<p>
+					To give you an idea of scale: the nearest star (Proxima Centauri) is 1.3 parsecs
+					away. The Galactic Center is about 8,000 parsecs away.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">A Better Unit</p>
+					<h3>Why astronomers use parsecs</h3>
+					<p>
+						Astrometry—the science of measuring where things are in space—starts with the
+						parallax shift. Since that shift is measured in arcseconds, the parsec is the
+						unit that comes directly from the measurement itself.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer variant="parsec" topic="what-is-a-parsec" offsetPc={0.12} />
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

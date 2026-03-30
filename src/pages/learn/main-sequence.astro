@@ -1,0 +1,136 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'The main sequence';
+const summary = 'Most stars spend most of their lives on the main sequence, where mass, temperature, colour, and brightness are closely related.';
+const nextTopics = [
+	{ slug: 'red-dwarfs-quiet-majority', title: 'Red dwarfs: the Galaxy’s quiet majority' },
+	{ slug: 'hr-diagram', title: 'The Hertzsprung-Russell diagram' },
+	{ slug: 'lives-of-stars', title: 'The lives of stars' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 09</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					The "main sequence" is the most stable phase of a star's life. During this phase,
+					the star is burning hydrogen into helium in its core through nuclear fusion.
+					This provides the outward pressure that balances the inward pull of gravity.
+				</p>
+				<p>
+					About 90% of the stars in the galaxy are on the main sequence. For these stars,
+					there is a simple relationship: mass determines everything. A more massive star
+					burns hotter (and therefore bluer) and more brightly than a lower-mass star.
+				</p>
+				<p>
+					Our Sun is a main-sequence star. It has been in this stable phase for about
+					five billion years, and it will remain here for another five billion years
+					before its hydrogen core is exhausted.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">A Vital Connection</p>
+					<h3>Mass is Destiny</h3>
+					<p>
+						Once a star enters the main sequence, its mass decides how long it will live,
+						what colour it will have, and how it will eventually die. The most massive
+						stars burn through their fuel in a few million years, while the smallest
+						ones will outlast the current age of the universe.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer
+				variant="neighbourhood"
+				topic="main-sequence"
+				highlight="main-sequence"
+				showHr={true}
+			/>
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

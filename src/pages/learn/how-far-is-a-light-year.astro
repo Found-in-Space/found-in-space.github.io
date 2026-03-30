@@ -1,0 +1,127 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'How far is a light-year?';
+const summary = 'A light-year is a useful human-scale way to think about the distances between stars.';
+const nextTopics = [
+	{ slug: 'what-is-a-parsec', title: 'What is a parsec?' },
+	{ slug: 'how-we-measure-stellar-distance', title: 'How we measure stellar distance' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 03</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					Light is the fastest thing in the universe. In one second, it can travel around the Earth
+					about seven times. A light-year is the distance that light travels in one full year.
+				</p>
+				<p>
+					In kilometres, a light-year is about 9.46 trillion. That number is so large it's
+					hard to use. To make it more manageable, astronomers use the speed of light as a yardstick.
+					The Sun is 8 "light-minutes" away. Proxima Centauri is 4.2 "light-years" away.
+				</p>
+				<p>
+					When you look at a star that is 100 light-years away, you are seeing it as it was 100
+					years ago. This is because the light has taken that long to travel the distance to your
+					eyes. In space, distance and time are deeply connected.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Key Idea</p>
+					<h3>Distance as a Time Machine</h3>
+					<p>
+						The further away an object is, the further back in time we see it. This means
+						as we map the galaxy, we are also mapping its history.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer variant="lightyear" topic="how-far-is-a-light-year" maxSpeed={45} />
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

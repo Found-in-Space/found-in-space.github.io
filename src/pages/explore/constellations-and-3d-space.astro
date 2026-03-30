@@ -1,6 +1,7 @@
 ---
 import MadeByKaj from '../../components/MadeByKaj.astro';
 import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
 
 const basePath = import.meta.env.BASE_URL;
 const parallaxPath = `${basePath}learn/parallax/`;
@@ -10,22 +11,7 @@ const parallaxPath = `${basePath}learn/parallax/`;
 	title="Constellations and 3D Space | Found in Space"
 	description="Fly through Orion to see how a familiar constellation changes when the stars are placed in three dimensions."
 >
-	<header class="site-header">
-		<a class="wordmark" href={basePath} aria-label="Found in Space home">
-			<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
-			<span class="wordmark__text">
-				<span class="wordmark__title">Found in Space</span>
-				<span class="wordmark__meta">Explore</span>
-			</span>
-		</a>
-		<nav class="site-nav" aria-label="Primary">
-			<a href={basePath}>Home</a>
-			<a href={`${basePath}#explore`}>Explore</a>
-			<a href={`${basePath}#learn`}>Learn</a>
-			<a href={`${basePath}#build`}>Build</a>
-			<a href={`${basePath}#about`}>About</a>
-		</nav>
-	</header>
+	<SiteHeader section="Explore" />
 
 	<main class="page">
 		<section class="intro">
@@ -118,92 +104,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 </script>
 
 <style>
-	.site-header {
-		position: sticky;
-		top: 0;
-		z-index: 4;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		max-width: calc(var(--fis-max-width) + 3rem);
-		margin: 0 auto;
-		padding: 1rem 1.5rem 0;
-		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
-		backdrop-filter: blur(12px);
-	}
-
-	.wordmark {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.85rem;
-		padding: 0.65rem 0.85rem;
-		border-radius: 999px;
-		background: rgba(8, 15, 27, 0.68);
-		border: 1px solid var(--fis-line);
-		box-shadow: var(--fis-shadow);
-		text-decoration: none;
-	}
-
-	.wordmark__mark {
-		width: 2.25rem;
-		height: 2.25rem;
-		flex: 0 0 auto;
-		object-fit: contain;
-	}
-
-	.wordmark__text {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-
-	.wordmark__title {
-		font-size: 1rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--fis-gold);
-	}
-
-	.wordmark__meta {
-		font-size: 0.78rem;
-		color: var(--fis-text-muted);
-	}
-
-	.site-nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.55rem;
-		font-size: 0.96rem;
-	}
-
-	.site-nav a,
-	.button {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 2.7rem;
-		padding: 0.65rem 1rem;
-		border-radius: 999px;
-		border: 1px solid rgba(141, 183, 255, 0.18);
-		background: rgba(8, 15, 27, 0.62);
-		color: var(--fis-text-soft);
-		text-decoration: none;
-		transition:
-			transform 160ms ease,
-			border-color 160ms ease,
-			background-color 160ms ease,
-			color 160ms ease;
-	}
-
-	.site-nav a:hover,
-	.button:hover {
-		transform: translateY(-1px);
-		border-color: rgba(242, 200, 121, 0.32);
-		background: rgba(15, 28, 50, 0.82);
-		color: var(--fis-text);
-	}
-
 	.button {
 		cursor: pointer;
 		font: inherit;
@@ -389,12 +289,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 	}
 
 	@media (max-width: 720px) {
-		.site-header {
-			align-items: flex-start;
-			flex-direction: column;
-			padding-bottom: 0.25rem;
-		}
-
 		.page {
 			padding-top: 2.2rem;
 		}

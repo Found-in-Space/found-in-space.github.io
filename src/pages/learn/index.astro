@@ -1,0 +1,217 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const localSkyPath = `${basePath}learn/local-sky/`;
+const parallaxPath = `${basePath}learn/parallax/`;
+---
+
+<Layout
+	title="Learn | Found in Space"
+	description="Turn curiosity into understanding with clear astronomical explainers and structured learning journeys."
+>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<header class="hero">
+			<p class="eyebrow">Classroom Mode</p>
+			<h1>Learn the nearby stars</h1>
+			<p class="lede">
+				Found in Space is designed as a structured educational platform. Here you can find
+				concise astronomical concepts and guided journeys that connect what you see in the night
+				sky to the real 3D structure of the galaxy.
+			</p>
+		</header>
+
+		<section class="section-grid">
+			<article class="panel panel--featured">
+				<div class="panel__content">
+					<p class="panel__eyebrow">Featured Journey</p>
+					<h2>From the night sky to the solar neighbourhood</h2>
+					<p>
+						Start with what you know—the constellations and bright stars—and move outward into the
+						stars nearest to our Sun. Learn how we measure distance, what a light-year really is,
+						and how Gaia maps the sky.
+					</p>
+					<a href={localSkyPath} class="button button--primary">Start the journey</a>
+				</div>
+			</article>
+
+			<article class="panel">
+				<div class="panel__content">
+					<p class="panel__eyebrow">Interactive Lesson</p>
+					<h2>Parallax</h2>
+					<p>
+						A browser-native exploration of geometry. Watch how nearby stars shift against the
+						distant background as your viewpoint moves, revealing the hidden depth of the Orion
+						constellation.
+					</p>
+					<a href={parallaxPath} class="button button--ghost">Try the lesson</a>
+				</div>
+			</article>
+		</section>
+
+		<section class="notes">
+			<div class="notes__intro">
+				<p class="eyebrow">Our Approach</p>
+				<h2>Reliable explainers for curious minds.</h2>
+			</div>
+			<div class="notes__body">
+				<p>
+					Every page in the Learn section is built on measurements from ESA's Gaia mission. We
+					aim for clarity without sacrificing precision: moving from simple visual metaphors to
+					the real data that astronomers use to map our corner of the Milky Way.
+				</p>
+				<p>
+					Whether you are a self-directed learner, a student, or an educator, these pathways are
+					designed to be modular. Follow a full journey, or jump straight to the concepts you
+					need.
+				</p>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: var(--fis-max-width);
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.hero {
+		padding: 2rem 0 3rem;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.8rem, 7vw, 5.2rem);
+		line-height: 0.94;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		max-width: 44rem;
+		margin-top: 1.5rem;
+		font-size: 1.18rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.section-grid {
+		display: grid;
+		grid-template-columns: 1.2fr 0.8fr;
+		gap: 1.5rem;
+		margin: 2rem 0 4rem;
+	}
+
+	.panel {
+		display: flex;
+		flex-direction: column;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.panel--featured {
+		background: linear-gradient(165deg, rgba(242, 200, 121, 0.08), transparent 60%),
+			var(--fis-panel);
+		border-color: rgba(242, 200, 121, 0.25);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.85rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 1.85rem;
+		line-height: 1.1;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+	}
+
+	.panel p {
+		margin: 0 0 1.5rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.8rem;
+		padding: 0.75rem 1.25rem;
+		border-radius: 999px;
+		text-decoration: none;
+		font-size: 0.96rem;
+		transition: transform 160ms ease;
+	}
+
+	.button:hover {
+		transform: translateY(-1px);
+	}
+
+	.button--primary {
+		background: linear-gradient(135deg, #f2c879 0%, #f3deac 100%);
+		color: #0d1524;
+	}
+
+	.button--ghost {
+		border: 1px solid var(--fis-line-strong);
+		color: var(--fis-text);
+	}
+
+	.notes {
+		display: grid;
+		grid-template-columns: 1fr 1.2fr;
+		gap: 3rem;
+		padding: 4rem 0;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.notes__intro h2 {
+		font-size: 2.2rem;
+		line-height: 1.05;
+		max-width: 12ch;
+	}
+
+	.notes__body p + p {
+		margin-top: 1.25rem;
+	}
+
+	.notes__body p {
+		line-height: 1.75;
+		font-size: 1.1rem;
+		color: var(--fis-text-soft);
+	}
+
+	@media (max-width: 960px) {
+		.section-grid,
+		.notes {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+	}
+</style>

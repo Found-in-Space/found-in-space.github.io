@@ -1,0 +1,147 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'The Hertzsprung-Russell diagram';
+const summary = 'The HR diagram is one of astronomy’s most powerful maps, revealing how stars are grouped by temperature, brightness, and stage of life.';
+const nextTopics = [
+	{ slug: 'main-sequence', title: 'The main sequence' },
+	{ slug: 'red-dwarfs-quiet-majority', title: 'Red dwarfs: the Galaxy’s quiet majority' },
+	{ slug: 'white-dwarfs-dead-stars-still-glowing', title: 'White dwarfs: dead stars still glowing' }
+];
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 13</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					The Hertzsprung-Russell (HR) diagram is not a map of space, but a map of physics.
+					It plots a star's surface temperature (on the horizontal axis) against its
+					luminosity or absolute magnitude (on the vertical axis).
+				</p>
+				<p>
+					When stars are plotted this way, they do not fill the diagram randomly. Instead,
+					they form distinct groups. The most prominent is the main sequence, a long
+					diagonal strip where most stars (including the Sun) spend their lives.
+				</p>
+				<p>
+					The HR diagram allows astronomers to quickly see how different types of stars
+					are related and how they evolve over time. It is essentially a census of the
+					stellar population, showing us the relative numbers of main-sequence stars,
+					red giants, and white dwarfs.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">A Powerful Tool</p>
+					<h3>Visualising Stellar Evolution</h3>
+					<p>
+						The Gaia mission has produced the most detailed HR diagrams ever created,
+						showing the "fine structure" of the stellar population and even allowing
+						us to measure the age of different star clusters.
+					</p>
+				</div>
+			</section>
+
+			<TopicSkykitViewer variant="neighbourhood" topic="hr-diagram" showHr={true}>
+				<h3 slot="guide">Live HR diagram</h3>
+				<p slot="guide">
+					On the left is a 3D view of the stars around the Sun. On the right is a live
+					Hertzsprung-Russell diagram built from the same stars. Each dot is coloured by
+					its blackbody temperature — hot blue-white stars sit on the left, cool red stars
+					on the right. Bright stars are at the top, faint stars at the bottom.
+				</p>
+				<p slot="guide">
+					The diagonal band running from upper-left to lower-right is the main sequence —
+					where stars spend most of their lives fusing hydrogen. Below it you can see the
+					white dwarf branch: hot but faint remnants of dead stars. As you fly through
+					space with WASD, the loaded stars change and the diagram updates in real time.
+					Try flying toward the Hyades cluster (roughly RA 4h 27m, Dec +16) and watch the
+					diagram tighten into a narrow isochrone.
+				</p>
+			</TopicSkykitViewer>
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+</style>

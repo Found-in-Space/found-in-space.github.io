@@ -1,0 +1,153 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import TopicNext from '../../components/TopicNext.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import TopicSkykitViewer from '../../components/TopicSkykitViewer.astro';
+
+const title = 'How we measure stellar distance';
+const summary = 'Nearby stellar distances can be measured geometrically by watching stars shift against the background as Earth moves around the Sun.';
+const nextTopics = [
+	{ slug: 'what-gaia-measures', title: 'What Gaia measures' },
+	{ slug: 'apparent-vs-absolute-magnitude', title: 'Apparent magnitude and absolute magnitude' }
+];
+
+const basePath = import.meta.env.BASE_URL;
+const parallaxPath = `${basePath}learn/parallax/`;
+---
+
+<Layout title={`${title} | Learn | Found in Space`}>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<article class="topic-content">
+			<p class="eyebrow">Topic 05</p>
+			<h1>{title}</h1>
+			<p class="lede">{summary}</p>
+
+			<section class="body">
+				<p>
+					The most reliable way to measure the distance to a nearby star is using
+					trigonometric parallax. As Earth orbits the Sun, our viewpoint changes by 300 million
+					kilometres every six months.
+				</p>
+				<p>
+					From these two opposite points in our orbit, a nearby star will appear to shift
+					its position against much more distant background stars. By measuring that tiny
+					angle of shift—the parallax—we can calculate the distance to the star using
+					simple high-school trigonometry.
+				</p>
+				<p>
+					The challenge is that the angles are incredibly small. The largest parallax shift
+					ever measured is for Proxima Centauri, and it is less than one arcsecond—equivalent
+					to the width of a human hair seen from 20 kilometres away.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Try it</p>
+					<h3>Feel the geometry</h3>
+					<p>
+						We have an interactive lesson that demonstrates this principle. You can shift
+						the viewpoint with your mouse or tablet and see how nearby stars slide more
+						than the background.
+					</p>
+					<a href={parallaxPath} class="button button--ghost">Try the Parallax lesson</a>
+				</div>
+			</section>
+
+			<TopicSkykitViewer variant="parsec" topic="how-we-measure-stellar-distance" offsetPc={0.18} />
+
+			<TopicNext topics={nextTopics} />
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 3.2rem 1.5rem 5rem;
+	}
+
+	.topic-content {
+		padding: 2rem 0;
+	}
+
+	.eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 3.8rem);
+		line-height: 1.05;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.lede {
+		margin-top: 1.5rem;
+		font-size: 1.25rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.body {
+		margin-top: 3rem;
+	}
+
+	.body p {
+		font-size: 1.12rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+		margin-bottom: 1.5rem;
+	}
+
+	.callout {
+		margin: 3rem 0;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+	}
+
+	.callout h3 {
+		margin: 0 0 0.75rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.8rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.8rem;
+		padding: 0.75rem 1.25rem;
+		border-radius: 999px;
+		text-decoration: none;
+		font-size: 0.96rem;
+		border: 1px solid var(--fis-line-strong);
+		color: var(--fis-text);
+		transition: transform 160ms ease;
+		margin-top: 1rem;
+	}
+
+	.button:hover {
+		transform: translateY(-1px);
+	}
+</style>

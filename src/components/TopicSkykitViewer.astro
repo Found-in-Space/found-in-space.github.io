@@ -1,0 +1,298 @@
+---
+interface Props {
+	variant: 'neighbourhood' | 'constellation' | 'parsec' | 'lightyear';
+	topic: string;
+	highlight?: string;
+	showHr?: boolean;
+	offsetPc?: number;
+	maxSpeed?: number;
+}
+
+const {
+	variant,
+	topic,
+	highlight = '',
+	showHr = false,
+	offsetPc = 0.12,
+	maxSpeed = 45,
+} = Astro.props;
+---
+
+{variant === 'neighbourhood' && (
+	<section
+		class={`viewer-section panel viewer-grid ${showHr ? 'viewer-grid--hr' : ''}`}
+		data-example="neighbourhood-explorer"
+		data-topic={topic}
+		data-highlight={highlight}
+		data-show-hr={showHr ? 'true' : 'false'}
+	>
+		<div class="viewer-guide">
+			<p class="panel__eyebrow">Interactive sky</p>
+			<slot name="guide">
+				<h3>Explore nearby stars in 3D</h3>
+				<p>Drag to look around and use WASD to move through the local stellar neighbourhood.</p>
+			</slot>
+			<p class="status">Status: <span data-neighbourhood-status>Loading viewer…</span></p>
+		</div>
+		<div class={`viewer-shell ${showHr ? 'viewer-shell--hr' : ''}`} data-neighbourhood-mount></div>
+		{showHr && <canvas class="hr-canvas" data-neighbourhood-hr aria-label="Live HR diagram"></canvas>}
+	</section>
+)}
+
+{variant === 'constellation' && (
+	<section
+		class="viewer-section panel viewer-grid"
+		data-example="constellation-depth"
+		data-topic={topic}
+	>
+		<div class="viewer-guide">
+			<p class="panel__eyebrow">Interactive sky</p>
+			<h3>Constellation depth fly-through</h3>
+			<p>Fly sideways across Orion and see the stars separate in depth while constellation lines stay overlaid.</p>
+			<p class="status">Status: <span data-constellation-depth-status>Loading viewer…</span></p>
+		</div>
+		<div class="viewer-shell" data-constellation-depth-mount></div>
+	</section>
+)}
+
+{variant === 'parsec' && (
+	<section
+		class="viewer-section panel viewer-grid"
+		data-example="parsec-parallax"
+		data-topic={topic}
+		data-offset-pc={String(offsetPc)}
+	>
+		<div class="viewer-guide">
+			<p class="panel__eyebrow">Interactive sky</p>
+			<h3>Parallax demonstration</h3>
+			<p>Shift the observer while Orion stays fixed. Nearby stars move more than the distant background.</p>
+			<label for={`parsec-offset-${topic}`}>Observer offset</label>
+			<div class="control-row">
+				<input
+					id={`parsec-offset-${topic}`}
+					data-parsec-offset
+					type="range"
+					min="0.02"
+					max="1.0"
+					step="0.01"
+					value={String(offsetPc)}
+				/>
+				<span class="control-value" data-parsec-offset-value>{offsetPc.toFixed(2)} pc</span>
+			</div>
+			<p class="status">Mode: <span data-parsec-mode>pointer</span></p>
+			<p class="status">Status: <span data-parsec-status>Loading viewer…</span></p>
+		</div>
+		<div class="viewer-shell" data-parsec-mount></div>
+	</section>
+)}
+
+{variant === 'lightyear' && (
+	<section
+		class="viewer-section panel viewer-grid"
+		data-example="light-year-explorer"
+		data-topic={topic}
+		data-max-speed={String(maxSpeed)}
+	>
+		<div class="viewer-guide">
+			<p class="panel__eyebrow">Interactive sky</p>
+			<h3>Thrust through local space</h3>
+			<p>Use W to thrust and S to brake. Click stars to measure your distance to them in light-years.</p>
+			<div class="hud-block">
+				<p class="hud-line">Speed: <strong data-lightyear-speed>0.00 ly/s</strong></p>
+				<div class="speed-track">
+					<div class="speed-fill" data-lightyear-speed-bar></div>
+				</div>
+			</div>
+			<div class="hud-block">
+				<p class="hud-line">Distance to Sun: <strong data-lightyear-sun-distance>0.00 ly</strong></p>
+				<p class="hud-line">Selected: <span data-lightyear-picked-name>Click a star to measure</span> (<span data-lightyear-picked-distance>--</span>)</p>
+				<div class="sun-pointer">
+					<span class="sun-pointer__arrow" data-lightyear-sun-arrow>↑</span>
+					<span>Sun direction</span>
+				</div>
+			</div>
+			<p class="status">Status: <span data-lightyear-status>Loading viewer…</span></p>
+		</div>
+		<div class="viewer-shell" data-lightyear-mount></div>
+	</section>
+)}
+
+{variant === 'neighbourhood' && (
+	<script>
+		import '../scripts/examples/neighbourhood-explorer.js';
+	</script>
+)}
+{variant === 'constellation' && (
+	<script>
+		import '../scripts/examples/constellation-depth.js';
+	</script>
+)}
+{variant === 'parsec' && (
+	<script>
+		import '../scripts/examples/parsec-parallax.js';
+	</script>
+)}
+{variant === 'lightyear' && (
+	<script>
+		import '../scripts/examples/light-year-explorer.js';
+	</script>
+)}
+
+<style>
+	.viewer-section {
+		margin: 2.5rem 0;
+		padding: 1rem;
+	}
+
+	.viewer-grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+		align-items: start;
+	}
+
+	.viewer-grid--hr {
+		grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+	}
+
+	.viewer-grid--hr .viewer-guide {
+		grid-column: 1 / -1;
+	}
+
+	.viewer-guide {
+		padding: 0.5rem;
+	}
+
+	.viewer-guide h3 {
+		margin: 0.2rem 0 0.8rem;
+		font-size: 1.35rem;
+	}
+
+	.viewer-guide p {
+		margin: 0;
+		font-size: 0.98rem;
+		line-height: 1.65;
+		color: var(--fis-text-soft);
+	}
+
+	.panel__eyebrow {
+		margin: 0 0 0.6rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	label {
+		display: block;
+		margin-top: 1.05rem;
+		margin-bottom: 0.45rem;
+		color: var(--fis-text);
+		font-size: 0.9rem;
+		font-family: var(--fis-font-ui);
+	}
+
+	.control-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.7rem;
+		align-items: center;
+	}
+
+	input[type='range'] {
+		width: 100%;
+	}
+
+	.control-value {
+		min-width: 3.6rem;
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		text-align: right;
+	}
+
+	.viewer-shell {
+		width: 100%;
+		min-height: 28rem;
+		border-radius: calc(var(--fis-radius) - 0.25rem);
+		overflow: hidden;
+		background:
+			radial-gradient(circle at top, rgba(148, 220, 255, 0.08), transparent 20%),
+			#02040b;
+	}
+
+	.viewer-shell--hr {
+		min-height: 34rem;
+	}
+
+	.hr-canvas {
+		width: 100%;
+		min-height: 34rem;
+		background: rgba(1, 6, 16, 0.92);
+		border: 1px solid rgba(242, 200, 121, 0.25);
+		border-radius: calc(var(--fis-radius) - 0.25rem);
+	}
+
+	.status {
+		margin-top: 0.9rem !important;
+		font-size: 0.92rem !important;
+	}
+
+	.status span {
+		color: var(--fis-gold);
+	}
+
+	.hud-block {
+		margin-top: 0.9rem;
+		padding-top: 0.7rem;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.hud-line {
+		font-size: 0.92rem !important;
+	}
+
+	.speed-track {
+		margin-top: 0.45rem;
+		height: 0.35rem;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.12);
+		overflow: hidden;
+	}
+
+	.speed-fill {
+		height: 100%;
+		width: 2%;
+		background: linear-gradient(90deg, #86d0ff, #f2c879);
+	}
+
+	.sun-pointer {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin-top: 0.45rem;
+		color: var(--fis-gold);
+	}
+
+	.sun-pointer__arrow {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.2rem;
+		height: 1.2rem;
+		border-radius: 999px;
+		border: 1px solid rgba(242, 200, 121, 0.4);
+		transform-origin: center center;
+	}
+
+	@media (max-width: 980px) {
+		.viewer-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.viewer-shell,
+		.hr-canvas {
+			min-height: 22rem;
+		}
+	}
+</style>
+
