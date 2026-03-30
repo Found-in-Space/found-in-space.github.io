@@ -1,0 +1,199 @@
+- slug: sky-is-3d
+  title: The sky is 3D
+  level: intro
+  prerequisites: []
+  tags: [orientation, constellations, depth]
+  summary: Constellations look flat from Earth, but the stars that make them are spread through space at very different distances.
+  next_topics: [what-is-nearby-in-space, how-far-is-a-light-year, how-we-measure-stellar-distance]
+
+- slug: what-is-nearby-in-space
+  title: What is nearby in space?
+  level: intro
+  prerequisites: []
+  tags: [solar-neighbourhood, scale, nearby-stars]
+  summary: A tour of the Solar System, the nearest stars, and the idea of a local stellar neighbourhood.
+  next_topics: [how-far-is-a-light-year, what-is-a-parsec, what-gaia-measures]
+
+- slug: how-far-is-a-light-year
+  title: How far is a light-year?
+  level: intro
+  prerequisites: []
+  tags: [distance, scale]
+  summary: A light-year is a useful human-scale way to think about the distances between stars.
+  next_topics: [what-is-a-parsec, how-we-measure-stellar-distance]
+
+- slug: what-is-a-parsec
+  title: What is a parsec?
+  level: intro
+  prerequisites: [how-far-is-a-light-year]
+  tags: [distance, parallax, gaia]
+  summary: The parsec comes directly from parallax and is the natural distance unit for nearby stars.
+  next_topics: [how-we-measure-stellar-distance, what-gaia-measures]
+
+- slug: how-we-measure-stellar-distance
+  title: How we measure stellar distance
+  level: intro
+  prerequisites: [sky-is-3d, what-is-a-parsec]
+  tags: [parallax, distance, measurement]
+  summary: Nearby stellar distances can be measured geometrically by watching stars shift against the background as Earth moves around the Sun.
+  next_topics: [what-gaia-measures, apparent-vs-absolute-magnitude, why-catalogues-are-incomplete]
+
+- slug: apparent-vs-absolute-magnitude
+  title: Apparent magnitude and absolute magnitude
+  level: intro
+  prerequisites: [how-we-measure-stellar-distance]
+  tags: [brightness, luminosity, distance]
+  summary: A star can look bright because it is nearby, or because it is intrinsically luminous. Magnitude helps separate those ideas.
+  next_topics: [why-stars-have-different-colours, main-sequence, brown-dwarfs-and-ultracool-objects]
+
+- slug: why-stars-have-different-colours
+  title: Why stars have different colours
+  level: intro
+  prerequisites: [apparent-vs-absolute-magnitude]
+  tags: [colour, temperature, stars]
+  summary: Stellar colour is closely linked to temperature, and helps us understand what kind of star we are looking at.
+  next_topics: [main-sequence, hr-diagram, brown-dwarfs-and-ultracool-objects]
+
+- slug: what-a-star-catalogue-is
+  title: What a star catalogue actually is
+  level: intro
+  prerequisites: []
+  tags: [catalogues, data, astronomy]
+  summary: A star catalogue is not just a list of stars, but a structured measurement set with uncertainties, limits, and selection effects.
+  next_topics: [what-gaia-measures, why-catalogues-are-incomplete]
+
+- slug: what-gaia-measures
+  title: What Gaia measures
+  level: intro
+  prerequisites: [how-we-measure-stellar-distance]
+  tags: [gaia, astrometry, photometry, data]
+  summary: Gaia measures position, parallax, motion, and brightness for an enormous number of stars, giving us an unprecedented 3D map of the sky.
+  next_topics: [what-a-star-catalogue-is, why-catalogues-are-incomplete, hr-diagram]
+
+- slug: why-catalogues-are-incomplete
+  title: Why catalogues are incomplete
+  level: intermediate
+  prerequisites: [what-gaia-measures, what-a-star-catalogue-is]
+  tags: [selection-effects, limits, bias, gaia]
+  summary: No catalogue is the sky itself. Every survey is shaped by brightness limits, wavelength, dust, crowding, and measurement quality.
+  next_topics: [brown-dwarfs-and-ultracool-objects, how-much-matter-can-we-actually-see, could-faint-stars-explain-the-missing-mass]
+
+- slug: lives-of-stars
+  title: The lives of stars
+  level: intro
+  prerequisites: [why-stars-have-different-colours]
+  tags: [stellar-evolution, stars]
+  summary: Stars are born, shine, change, and die in ways that depend strongly on their mass.
+  next_topics: [main-sequence, white-dwarfs-dead-stars-still-glowing]
+
+- slug: main-sequence
+  title: The main sequence
+  level: intro
+  prerequisites: [apparent-vs-absolute-magnitude, why-stars-have-different-colours]
+  tags: [stars, hr-diagram, stellar-populations]
+  summary: Most stars spend most of their lives on the main sequence, where mass, temperature, colour, and brightness are closely related.
+  next_topics: [red-dwarfs-quiet-majority, hr-diagram, lives-of-stars]
+
+- slug: red-dwarfs-quiet-majority
+  title: Red dwarfs: the Galaxy’s quiet majority
+  level: intro
+  prerequisites: [main-sequence]
+  tags: [red-dwarfs, low-mass-stars, stellar-populations]
+  summary: Red dwarfs are small, cool, faint, and incredibly common. They dominate the stellar population of the Milky Way.
+  next_topics: [how-much-matter-can-we-actually-see, could-faint-stars-explain-the-missing-mass, hr-diagram]
+
+- slug: white-dwarfs-dead-stars-still-glowing
+  title: White dwarfs: dead stars still glowing
+  level: intermediate
+  prerequisites: [lives-of-stars, main-sequence]
+  tags: [white-dwarfs, stellar-remnants, hr-diagram]
+  summary: White dwarfs are the dense cooling remnants of ordinary stars and form a distinct faint branch in stellar-population plots.
+  next_topics: [hr-diagram, how-much-matter-can-we-actually-see, could-faint-stars-explain-the-missing-mass]
+
+- slug: brown-dwarfs-and-ultracool-objects
+  title: Brown dwarfs and ultracool objects
+  level: intermediate
+  prerequisites: [apparent-vs-absolute-magnitude, what-gaia-measures, why-catalogues-are-incomplete]
+  tags: [brown-dwarfs, ultracool-dwarfs, low-luminosity, gaia]
+  summary: Brown dwarfs are too small to sustain ordinary hydrogen fusion. They are faint, cool, and hard for optical surveys like Gaia to detect at larger distances.
+  next_topics: [how-much-matter-can-we-actually-see, could-faint-stars-explain-the-missing-mass]
+
+- slug: binary-and-multiple-stars
+  title: Binary and multiple stars
+  level: intermediate
+  prerequisites: [main-sequence]
+  tags: [binaries, stellar-systems, dynamics]
+  summary: Many stars are not alone. Stellar companions affect brightness, motion, evolution, and how we interpret catalogue data.
+  next_topics: [what-a-star-catalogue-is, lives-of-stars]
+
+- slug: open-clusters-and-moving-groups
+  title: Open clusters and moving groups
+  level: intermediate
+  prerequisites: [what-gaia-measures]
+  tags: [clusters, moving-groups, stellar-families, gaia]
+  summary: Some stars share common origins and motions, allowing Gaia to reveal loose families and dissolved clusters across the sky.
+  next_topics: [how-stars-move-through-the-galaxy, milky-way-as-a-system]
+
+- slug: how-stars-move-through-the-galaxy
+  title: How stars move through the Galaxy
+  level: intermediate
+  prerequisites: [what-gaia-measures, what-is-nearby-in-space]
+  tags: [proper-motion, galactic-dynamics, orbits]
+  summary: Stars are constantly moving. Gaia lets us see those motions and place the Sun inside a much larger dynamical system.
+  next_topics: [milky-way-as-a-system, galaxy-rotation-and-the-missing-mass-problem]
+
+- slug: milky-way-as-a-system
+  title: The Milky Way as a system
+  level: intermediate
+  prerequisites: [how-stars-move-through-the-galaxy]
+  tags: [milky-way, galaxy-structure, disc, halo]
+  summary: The Milky Way is not just a backdrop of stars, but a structured galaxy with a disc, bulge, halo, and long dynamical history.
+  next_topics: [galaxy-rotation-and-the-missing-mass-problem, if-it-isnt-dark-stars-what-is-it]
+
+- slug: hr-diagram
+  title: The Hertzsprung-Russell diagram
+  level: intermediate
+  prerequisites: [apparent-vs-absolute-magnitude, why-stars-have-different-colours]
+  tags: [hr-diagram, stellar-populations, stars]
+  summary: The HR diagram is one of astronomy’s most powerful maps, revealing how stars are grouped by temperature, brightness, and stage of life.
+  next_topics: [main-sequence, red-dwarfs-quiet-majority, white-dwarfs-dead-stars-still-glowing]
+
+- slug: how-much-matter-can-we-actually-see
+  title: How much matter can we actually see?
+  level: intermediate
+  prerequisites: [red-dwarfs-quiet-majority, white-dwarfs-dead-stars-still-glowing, brown-dwarfs-and-ultracool-objects]
+  tags: [baryons, matter-budget, stars, remnants]
+  summary: Stars, gas, dust, and stellar remnants all contribute to the visible matter budget, but adding them up is not the same as solving the dark-matter problem.
+  next_topics: [could-faint-stars-explain-the-missing-mass, galaxy-rotation-and-the-missing-mass-problem]
+
+- slug: could-faint-stars-explain-the-missing-mass
+  title: Could faint stars explain the missing mass?
+  level: intermediate
+  prerequisites: [how-much-matter-can-we-actually-see, why-catalogues-are-incomplete]
+  tags: [dark-matter, faint-stars, gaia, baryons]
+  summary: Nearby space contains huge numbers of faint stars and stellar remnants, but counting them shows they cannot explain most of the Galaxy’s missing mass.
+  next_topics: [microlensing-and-hidden-objects, galaxy-rotation-and-the-missing-mass-problem, if-it-isnt-dark-stars-what-is-it]
+
+- slug: microlensing-and-hidden-objects
+  title: Microlensing and hidden objects
+  level: advanced
+  prerequisites: [could-faint-stars-explain-the-missing-mass, how-we-measure-stellar-distance]
+  tags: [microlensing, machos, hidden-objects, gravity]
+  summary: Microlensing lets us test whether large populations of unseen compact objects are present by looking for characteristic brightening events in background stars.
+  next_topics: [galaxy-rotation-and-the-missing-mass-problem, if-it-isnt-dark-stars-what-is-it]
+
+- slug: galaxy-rotation-and-the-missing-mass-problem
+  title: Galaxy rotation and the missing-mass problem
+  level: advanced
+  prerequisites: [milky-way-as-a-system, how-much-matter-can-we-actually-see]
+  tags: [rotation-curves, dark-matter, galaxy-dynamics]
+  summary: Galaxies rotate as if they contain more mass than we can see. This is where the missing-mass problem becomes impossible to ignore.
+  next_topics: [if-it-isnt-dark-stars-what-is-it]
+
+- slug: if-it-isnt-dark-stars-what-is-it
+  title: If it isn’t dark stars, what is it?
+  level: advanced
+  prerequisites: [could-faint-stars-explain-the-missing-mass, galaxy-rotation-and-the-missing-mass-problem]
+  tags: [dark-matter, particle-physics, cern, fcc]
+  summary: If ordinary faint objects cannot explain the missing mass, the question opens into new physics, including dark-matter candidates and collider searches.
+  next_topics: []
