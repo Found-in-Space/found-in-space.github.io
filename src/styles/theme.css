@@ -88,6 +88,20 @@ main {
 	z-index: 1;
 }
 
+.site-notice {
+	position: relative;
+	z-index: 1;
+	margin: 0;
+	padding: 0.8rem 1.5rem;
+	border-bottom: 1px solid rgba(242, 200, 121, 0.35);
+	background: rgba(242, 200, 121, 0.14);
+	color: var(--fis-text);
+	font-family: var(--fis-font-ui);
+	font-size: 0.85rem;
+	letter-spacing: 0.03em;
+	text-align: center;
+}
+
 ::selection {
 	background: rgba(242, 200, 121, 0.28);
 	color: var(--fis-text);
