@@ -43,6 +43,11 @@ let viewer = null;
 let activeMagLimit = Number.isFinite(Number(magInput?.value))
 	? Number(magInput.value)
 	: DEFAULT_MAG_LIMIT;
+let touchForwardSpeedPcPerSec = 0;
+
+export function setFlySpeed(pcPerSec) {
+	touchForwardSpeedPcPerSec = Math.max(0, pcPerSec ?? 0);
+}
 
 function setStatus(message) {
 	if (statusValue) {
@@ -96,6 +101,7 @@ async function mountViewer({ forceReset = false } = {}) {
 				sceneToIcrsTransform: orionSceneToIcrsTransform,
 				lookAtPc: ORION_CENTER_PC,
 				moveSpeedPcPerSecond: 18,
+				getForwardSpeed: () => touchForwardSpeedPcPerSec,
 			}),
 			createSelectionRefreshController({
 				id: 'website-explore-orion-refresh',
