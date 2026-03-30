@@ -88,32 +88,36 @@ const {
 
 {variant === 'lightyear' && (
 	<section
-		class="viewer-section panel viewer-grid"
+		class="viewer-section panel viewer-stack"
 		data-example="light-year-explorer"
 		data-topic={topic}
 		data-max-speed={String(maxSpeed)}
 	>
-		<div class="viewer-guide">
+		<div class="viewer-guide viewer-guide--lightyear">
 			<p class="panel__eyebrow">Interactive sky</p>
 			<h3>Thrust through local space</h3>
-			<p>Use W to thrust and S to brake. Click stars to measure your distance to them in light-years.</p>
-			<div class="hud-block">
+			<p>
+				Arrow Left/Right rolls the ship. Arrow Up/Down pitches the nose. Press W for forward
+				impulse, then drift.
+			</p>
+		</div>
+		<div class="viewer-shell viewer-shell--lightyear" data-lightyear-mount></div>
+		<div class="viewer-hud-row">
+			<div class="hud-block hud-block--lightyear">
 				<p class="hud-line">Speed: <strong data-lightyear-speed>0.00 ly/s</strong></p>
 				<div class="speed-track">
 					<div class="speed-fill" data-lightyear-speed-bar></div>
 				</div>
 			</div>
-			<div class="hud-block">
+			<div class="hud-block hud-block--lightyear">
 				<p class="hud-line">Distance to Sun: <strong data-lightyear-sun-distance>0.00 ly</strong></p>
-				<p class="hud-line">Selected: <span data-lightyear-picked-name>Click a star to measure</span> (<span data-lightyear-picked-distance>--</span>)</p>
 				<div class="sun-pointer">
 					<span class="sun-pointer__arrow" data-lightyear-sun-arrow>↑</span>
 					<span>Sun direction</span>
 				</div>
 			</div>
-			<p class="status">Status: <span data-lightyear-status>Loading viewer…</span></p>
 		</div>
-		<div class="viewer-shell" data-lightyear-mount></div>
+		<p class="status">Status: <span data-lightyear-status>Loading viewer…</span></p>
 	</section>
 )}
 
@@ -151,6 +155,11 @@ const {
 		align-items: start;
 	}
 
+	.viewer-stack {
+		display: grid;
+		gap: 1rem;
+	}
+
 	.viewer-grid--hr {
 		grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
 	}
@@ -161,6 +170,10 @@ const {
 
 	.viewer-guide {
 		padding: 0.5rem;
+	}
+
+	.viewer-guide--lightyear {
+		padding-bottom: 0;
 	}
 
 	.viewer-guide h3 {
@@ -224,6 +237,10 @@ const {
 		min-height: 34rem;
 	}
 
+	.viewer-shell--lightyear {
+		min-height: 42rem;
+	}
+
 	.hr-canvas {
 		width: 100%;
 		min-height: 34rem;
@@ -245,6 +262,16 @@ const {
 		margin-top: 0.9rem;
 		padding-top: 0.7rem;
 		border-top: 1px solid var(--fis-line);
+	}
+
+	.hud-block--lightyear {
+		margin-top: 0;
+	}
+
+	.viewer-hud-row {
+		display: grid;
+		gap: 0.85rem;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.hud-line {
@@ -289,9 +316,17 @@ const {
 			grid-template-columns: 1fr;
 		}
 
+		.viewer-hud-row {
+			grid-template-columns: 1fr;
+		}
+
 		.viewer-shell,
 		.hr-canvas {
 			min-height: 22rem;
+		}
+
+		.viewer-shell--lightyear {
+			min-height: 28rem;
 		}
 	}
 </style>

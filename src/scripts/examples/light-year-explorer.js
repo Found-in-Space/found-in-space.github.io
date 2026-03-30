@@ -5,7 +5,6 @@ import {
 	createObserverShellField,
 	createSelectionRefreshController,
 	createStarFieldLayer,
-	createThrustController,
 	createViewer,
 	getDatasetSession,
 	resolveFoundInSpaceDatasetOverrides,
@@ -14,6 +13,7 @@ import {
 
 const PC_TO_LY = 3.26156;
 const DEFAULT_MAX_SPEED_PC_PER_SECOND = 45;
+const DEFAULT_SCENE_SCALE = 0.001;
 
 function setText(node, text) {
 	if (node) {
@@ -71,6 +71,221 @@ function estimateSceneScale(viewer, fallback = 1000) {
 	return ratios.reduce((sum, next) => sum + next, 0) / ratios.length;
 }
 
+function isEditableTarget(target) {
+	if (!target || typeof target !== 'object') {
+		return false;
+	}
+	if (target.isContentEditable === true) {
+		return true;
+	}
+	const tagName = typeof target.tagName === 'string' ? target.tagName.toUpperCase() : '';
+	return tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT';
+}
+
+function createImpulseFlightController(options = {}) {
+	const id = options.id ?? 'impulse-flight-controller';
+	const observerPcDefault = options.observerPc ?? SOLAR_ORIGIN_PC;
+	const maxSpeed = Number.isFinite(options.maxSpeed) ? Number(options.maxSpeed) : DEFAULT_MAX_SPEED_PC_PER_SECOND;
+	const impulseStrength = Number.isFinite(options.impulseStrength) ? Number(options.impulseStrength) : 0.048;
+	const keyRotationSpeed = Number.isFinite(options.keyRotationSpeed) ? Number(options.keyRotationSpeed) : 1.9;
+	const pointerRotationSpeed = Number.isFinite(options.pointerRotationSpeed) ? Number(options.pointerRotationSpeed) : 0.0025;
+	const sceneScale = Number.isFinite(options.sceneScale) ? Number(options.sceneScale) : DEFAULT_SCENE_SCALE;
+
+	const shipQuat = new THREE.Quaternion();
+	const velocityPc = new THREE.Vector3();
+	const localAxis = new THREE.Vector3();
+	const deltaQuat = new THREE.Quaternion();
+	const forwardScratch = new THREE.Vector3();
+	const pressedKeys = new Set();
+
+	let pointerTarget = null;
+	let keyboardTarget = null;
+	let dragPointerId = null;
+	let dragLastX = 0;
+	let dragLastY = 0;
+	let orientationInitialized = false;
+
+	function shipForward() {
+		return forwardScratch.set(0, 0, -1).applyQuaternion(shipQuat).normalize();
+	}
+
+	function shipRight() {
+		return localAxis.set(1, 0, 0).applyQuaternion(shipQuat).normalize();
+	}
+
+	function shipUp() {
+		return localAxis.set(0, 1, 0).applyQuaternion(shipQuat).normalize();
+	}
+
+	function rotateShipLocal(axis, angleRad) {
+		deltaQuat.setFromAxisAngle(axis, angleRad);
+		shipQuat.premultiply(deltaQuat).normalize();
+	}
+
+	function applyImpulse() {
+		velocityPc.addScaledVector(shipForward(), impulseStrength);
+		const speed = velocityPc.length();
+		if (speed > maxSpeed) {
+			velocityPc.multiplyScalar(maxSpeed / speed);
+		}
+	}
+
+	function applyCameraPose(context) {
+		const obs = context.state?.observerPc ?? observerPcDefault;
+		context.camera.position.set(
+			obs.x * sceneScale,
+			obs.y * sceneScale,
+			obs.z * sceneScale,
+		);
+		context.camera.quaternion.copy(shipQuat);
+	}
+
+	function onPointerDown(event) {
+		if (event.button !== 0) {
+			return;
+		}
+		dragPointerId = event.pointerId;
+		dragLastX = event.clientX;
+		dragLastY = event.clientY;
+		if (pointerTarget?.style) {
+			pointerTarget.style.cursor = 'grabbing';
+		}
+		if (typeof pointerTarget?.setPointerCapture === 'function') {
+			try {
+				pointerTarget.setPointerCapture(event.pointerId);
+			} catch (_) {
+				// Ignore capture failures.
+			}
+		}
+	}
+
+	function onPointerMove(event) {
+		if (dragPointerId == null || event.pointerId !== dragPointerId) {
+			return;
+		}
+		const dx = event.clientX - dragLastX;
+		const dy = event.clientY - dragLastY;
+		dragLastX = event.clientX;
+		dragLastY = event.clientY;
+		rotateShipLocal(shipUp(), -dx * pointerRotationSpeed);
+		rotateShipLocal(shipRight(), -dy * pointerRotationSpeed);
+	}
+
+	function endPointerDrag(event) {
+		if (dragPointerId == null || event.pointerId !== dragPointerId) {
+			return;
+		}
+		if (typeof pointerTarget?.releasePointerCapture === 'function') {
+			try {
+				pointerTarget.releasePointerCapture(event.pointerId);
+			} catch (_) {
+				// Ignore release failures.
+			}
+		}
+		dragPointerId = null;
+		if (pointerTarget?.style) {
+			pointerTarget.style.cursor = '';
+		}
+	}
+
+	function onKeyDown(event) {
+		if (event.repeat || isEditableTarget(event.target)) {
+			return;
+		}
+		switch (event.code) {
+			case 'ArrowUp':
+			case 'ArrowDown':
+			case 'ArrowLeft':
+			case 'ArrowRight':
+				pressedKeys.add(event.code);
+				event.preventDefault();
+				break;
+			case 'KeyW':
+				applyImpulse();
+				event.preventDefault();
+				break;
+			default:
+				break;
+		}
+	}
+
+	function onKeyUp(event) {
+		if (!pressedKeys.has(event.code)) {
+			return;
+		}
+		pressedKeys.delete(event.code);
+		event.preventDefault();
+	}
+
+	return {
+		id,
+		get speed() {
+			return velocityPc.length();
+		},
+		attach(context) {
+			if (!context.state || typeof context.state !== 'object') {
+				throw new TypeError('ImpulseFlightController requires a mutable runtime state object');
+			}
+			if (!context.state.observerPc) {
+				context.state.observerPc = { ...observerPcDefault };
+			}
+			if (!orientationInitialized) {
+				shipQuat.copy(context.camera.quaternion);
+				orientationInitialized = true;
+			}
+			pointerTarget = options.pointerTarget ?? context.canvas ?? null;
+			keyboardTarget = options.keyboardTarget ?? globalThis.window ?? null;
+			pointerTarget?.addEventListener?.('pointerdown', onPointerDown);
+			pointerTarget?.addEventListener?.('pointermove', onPointerMove);
+			pointerTarget?.addEventListener?.('pointerup', endPointerDrag);
+			pointerTarget?.addEventListener?.('pointercancel', endPointerDrag);
+			keyboardTarget?.addEventListener?.('keydown', onKeyDown);
+			keyboardTarget?.addEventListener?.('keyup', onKeyUp);
+			applyCameraPose(context);
+		},
+		update(context) {
+			const dt = Math.max(0, context.frame?.deltaSeconds ?? 0);
+			if (dt > 0) {
+				const pitchInput = (pressedKeys.has('ArrowUp') ? 1 : 0) - (pressedKeys.has('ArrowDown') ? 1 : 0);
+				const rollInput = (pressedKeys.has('ArrowLeft') ? 1 : 0) - (pressedKeys.has('ArrowRight') ? 1 : 0);
+
+				if (pitchInput !== 0) {
+					rotateShipLocal(shipRight(), pitchInput * keyRotationSpeed * dt);
+				}
+				if (rollInput !== 0) {
+					rotateShipLocal(shipForward(), rollInput * keyRotationSpeed * dt);
+				}
+
+				if (velocityPc.lengthSq() > 1e-12) {
+					const obs = context.state.observerPc ?? { ...observerPcDefault };
+					context.state.observerPc = {
+						x: obs.x + velocityPc.x * dt,
+						y: obs.y + velocityPc.y * dt,
+						z: obs.z + velocityPc.z * dt,
+					};
+				}
+			}
+			applyCameraPose(context);
+		},
+		dispose() {
+			pressedKeys.clear();
+			pointerTarget?.removeEventListener?.('pointerdown', onPointerDown);
+			pointerTarget?.removeEventListener?.('pointermove', onPointerMove);
+			pointerTarget?.removeEventListener?.('pointerup', endPointerDrag);
+			pointerTarget?.removeEventListener?.('pointercancel', endPointerDrag);
+			keyboardTarget?.removeEventListener?.('keydown', onKeyDown);
+			keyboardTarget?.removeEventListener?.('keyup', onKeyUp);
+			if (pointerTarget?.style) {
+				pointerTarget.style.cursor = '';
+			}
+			dragPointerId = null;
+			pointerTarget = null;
+			keyboardTarget = null;
+			velocityPc.set(0, 0, 0);
+		},
+	};
+}
+
 async function mountLightYear(root) {
 	const mount = root.querySelector('[data-lightyear-mount]');
 	if (!mount) {
@@ -82,16 +297,9 @@ async function mountLightYear(root) {
 	const speedBar = root.querySelector('[data-lightyear-speed-bar]');
 	const sunDistance = root.querySelector('[data-lightyear-sun-distance]');
 	const sunArrow = root.querySelector('[data-lightyear-sun-arrow]');
-	const pickedDistance = root.querySelector('[data-lightyear-picked-distance]');
-	const pickedName = root.querySelector('[data-lightyear-picked-name]');
 	let viewer = null;
 	let animationHandle = null;
-	let pointsMesh = null;
-	let selectedStar = null;
 	let sceneScale = 1000;
-	const raycaster = new THREE.Raycaster();
-	const ndc = new THREE.Vector2();
-	const tempVector = new THREE.Vector3();
 	const sunVector = new THREE.Vector3();
 	const cameraSpaceSun = new THREE.Vector3();
 	const maxSpeedPcPerSecond = Number.isFinite(Number(root.dataset.maxSpeed))
@@ -110,13 +318,11 @@ async function mountLightYear(root) {
 			}),
 	});
 
-	const thrustController = createThrustController({
-		id: `website-lightyear-thrust-${topicSlug}`,
+	const thrustController = createImpulseFlightController({
+		id: `website-lightyear-impulse-${topicSlug}`,
 		observerPc: SOLAR_ORIGIN_PC,
 		maxSpeed: maxSpeedPcPerSecond,
-		thrustAcceleration: 9,
-		brakeFactor: 2,
-		dragCoefficient: 0.015,
+		impulseStrength: 0.048,
 	});
 
 	function setStatus(message) {
@@ -145,46 +351,13 @@ async function mountLightYear(root) {
 		setText(sunDistance, formatLy(distancePc * PC_TO_LY));
 
 		if (sunArrow) {
-			cameraSpaceSun.copy(sunVector).applyQuaternion(camera.quaternion.clone().invert());
+			const cameraSpaceSun = sunVector.clone().applyQuaternion(camera.quaternion.clone().invert());
 			const angleRad = Math.atan2(cameraSpaceSun.x, -cameraSpaceSun.z);
 			const pitchFactor = Math.max(0.4, Math.min(1.2, 1 - cameraSpaceSun.y * 0.2));
 			sunArrow.style.transform = `rotate(${angleRad}rad) scale(${pitchFactor})`;
 		}
 
-		if (selectedStar) {
-			tempVector.fromArray(selectedStar.positions, selectedStar.index * 3);
-			const starDistancePc = tempVector.distanceTo(camera.position) / Math.max(sceneScale, 1e-6);
-			setText(pickedDistance, formatLy(starDistancePc * PC_TO_LY));
-		}
-
 		animationHandle = requestAnimationFrame(updateHud);
-	}
-
-	function pickStar(event) {
-		if (!viewer || !pointsMesh) {
-			return;
-		}
-		const rect = viewer.canvas.getBoundingClientRect();
-		ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-		ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-		raycaster.params.Points.threshold = 2;
-		raycaster.setFromCamera(ndc, viewer.runtime.camera);
-		const intersections = raycaster.intersectObject(pointsMesh, false);
-		if (intersections.length === 0 || !Number.isInteger(intersections[0].index)) {
-			selectedStar = null;
-			setText(pickedName, 'No star selected');
-			setText(pickedDistance, '--');
-			return;
-		}
-		const selection = starLayer.getStarData();
-		if (!selection) {
-			return;
-		}
-		selectedStar = {
-			index: intersections[0].index,
-			positions: selection.positions,
-		};
-		setText(pickedName, `Star #${selectedStar.index + 1}`);
 	}
 
 	try {
@@ -218,11 +391,7 @@ async function mountLightYear(root) {
 			clearColor: 0x02040b,
 		});
 
-		pointsMesh = viewer.contentRoot.getObjectByName(`${starLayerId}-points`);
-		viewer.canvas.addEventListener('click', pickStar);
-		setText(pickedName, 'Click a star to measure');
-		setText(pickedDistance, '--');
-		setStatus('W thrusts forward, S brakes. Click stars to measure distance. Arrow points back to the Sun.');
+		setStatus('Arrow keys control pitch/roll. Press W for forward impulse.');
 		updateHud();
 	} catch (error) {
 		console.error('[website:lightyear-explorer]', error);
