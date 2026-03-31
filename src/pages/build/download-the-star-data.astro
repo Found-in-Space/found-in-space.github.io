@@ -1,0 +1,424 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const githubUrl = 'https://github.com/Found-in-Space/pipeline';
+const gaiaArchiveUrl = 'https://gea.esac.esa.int/archive/';
+---
+
+<Layout
+	title="Download the star data | Build | Found in Space"
+	description="How to download Gaia DR3 star data and run the Found in Space pipeline yourself — from a 16 MB sample of bright stars to a full all-sky build."
+>
+	<SiteHeader section="Build" />
+
+	<main class="page">
+		<header class="hero">
+			<p class="eyebrow">Build — How-to</p>
+			<h1>Download and run the pipeline yourself</h1>
+			<p class="lede">
+				The pipeline is open source. You can download a small sample of the brightest stars in
+				minutes with no account required, or run a full all-sky build from the Gaia Archive.
+				Everything you need is in the repository.
+			</p>
+		</header>
+
+		<article class="body">
+
+			<section class="section">
+				<h2>Prerequisites</h2>
+				<p>
+					The pipeline requires Python ≥&nbsp;3.13 and
+					<a href="https://docs.astral.sh/uv/" rel="noopener noreferrer"><code>uv</code></a>
+					for environment and dependency management. Clone the repository and install:
+				</p>
+				<pre><code>git clone https://github.com/Found-in-Space/pipeline.git
+cd pipeline
+uv sync</code></pre>
+				<p>
+					Generate a starter project configuration file — this is the single source of truth for
+					all input and output paths:
+				</p>
+				<pre><code>uv run fis-pipeline project init project.toml</code></pre>
+			</section>
+
+			<section class="section">
+				<h2>Getting Gaia data</h2>
+				<p>
+					Gaia data is accessed through the
+					<a href={gaiaArchiveUrl} rel="noopener noreferrer">Gaia Archive</a> using ADQL
+					(Astronomical Data Query Language — essentially SQL against the catalogue tables).
+					The pipeline reads <strong>VOTable files</strong> (the archive's native format,
+					available gzip-compressed), so you download first, then run the pipeline against
+					the local files.
+				</p>
+				<p>
+					The query joins two tables: <code>gaiadr3.gaia_source</code> for astrometry and
+					photometry, and <code>external.gaiaedr3_distance</code> for Bailer-Jones probabilistic
+					distances. The filter <code>astrometric_params_solved IN (31, 95)</code> keeps only
+					stars with five- or six-parameter astrometric solutions — the ones with reliable
+					parallaxes.
+				</p>
+
+				<div class="callout panel">
+					<p class="panel__eyebrow">Start here</p>
+					<h3>Bright stars — no account required</h3>
+					<p>
+						Limiting to G&nbsp;≤&nbsp;9 gives around 175,000 stars in a ~16&nbsp;MB download.
+						This fits within the Gaia Archive's anonymous query limit and covers every star
+						visible to the naked eye from a dark site, plus a large number of telescopically
+						visible ones.
+					</p>
+				</div>
+
+				<pre><code class="language-sql">SELECT
+  g.source_id,
+  g.ra,
+  g.dec,
+  g.parallax,
+  g.parallax_error,
+  g.pmra,
+  g.pmdec,
+  g.phot_g_mean_mag,
+  g.phot_bp_mean_mag,
+  g.phot_rp_mean_mag,
+  g.ruwe,
+  g.mg_gspphot,
+  g.ag_gspphot,
+  g.mg_gspphot_upper,
+  g.mg_gspphot_lower,
+  g.teff_esphs,
+  g.teff_gspspec,
+  g.teff_espucd,
+  g.teff_gspphot,
+  d.r_med_geo,
+  d.r_lo_geo,
+  d.r_hi_geo,
+  d.r_med_photogeo,
+  d.r_lo_photogeo,
+  d.r_hi_photogeo
+FROM gaiadr3.gaia_source AS g
+JOIN external.gaiaedr3_distance AS d
+  ON d.source_id = g.source_id
+WHERE
+  g.astrometric_params_solved IN (31, 95)
+  AND (
+    d.r_med_photogeo IS NOT NULL
+    OR d.r_med_geo IS NOT NULL
+  )
+  AND g.phot_g_mean_mag &lt;= 9.0</code></pre>
+
+				<p>
+					Paste this into the <strong>ADQL tab</strong> of the Gaia Archive, run it, and
+					download the result as VOTable (gzip). You can also submit it programmatically
+					via <code>astroquery</code>:
+				</p>
+				<pre><code class="language-python">from astroquery.gaia import Gaia
+
+job = Gaia.launch_job_async(query, output_format="votable_gzip")
+result = job.get_results()
+result.write("gaia_bright.vot.gz", format="votable", overwrite=True)</code></pre>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Magnitude limit</th>
+							<th>Approximate star count</th>
+							<th>Approximate size</th>
+							<th>Account required?</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>G ≤ 9</td>
+							<td>175,000</td>
+							<td>16 MB</td>
+							<td>No</td>
+						</tr>
+						<tr>
+							<td>G ≤ 12</td>
+							<td>3,060,000</td>
+							<td>277 MB</td>
+							<td>Yes (free)</td>
+						</tr>
+						<tr>
+							<td>G ≤ 15</td>
+							<td>36,600,000</td>
+							<td>3.2 GB</td>
+							<td>Yes (free)</td>
+						</tr>
+						<tr>
+							<td>Full sky</td>
+							<td>~1.3 billion</td>
+							<td>~1.1 TB</td>
+							<td>Yes — batched download required</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>
+					The Gaia Archive public API caps results at around 3 million rows per query. G&nbsp;≤&nbsp;12
+					exceeds this, so a free account is needed. Registration is straightforward via the
+					archive web interface. For G&nbsp;≤&nbsp;15 and beyond, results still fit in a single
+					(large) async job. The full all-sky download requires partitioning — see below.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Full all-sky download</h2>
+				<p>
+					Without a magnitude limit the query returns around 1.3 billion rows — far beyond
+					a single TAP job. The data must be partitioned and downloaded in batches.
+				</p>
+				<p>
+					The partition key is HEALPix level 3, encoded directly in each Gaia
+					<code>source_id</code> via integer division by 2<sup>53</sup>. Level 3 gives 768 sky
+					tiles. Star counts vary enormously across the sky (the galactic plane vs. the poles),
+					so tiles are grouped into batches that stay under a row cap of ~55 million — a
+					trade-off between the number of async jobs and output file size.
+				</p>
+				<p>
+					The repository's technical notes in <code>docs/gaia-downloads.md</code> document this
+					batch planning strategy in full, including the dynamic-programming tile packer used to
+					fill each batch as efficiently as possible.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Running the pipeline</h2>
+				<p>
+					With your VOTable files downloaded, point the project configuration at them and run:
+				</p>
+				<pre><code># Process Gaia VOTable(s) → Parquet
+uv run fis-pipeline gaia build --project project.toml gaia_bright.vot.gz
+
+# Download Hipparcos (fetched automatically from Vizier)
+uv run fis-pipeline hip build --project project.toml
+
+# Download the Gaia–Hipparcos crossmatch table
+uv run fis-pipeline gaia-to-hip build --project project.toml
+
+# Build the overrides Parquet (Sun, Alpha Cen, etc.)
+uv run fis-pipeline overrides build --project project.toml
+
+# Merge everything into HEALPix-partitioned output
+uv run fis-pipeline merge build --project project.toml</code></pre>
+				<p>
+					Hipparcos and the crossmatch table are downloaded automatically from ESA's Vizier
+					service and the Gaia TAP endpoint respectively — no manual steps needed. Downloads are
+					cached; re-running skips them.
+				</p>
+				<p>
+					The merge step also builds the identifiers sidecar (HD numbers, Bayer/Flamsteed
+					designations, proper names) if you run <code>identifiers build</code> first. It's
+					optional — the core merge output works without it.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>What the pipeline produces</h2>
+				<p>
+					The final output is HEALPix-partitioned Parquet under
+					<code>{"{output_dir}"}/healpix/{"{pixel}"}/</code>.
+					Each file uses the fixed schema below, compressed with zstd.
+				</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Column</th>
+							<th>Type</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr><td><code>source</code></td><td>string</td><td><code>"gaia"</code>, <code>"hip"</code>, or <code>"manual"</code></td></tr>
+						<tr><td><code>source_id</code></td><td>string</td><td>Catalogue identifier within that namespace</td></tr>
+						<tr><td><code>x_icrs_pc</code></td><td>float64</td><td>Sun-centred x coordinate (parsecs, ICRS J2016.0)</td></tr>
+						<tr><td><code>y_icrs_pc</code></td><td>float64</td><td>Sun-centred y coordinate (parsecs)</td></tr>
+						<tr><td><code>z_icrs_pc</code></td><td>float64</td><td>Sun-centred z coordinate (parsecs)</td></tr>
+						<tr><td><code>ra_deg</code></td><td>float64</td><td>Right ascension (degrees, J2016.0)</td></tr>
+						<tr><td><code>dec_deg</code></td><td>float64</td><td>Declination (degrees, J2016.0)</td></tr>
+						<tr><td><code>r_pc</code></td><td>float64</td><td>Distance from the Sun (parsecs)</td></tr>
+						<tr><td><code>mag_abs</code></td><td>float32</td><td>Absolute magnitude</td></tr>
+						<tr><td><code>teff</code></td><td>float32</td><td>Effective temperature (K)</td></tr>
+						<tr><td><code>quality_flags</code></td><td>uint16</td><td>Packed provenance and status bits</td></tr>
+						<tr><td><code>astrometry_quality</code></td><td>float32</td><td>Fractional parallax error (or tier sentinel)</td></tr>
+						<tr><td><code>photometry_quality</code></td><td>float32</td><td>GSP-Phot M<sub>G</sub> confidence width</td></tr>
+					</tbody>
+				</table>
+				<p>
+					Alongside the Parquet shards, the merge step writes <code>merge_report.json</code>
+					(aggregate counts by category — how many Gaia-only, HIP-only, matched pairs, and
+					override actions) and <code>merge_decisions.parquet</code> (one row per matched pair
+					or override, with quality scores and diagnostics).
+				</p>
+			</section>
+
+			<nav class="page-nav">
+				<a href={`${basePath}build/gaia-and-hipparcos-star-catalogues/`}>← How the merge works</a>
+				<a href={`${basePath}build/`}>Back to Build ↑</a>
+			</nav>
+
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 4rem 0 2.8rem;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(2.2rem, 5vw, 3.4rem);
+		font-weight: 600;
+		line-height: 1.05;
+		letter-spacing: -0.03em;
+		max-width: 26ch;
+	}
+
+	.body {
+		max-width: 52rem;
+	}
+
+	.section {
+		margin-bottom: 3.5rem;
+	}
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 1.75rem;
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+	}
+
+	h3 {
+		margin: 0 0 0.6rem;
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: var(--fis-text);
+	}
+
+	p {
+		margin: 0 0 1.25rem;
+		font-size: 1.08rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+	}
+
+	a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.4);
+	}
+
+	strong {
+		color: var(--fis-text);
+		font-weight: 600;
+	}
+
+	code {
+		font-size: 0.88em;
+		color: var(--fis-blue);
+		background: rgba(141, 183, 255, 0.08);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+	}
+
+	pre {
+		margin: 0 0 1.5rem;
+		padding: 1.25rem 1.5rem;
+		background: rgba(4, 9, 20, 0.7);
+		border: 1px solid var(--fis-line);
+		border-radius: 0.8rem;
+		overflow-x: auto;
+	}
+
+	pre code {
+		background: none;
+		padding: 0;
+		font-size: 0.9rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.callout {
+		margin: 1.5rem 0;
+		padding: 1.5rem 1.75rem;
+	}
+
+	.callout p {
+		font-size: 1rem;
+	}
+
+	/* Tables */
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 1.25rem 0 1.75rem;
+		font-size: 0.95rem;
+	}
+
+	th {
+		padding: 0.65rem 1rem;
+		background: rgba(242, 200, 121, 0.08);
+		border: 1px solid var(--fis-line);
+		text-align: left;
+		font-weight: 600;
+		font-family: var(--fis-font-ui);
+		font-size: 0.82rem;
+		letter-spacing: 0.04em;
+		color: var(--fis-text-muted);
+	}
+
+	td {
+		padding: 0.6rem 1rem;
+		border: 1px solid var(--fis-line);
+		line-height: 1.6;
+		color: var(--fis-text-soft);
+		vertical-align: top;
+	}
+
+	tr:nth-child(even) td {
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	/* Page navigation */
+
+	.page-nav {
+		display: flex;
+		justify-content: space-between;
+		padding: 2.5rem 0 4rem;
+		border-top: 1px solid var(--fis-line);
+		font-size: 0.97rem;
+	}
+
+	.page-nav a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	@media (max-width: 720px) {
+		pre {
+			padding: 1rem;
+		}
+
+		table {
+			font-size: 0.85rem;
+		}
+
+		td, th {
+			padding: 0.5rem 0.75rem;
+		}
+
+		.page-nav {
+			flex-direction: column;
+			gap: 1rem;
+		}
+	}
+</style>

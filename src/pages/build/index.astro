@@ -1,0 +1,291 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const githubUrl = 'https://github.com/Found-in-Space/pipeline';
+---
+
+<Layout
+	title="Build | Found in Space"
+	description="Over a billion stars from ESA's Gaia mission and the Hipparcos survey, merged, spatially indexed, and navigable in a browser. The full open pipeline."
+>
+	<SiteHeader section="Build" />
+
+	<main class="page">
+		<section class="hero">
+			<p class="eyebrow">Build</p>
+			<h1>Over a billion stars. Each placed in three-dimensional space.</h1>
+			<p class="intro">
+				Not a simulation. Not a model. Real distance measurements from ESA's Gaia spacecraft,
+				combined with data from the historic Hipparcos survey, processed into a single navigable
+				dataset. Every step is open — the catalogues, the pipeline code, the spatial index, and
+				the viewer.
+			</p>
+		</section>
+
+		<section class="pipeline">
+			<article class="panel panel--accent step">
+				<p class="panel__eyebrow">Step one</p>
+				<h2>Two surveys, one star map</h2>
+				<p>
+					Gaia DR3 measured over a billion stars with sub-milliarcsecond precision — positions,
+					parallaxes, proper motions, colours. But Gaia's detectors saturate on the brightest
+					stars: Sirius, Vega, Betelgeuse. These are exactly the stars people recognise.
+				</p>
+				<p>
+					The Hipparcos mission (ESA, 1989–1993) was purpose-built for bright-star astrometry.
+					Its 118,000 stars anchor the naked-eye sky that Gaia cannot reliably reach.
+				</p>
+				<p>
+					About 100,000 stars appear in both catalogues. The pipeline produces exactly one
+					canonical row per physical star — choosing the better measurement for each, handling
+					binary systems, and manually curating the handful of cases that defeat automation
+					entirely (including the Sun, which does not appear in either catalogue).
+				</p>
+				<a class="step__link" href={`${basePath}build/gaia-and-hipparcos-star-catalogues/`}>
+					How the merge works →
+				</a>
+			</article>
+
+			<article class="panel step">
+				<p class="panel__eyebrow">Step two</p>
+				<h2>Cleaned, corrected, and positioned</h2>
+				<p>
+					Each star gets a distance — from the catalog parallax where reliable, from
+					Bailer-Jones probabilistic estimates where not, from photometric modelling where
+					those fail, and from a conservative prior as a last resort. Each tier is flagged.
+				</p>
+				<p>
+					Positions are propagated to a common epoch (J2016.0) using proper motions, and
+					converted to Sun-centred Cartesian coordinates in parsecs. Temperature comes from
+					spectroscopic measurements where available, falling back through colour cascades
+					to a default.
+				</p>
+				<p>
+					The result is a HEALPix-partitioned Parquet table: one row per star, a fixed schema,
+					quality flags packed into each record.
+				</p>
+			</article>
+
+			<article class="panel step">
+				<p class="panel__eyebrow">Step three</p>
+				<h2>Indexed for the browser</h2>
+				<p>
+					A browser cannot download a billion-row table. The merged data is encoded into a
+					spatial octree — a tree structure that divides 3D space recursively, grouping stars
+					by their position and storing them as compact 16-byte records (position, absolute
+					magnitude, temperature).
+				</p>
+				<p>
+					When you navigate the viewer, it loads only the stars visible from where you are:
+					nearby stars regardless of brightness, and distant stars only if they're bright
+					enough to be seen from that distance. Everything else stays on the server until
+					you need it.
+				</p>
+			</article>
+		</section>
+
+		<section class="links-section">
+			<div class="links-section__intro">
+				<p class="eyebrow">Technical notes</p>
+				<h2>Read more about how it works.</h2>
+			</div>
+			<div class="links-section__cards">
+				<a class="link-card" href={`${basePath}build/gaia-and-hipparcos-star-catalogues/`}>
+					<h3>Gaia and Hipparcos — merging two star catalogues</h3>
+					<p>
+						Why two surveys are needed, how 100,000 duplicate stars are deduplicated,
+						and how the pipeline handles cases that defeat automated matching.
+					</p>
+					<span class="link-card__cta">Read →</span>
+				</a>
+				<a class="link-card" href={`${basePath}build/download-the-star-data/`}>
+					<h3>Download and run the pipeline yourself</h3>
+					<p>
+						The pipeline is open source. Start with a 16 MB sample of the brightest stars,
+						or build the full dataset from scratch using the Gaia Archive.
+					</p>
+					<span class="link-card__cta">Read →</span>
+				</a>
+			</div>
+		</section>
+
+		<section class="open-source">
+			<div class="panel panel--wide">
+				<p class="panel__eyebrow">Open source</p>
+				<h2>The pipeline is on GitHub</h2>
+				<p>
+					The data pipeline code — catalogues, astrometry, photometry, merging, and the
+					project configuration format — is published under the MIT licence at
+					<a href={githubUrl} rel="noopener noreferrer">github.com/Found-in-Space/pipeline</a>.
+					Requires Python ≥ 3.13 and <code>uv</code>.
+				</p>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 4.2rem 0 2.8rem;
+		max-width: 52rem;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(2.6rem, 6vw, 4.4rem);
+		font-weight: 600;
+		line-height: 0.97;
+		letter-spacing: -0.03em;
+	}
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 1.55rem;
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--fis-text);
+	}
+
+	h3 {
+		margin: 0 0 0.6rem;
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.2;
+		color: var(--fis-text);
+	}
+
+	.intro {
+		max-width: 46rem;
+		margin: 1.5rem 0 0;
+		font-size: 1.18rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	/* Pipeline steps */
+
+	.pipeline {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin-bottom: 4rem;
+	}
+
+	.step {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.step p {
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	.step__link {
+		margin-top: auto;
+		padding-top: 1.25rem;
+		font-size: 0.95rem;
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	/* Links section */
+
+	.links-section {
+		display: grid;
+		grid-template-columns: 1fr 2fr;
+		gap: 3rem;
+		padding: 4rem 0;
+		border-top: 1px solid var(--fis-line);
+		margin-bottom: 1rem;
+	}
+
+	.links-section__intro h2 {
+		margin: 0;
+		font-size: 2rem;
+		line-height: 1.05;
+		max-width: 12ch;
+	}
+
+	.links-section__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.link-card {
+		display: flex;
+		flex-direction: column;
+		padding: 1.5rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.link-card:hover {
+		border-color: rgba(242, 200, 121, 0.3);
+		transform: translateX(6px);
+	}
+
+	.link-card p {
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		line-height: 1.65;
+		color: var(--fis-text-soft);
+	}
+
+	.link-card__cta {
+		font-size: 0.9rem;
+		color: var(--fis-gold);
+	}
+
+	/* Open source panel */
+
+	.open-source {
+		margin-bottom: 4rem;
+	}
+
+	.open-source h2 {
+		font-size: 1.4rem;
+	}
+
+	.open-source p {
+		margin: 0;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	.open-source a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.4);
+	}
+
+	.open-source code {
+		font-size: 0.9em;
+		color: var(--fis-blue);
+	}
+
+	@media (max-width: 960px) {
+		.pipeline {
+			grid-template-columns: 1fr;
+		}
+
+		.links-section {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+	}
+</style>

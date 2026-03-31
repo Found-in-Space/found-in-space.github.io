@@ -1,0 +1,539 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const githubUrl = 'https://github.com/Found-in-Space/pipeline';
+---
+
+<Layout
+	title="Gaia and Hipparcos — merging two star catalogues | Build | Found in Space"
+	description="How Found in Space merges Gaia DR3 and the Hipparcos survey into a single star catalogue — crossmatching, quality scoring, and manual overrides for the cases that defeat automation."
+>
+	<SiteHeader section="Build" />
+
+	<main class="page">
+		<header class="hero">
+			<p class="eyebrow">Build — Technical notes</p>
+			<h1>Gaia and Hipparcos — merging two star catalogues</h1>
+			<p class="lede">
+				The pipeline uses two surveys because no single catalogue covers the whole sky reliably.
+				Combining them means resolving roughly 100,000 duplicate stars — choosing one winner per
+				pair, handling binaries and special cases, and ensuring every output row has a consistent
+				identity.
+			</p>
+		</header>
+
+		<article class="body">
+
+			<section class="section">
+				<h2>Why two catalogues?</h2>
+				<p>
+					ESA's <strong>Gaia</strong> mission (launched 2013, Data Release 3 in 2022) surveyed
+					roughly 1.8 billion sources with sub-milliarcsecond astrometry — an unprecedented map of
+					the Milky Way. But Gaia's CCDs saturate on the brightest stars. For sources brighter
+					than about G&nbsp;~&nbsp;3–6, the astrometric solutions are often incomplete, degraded,
+					or missing entirely. These are exactly the stars that people recognise when they look up:
+					Sirius, Vega, Betelgeuse, the Southern Cross.
+				</p>
+				<p>
+					<strong>Hipparcos</strong> (ESA, 1989–1993; revised by van Leeuwen 2007) was
+					purpose-built for bright-star astrometry. Its catalogue of around 118,000 stars covers
+					the naked-eye sky reliably, including many objects where Gaia struggles. The trade-off is
+					that Hipparcos is shallow — it has nothing useful to say about the vast majority of
+					the galaxy.
+				</p>
+				<p>
+					For a complete 3D star map you need both: Gaia for depth and completeness, Hipparcos for
+					the bright-star anchors. But roughly 100,000 stars appear in both catalogues, and the
+					pipeline must produce exactly <em>one canonical row</em> per physical star.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Why deduplication is hard</h2>
+
+				<h3>No shared identifier</h3>
+				<p>
+					Gaia and Hipparcos use independent numbering systems. There is no column in either
+					catalogue that says "this is the same star." The only link is ESA's
+					<code>hipparcos2_best_neighbour</code> crossmatch table — a positional match published
+					as part of Gaia DR3. The pipeline downloads it via a TAP query against the Gaia Archive
+					and converts it into a local lookup that maps Gaia source IDs to Hipparcos numbers,
+					along with an <code>angular_distance</code> and a <code>number_of_neighbours</code>
+					count.
+				</p>
+
+				<h3>Scale</h3>
+				<p>
+					The full Gaia catalogue has around 1.5 billion rows. You cannot load two copies to
+					compare them — the merger must stream Gaia batch-by-batch while holding only the small
+					Hipparcos table (~118K rows) and the crossmatch table in memory. This constraint shapes
+					the entire architecture.
+				</p>
+
+				<h3>Binaries and multiples</h3>
+				<p>
+					Hipparcos often saw a binary system as a single point of light, while Gaia resolves
+					the individual components. The crossmatch may link one Hipparcos entry to multiple Gaia
+					sources. Meanwhile, Hipparcos solution type codes distinguish standard five-parameter
+					single-star fits from more complex acceleration solutions, orbital solutions, and
+					component solutions — the latter being unreliable for position and parallax. These
+					problems concentrate exactly on the brightest, most recognisable stars.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Quality scoring and winner selection</h2>
+				<p>
+					When a Gaia row and a Hipparcos row are linked by the crossmatch and no manual override
+					applies, the merger runs a decision tree to pick a winner.
+				</p>
+
+				<div class="rule-list">
+					<div class="rule">
+						<span class="rule__num">1</span>
+						<div>
+							<strong>Neighbour veto.</strong> If <code>number_of_neighbours &gt; 1</code> in
+							the crossmatch entry, Hipparcos is ambiguous — Gaia has resolved what Hipparcos
+							saw as one source into multiple candidates. <em>Gaia wins automatically.</em>
+						</div>
+					</div>
+					<div class="rule">
+						<span class="rule__num">2</span>
+						<div>
+							<strong>Multiplicity veto.</strong> If the Hipparcos solution type is anything other
+							than a standard five-parameter single-star model, the Hipparcos astrometry is suspect.
+							<em>Gaia wins automatically.</em>
+						</div>
+					</div>
+					<div class="rule">
+						<span class="rule__num">3</span>
+						<div>
+							<strong>Bright-star gate.</strong> For the remaining pairs, Hipparcos must beat Gaia
+							by a margin that depends on apparent brightness. The margins exist because Gaia is
+							increasingly unreliable at the very bright end — a small Hipparcos advantage there is
+							more meaningful than it would be for a normal star.
+						</div>
+					</div>
+					<div class="rule">
+						<span class="rule__num">4</span>
+						<div>
+							<strong>Tie-break.</strong> If neither side wins on quality, <em>Gaia wins.</em>
+						</div>
+					</div>
+				</div>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Apparent magnitude</th>
+							<th>Margin required for Hipparcos to win</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>G &lt; 3.5 (very bright)</td>
+							<td>Hipparcos must be strictly better (1.0×)</td>
+						</tr>
+						<tr>
+							<td>3.5 ≤ G &lt; 6 (bright)</td>
+							<td>Hipparcos score must be below 60% of Gaia's</td>
+						</tr>
+						<tr>
+							<td>G ≥ 6 (normal)</td>
+							<td>Hipparcos score must be below 50% of Gaia's</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>
+					The quality metric is <em>fractional parallax error</em> — σ/π — computed identically
+					for both catalogues: <code>parallax_error / parallax</code> for Hipparcos,
+					and <code>parallax_error / max(parallax, ε)</code> for Gaia DR3 (or the equivalent
+					Bailer-Jones interval width). Lower is better, and the values are directly comparable
+					across catalogues.
+				</p>
+				<p>
+					For Gaia rows that fall back from the primary parallax measurement through successive
+					distance tiers, sentinel quality values (10, 20, 50) are used instead of real
+					fractional errors. These sentinels sort correctly — a photometric distance estimate
+					always loses to a reliable parallax — without requiring special case logic in the
+					winner selection.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Manual overrides</h2>
+				<p>
+					Some stars cannot be handled by automated scoring, and automated scoring can be wrong.
+					The pipeline includes a YAML-driven override system that takes precedence over everything
+					else. Each override targets a star by its catalogue identity and can do one of three
+					things: <strong>add</strong> a star that appears in neither catalogue,
+					<strong>replace</strong> the payload for a star that does exist, or
+					<strong>drop</strong> a star from the output entirely.
+				</p>
+				<p>
+					When an override targets one member of a matched Gaia–Hipparcos pair, the pipeline
+					automatically resolves the whole pair via the crossmatch table — the partner is
+					suppressed without the override author needing to supply its ID.
+				</p>
+
+				<div class="overrides">
+					<div class="override panel">
+						<h4>The Sun</h4>
+						<p class="override__tag">add</p>
+						<p>
+							The Sun does not appear in either catalogue. It is inserted at the ICRS origin with
+							IAU 2015 nominal solar parameters: T<sub>eff</sub>&nbsp;=&nbsp;5772&nbsp;K,
+							M<sub>V</sub>&nbsp;=&nbsp;4.83.
+						</p>
+					</div>
+					<div class="override panel">
+						<h4>Alpha Centauri A &amp; B</h4>
+						<p class="override__tag">replace</p>
+						<p>
+							The two components have independent catalogue parallaxes, but they are a gravitationally
+							bound binary. Both are replaced with the system-level parallax from Kervella et al.
+							(2016/2017), keeping the components at a consistent and more accurate shared distance.
+						</p>
+					</div>
+					<div class="override panel">
+						<h4>Proxima Centauri</h4>
+						<p class="override__tag">replace</p>
+						<p>
+							Proxima is absent from the <code>hipparcos2_best_neighbour</code> crossmatch table,
+							almost certainly because its extreme proper motion (~3.8&nbsp;arcsec/yr) caused the
+							positional match to fail. The override provides Gaia DR3 astrometry sourced via SIMBAD
+							and flags it as a variable flare star.
+						</p>
+					</div>
+					<div class="override panel">
+						<h4>Sirius B</h4>
+						<p class="override__tag">replace</p>
+						<p>
+							The white dwarf companion of Sirius has weak catalogue photometry due to the glare from
+							Sirius A. The override substitutes HST-resolved values from Barstow et al. (2005).
+						</p>
+					</div>
+					<div class="override panel">
+						<h4>Procyon B</h4>
+						<p class="override__tag">add</p>
+						<p>
+							This white dwarf companion is absent from Gaia DR3 entirely. Resolved photometry and
+							temperature come from Provencal et al. (2002, HST/STIS).
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="section">
+				<h2>Canonical identity</h2>
+				<p>
+					Every output row is identified by a compound key: <code>(source, source_id)</code>.
+					The rules are fixed and designed to make human-facing names work correctly:
+				</p>
+				<ul>
+					<li>
+						<strong>Matched pairs</strong> (Gaia + Hipparcos linked by the crossmatch) always
+						use <code>source = "hip"</code>, regardless of which catalogue's astrometry won.
+						Hipparcos numbers are preferred because named-star designations — HD numbers,
+						Bayer/Flamsteed letters, proper names — are indexed by Hipparcos number in the
+						identifiers sidecar.
+					</li>
+					<li>
+						<strong>Gaia-only</strong> (no crossmatch partner): <code>source = "gaia"</code>.
+					</li>
+					<li>
+						<strong>Hipparcos-only</strong> (no partner in the loaded data):
+						<code>source = "hip"</code>.
+					</li>
+					<li>
+						<strong>Manual additions</strong>: <code>source = "manual"</code>, with a
+						string ID (e.g. <code>"sun"</code>) that cannot collide with numeric catalogue IDs.
+					</li>
+				</ul>
+				<p>
+					Cross-catalog identifiers (for example, the Gaia DR3 source ID of a Hipparcos star)
+					are stored in a separate identifiers sidecar keyed by the same compound key —
+					they are not duplicated on every row of the dense output table.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>Streaming merge architecture</h2>
+				<p>
+					The merger processes roughly 1.5 billion Gaia rows without loading the full catalogue
+					into memory. The Hipparcos table (~118K rows), the crossmatch table, and the
+					override list are loaded once and held in memory. Gaia is streamed one batch file
+					at a time.
+				</p>
+				<p>
+					For each batch, rows that are either crossmatch-linked or override-targeted are
+					separated out and processed individually. Unmatched Gaia rows are written directly to
+					their HEALPix output directories without further inspection. After all Gaia batches
+					are processed, any remaining unmatched Hipparcos rows are flushed, and manual
+					<code>add</code> overrides are emitted.
+				</p>
+				<p>
+					The output is partitioned by HEALPix pixel — one directory per sky tile, each
+					containing one or more Parquet files. This layout means downstream tools can process
+					one sky region at a time without reading the whole dataset.
+				</p>
+			</section>
+
+			<section class="section">
+				<h2>What the output contains</h2>
+				<p>Each row in the merged Parquet table carries:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Column</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr><td><code>source</code>, <code>source_id</code></td><td>Canonical identity</td></tr>
+						<tr><td><code>x_icrs_pc</code>, <code>y_icrs_pc</code>, <code>z_icrs_pc</code></td><td>Sun-centred Cartesian coordinates (parsecs, ICRS J2016.0)</td></tr>
+						<tr><td><code>ra_deg</code>, <code>dec_deg</code>, <code>r_pc</code></td><td>Spherical coordinates and distance</td></tr>
+						<tr><td><code>mag_abs</code></td><td>Absolute magnitude</td></tr>
+						<tr><td><code>teff</code></td><td>Effective temperature (K)</td></tr>
+						<tr><td><code>quality_flags</code></td><td>Packed uint16: distance source, Teff source, photometry source, status bits</td></tr>
+						<tr><td><code>astrometry_quality</code></td><td>Fractional parallax error or tier sentinel value</td></tr>
+						<tr><td><code>photometry_quality</code></td><td>GSP-Phot M<sub>G</sub> confidence interval width, or 0 if unavailable</td></tr>
+					</tbody>
+				</table>
+				<p>
+					A separate merge decisions sidecar records the winner, quality scores, and
+					diagnostic columns for every matched pair — bounded in size by the crossmatch table,
+					not the full catalogue.
+				</p>
+			</section>
+
+			<nav class="page-nav">
+				<a href={`${basePath}build/`}>← Back to Build</a>
+				<a href={`${basePath}build/download-the-star-data/`}>Download the data →</a>
+			</nav>
+
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 4rem 0 2.8rem;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(2.2rem, 5vw, 3.4rem);
+		font-weight: 600;
+		line-height: 1.05;
+		letter-spacing: -0.03em;
+		max-width: 24ch;
+	}
+
+	.body {
+		max-width: 52rem;
+	}
+
+	.section {
+		margin-bottom: 3.5rem;
+	}
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 1.75rem;
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+	}
+
+	h3 {
+		margin: 1.75rem 0 0.5rem;
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: var(--fis-text);
+	}
+
+	h4 {
+		margin: 0 0 0.25rem;
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: var(--fis-text);
+	}
+
+	p {
+		margin: 0 0 1.25rem;
+		font-size: 1.08rem;
+		line-height: 1.8;
+		color: var(--fis-text-soft);
+	}
+
+	ul {
+		margin: 0 0 1.25rem;
+		padding-left: 1.4rem;
+	}
+
+	li {
+		margin-bottom: 0.75rem;
+		font-size: 1.05rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	strong {
+		color: var(--fis-text);
+		font-weight: 600;
+	}
+
+	em {
+		color: var(--fis-text);
+	}
+
+	code {
+		font-size: 0.88em;
+		color: var(--fis-blue);
+		background: rgba(141, 183, 255, 0.08);
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+	}
+
+	/* Decision rules */
+
+	.rule-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 1.25rem 0 1.5rem;
+	}
+
+	.rule {
+		display: grid;
+		grid-template-columns: 2.4rem 1fr;
+		gap: 1rem;
+		align-items: start;
+		padding: 1rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: 0.8rem;
+	}
+
+	.rule div {
+		font-size: 1.05rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	.rule__num {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.4rem;
+		height: 2.4rem;
+		border-radius: 50%;
+		background: rgba(242, 200, 121, 0.12);
+		border: 1px solid rgba(242, 200, 121, 0.25);
+		font-size: 0.95rem;
+		font-weight: 700;
+		font-family: var(--fis-font-ui);
+		color: var(--fis-gold);
+		flex-shrink: 0;
+	}
+
+	/* Tables */
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 1.25rem 0 1.75rem;
+		font-size: 0.97rem;
+	}
+
+	th {
+		padding: 0.65rem 1rem;
+		background: rgba(242, 200, 121, 0.08);
+		border: 1px solid var(--fis-line);
+		text-align: left;
+		font-weight: 600;
+		font-family: var(--fis-font-ui);
+		font-size: 0.85rem;
+		letter-spacing: 0.04em;
+		color: var(--fis-text-muted);
+	}
+
+	td {
+		padding: 0.6rem 1rem;
+		border: 1px solid var(--fis-line);
+		line-height: 1.6;
+		color: var(--fis-text-soft);
+		vertical-align: top;
+	}
+
+	tr:nth-child(even) td {
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	/* Overrides */
+
+	.overrides {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		margin: 1.25rem 0 1.75rem;
+	}
+
+	.override {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.override p {
+		font-size: 0.97rem;
+		margin-bottom: 0;
+	}
+
+	.override__tag {
+		display: inline-block;
+		margin: 0.25rem 0 0.75rem !important;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		background: rgba(242, 200, 121, 0.12);
+		border: 1px solid rgba(242, 200, 121, 0.25);
+		font-size: 0.75rem !important;
+		font-family: var(--fis-font-ui);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--fis-gold) !important;
+		width: fit-content;
+	}
+
+	/* Page navigation */
+
+	.page-nav {
+		display: flex;
+		justify-content: space-between;
+		padding: 2.5rem 0 4rem;
+		border-top: 1px solid var(--fis-line);
+		font-size: 0.97rem;
+	}
+
+	.page-nav a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	@media (max-width: 720px) {
+		.overrides {
+			grid-template-columns: 1fr;
+		}
+
+		.page-nav {
+			flex-direction: column;
+			gap: 1rem;
+		}
+	}
+</style>
