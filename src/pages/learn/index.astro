@@ -4,8 +4,7 @@ import SiteHeader from '../../components/SiteHeader.astro';
 import MadeByKaj from '../../components/MadeByKaj.astro';
 
 const basePath = import.meta.env.BASE_URL;
-const topicsPath = `${basePath}learn/topic/`;
-const parallaxPath = `${basePath}learn/parallax/`;
+const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
 ---
 
 <Layout
@@ -28,46 +27,32 @@ const parallaxPath = `${basePath}learn/parallax/`;
 		<section class="section-grid">
 			<article class="panel panel--featured">
 				<div class="panel__content">
-					<p class="panel__eyebrow">Featured Journey</p>
-					<h2>From the night sky to the solar neighbourhood</h2>
+					<p class="panel__eyebrow">First lesson</p>
+					<h2>The Hertzsprung-Russell diagram</h2>
 					<p>
-						Start with what you know—the constellations and bright stars—and move outward into the
-						stars nearest to our Sun. Learn how we measure distance, what a light-year really is,
-						and how Gaia maps the sky.
+						One of astronomy's most powerful maps — plotting temperature against luminosity to
+						reveal how stars are grouped, how they age, and what the solar neighbourhood is
+						actually made of. Built on a live 3D star viewer using real Gaia data.
 					</p>
-					<a href={topicsPath} class="button button--primary">Browse topics</a>
-				</div>
-			</article>
-
-			<article class="panel">
-				<div class="panel__content">
-					<p class="panel__eyebrow">Interactive Lesson</p>
-					<h2>Parallax</h2>
-					<p>
-						A browser-native exploration of geometry. Watch how nearby stars shift against the
-						distant background as your viewpoint moves, revealing the hidden depth of the Orion
-						constellation.
-					</p>
-					<a href={parallaxPath} class="button button--ghost">Try the lesson</a>
+					<a href={hrDiagramPath} class="button button--primary">Open the lesson</a>
 				</div>
 			</article>
 		</section>
 
 		<section class="notes">
 			<div class="notes__intro">
-				<p class="eyebrow">Our Approach</p>
-				<h2>Reliable explainers for curious minds.</h2>
+				<p class="eyebrow">Our approach</p>
+				<h2>Questions over answers.</h2>
 			</div>
 			<div class="notes__body">
 				<p>
-					Every page in the Learn section is built on measurements from ESA's Gaia mission. We
-					aim for clarity without sacrificing precision: moving from simple visual metaphors to
-					the real data that astronomers use to map our corner of the Milky Way.
+					Every lesson in the Learn section is built on real measurements from ESA's Gaia mission.
+					The aim is clarity without sacrificing precision — moving from simple visual metaphors
+					to the actual data astronomers use to map our corner of the Milky Way.
 				</p>
 				<p>
-					Whether you are a self-directed learner, a student, or an educator, these pathways are
-					designed to be modular. Follow a full journey, or jump straight to the concepts you
-					need.
+					More lessons are in development. The HR diagram is a working example of the format:
+					a short explainer, a live 3D viewer, and a guided tour of what the data shows.
 				</p>
 			</div>
 		</section>
@@ -96,9 +81,10 @@ const parallaxPath = `${basePath}learn/parallax/`;
 
 	.section-grid {
 		display: grid;
-		grid-template-columns: 1.2fr 0.8fr;
+		grid-template-columns: 1fr;
 		gap: 1.5rem;
 		margin: 2rem 0 4rem;
+		max-width: 52rem;
 	}
 
 	.panel {
@@ -146,7 +132,6 @@ const parallaxPath = `${basePath}learn/parallax/`;
 	}
 
 	@media (max-width: 960px) {
-		.section-grid,
 		.notes {
 			grid-template-columns: 1fr;
 			gap: 2rem;

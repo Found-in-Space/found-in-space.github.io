@@ -1,0 +1,243 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+const flyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
+const parallaxPath = `${basePath}explore/parallax/`;
+---
+
+<Layout
+	title="Explore | Found in Space"
+	description="Interactive guided experiences using real star data from ESA's Gaia mission — fly through the solar neighbourhood, feel parallax, and see depth hiding in familiar patterns."
+>
+	<SiteHeader section="Explore" />
+
+	<main class="page">
+		<header class="hero">
+			<p class="eyebrow">Explore</p>
+			<h1>See the nearby stars in three dimensions.</h1>
+			<p class="lede">
+				Guided experiences built on real measurements from ESA's Gaia mission. No prior knowledge
+				needed — just a sense of curiosity about what's out there.
+			</p>
+		</header>
+
+		<section class="experiences" aria-label="Explore experiences">
+			<a class="experience-card experience-card--featured" href={flyThroughPath}>
+				<div class="experience-card__body">
+					<p class="experience-card__label">Fly-through</p>
+					<h2>Constellations and 3D space</h2>
+					<p>
+						Orion is one of the most recognised shapes in the sky. Navigate freely through the
+						local stars and watch how quickly the familiar pattern breaks apart once each star is
+						placed at its real distance from Earth.
+					</p>
+					<span class="experience-card__cta">Open the fly-through →</span>
+				</div>
+				<div class="experience-card__tags">
+					<span class="tag">Interactive</span>
+					<span class="tag">3D navigation</span>
+					<span class="tag">Orion</span>
+				</div>
+			</a>
+
+			<a class="experience-card" href={parallaxPath}>
+				<div class="experience-card__body">
+					<p class="experience-card__label">Demo</p>
+					<h2>Parallax</h2>
+					<p>
+						Move the observer's position while keeping Orion in view. Nearby stars slide more
+						than distant ones, making visible the depth that a flat night-sky picture hides.
+					</p>
+					<span class="experience-card__cta">Open the parallax demo →</span>
+				</div>
+				<div class="experience-card__tags">
+					<span class="tag">Interactive</span>
+					<span class="tag">Pointer or tilt</span>
+					<span class="tag">Distance measurement</span>
+				</div>
+			</a>
+		</section>
+
+		<section class="notes">
+			<div class="notes__intro">
+				<p class="eyebrow">What to expect</p>
+				<h2>Real data. No commentary required.</h2>
+			</div>
+			<div class="notes__body">
+				<p>
+					Each experience puts you directly in contact with the data — no animation or
+					simulation, just real star positions computed from Gaia parallax measurements.
+					The goal is to let the geometry do the explaining.
+				</p>
+				<p>
+					If you want to understand the physics behind what you're seeing, the
+					<a href={`${basePath}learn/`}>Learn section</a> picks up where these experiences leave off.
+				</p>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 4rem 0 3rem;
+		max-width: 52rem;
+	}
+
+	h1 {
+		font-size: clamp(2.8rem, 7vw, 5.2rem);
+		line-height: 0.94;
+		margin: 0 0 1.5rem;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		max-width: 14ch;
+	}
+
+	h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.75rem;
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--fis-text);
+	}
+
+	.lede {
+		max-width: 44rem;
+		font-size: 1.18rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	/* ── Experience cards ────────────────────────── */
+
+	.experiences {
+		display: grid;
+		grid-template-columns: 1.4fr 1fr;
+		gap: 1rem;
+		margin-bottom: 4rem;
+	}
+
+	.experience-card {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 1.5rem;
+		padding: 2rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--fis-shadow);
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.experience-card:hover {
+		border-color: rgba(242, 200, 121, 0.3);
+		transform: translateY(-3px);
+	}
+
+	.experience-card--featured {
+		background: var(--fis-panel-strong);
+		border-color: rgba(242, 200, 121, 0.18);
+	}
+
+	.experience-card__label {
+		margin: 0 0 0.5rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.experience-card__body p {
+		margin: 0;
+		font-size: 1.05rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	.experience-card__cta {
+		display: block;
+		margin-top: 1.25rem;
+		font-size: 0.95rem;
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	.experience-card__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+
+	.tag {
+		padding: 0.2rem 0.65rem;
+		border-radius: 999px;
+		background: rgba(141, 183, 255, 0.07);
+		border: 1px solid rgba(141, 183, 255, 0.14);
+		font-size: 0.78rem;
+		color: var(--fis-text-soft);
+		font-family: var(--fis-font-ui);
+	}
+
+	/* ── Notes ───────────────────────────────────── */
+
+	.notes {
+		display: grid;
+		grid-template-columns: 1fr 1.2fr;
+		gap: 3rem;
+		padding: 4rem 0;
+		border-top: 1px solid var(--fis-line);
+		margin-bottom: 2rem;
+	}
+
+	.notes__intro h2 {
+		margin: 0;
+		font-size: 2.2rem;
+		line-height: 1.05;
+		max-width: 12ch;
+	}
+
+	.notes__body p {
+		margin: 0;
+		font-size: 1.1rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	.notes__body p + p {
+		margin-top: 1.25rem;
+	}
+
+	.notes__body a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.4);
+	}
+
+	@media (max-width: 960px) {
+		.experiences,
+		.notes {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+
+		.notes {
+			gap: 2rem;
+		}
+	}
+
+	@media (max-width: 720px) {
+		h1 {
+			font-size: clamp(2.4rem, 13vw, 4rem);
+		}
+	}
+</style>

@@ -4,7 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 
 const basePath = import.meta.env.BASE_URL;
-const parallaxPath = `${basePath}learn/parallax/`;
+const parallaxPath = `${basePath}explore/parallax/`;
 ---
 
 <Layout
@@ -90,7 +90,7 @@ const parallaxPath = `${basePath}learn/parallax/`;
 						<button type="button" class="button button--ghost" data-action="recenter-constellation">
 							Return to Sun
 						</button>
-						<a class="button button--ghost" href={parallaxPath}>Next: learn parallax</a>
+						<a class="button button--ghost" href={parallaxPath}>Try: parallax demo</a>
 					</div>
 					<p class="status">Status: <span data-constellation-status>Loading the Orion fly-through…</span></p>
 				</div>
@@ -115,14 +115,14 @@ const parallaxPath = `${basePath}learn/parallax/`;
 				</p>
 			</article>
 			<article class="panel">
-				<p class="panel__eyebrow">Next step</p>
-				<h3>Learn what causes the shift</h3>
+				<p class="panel__eyebrow">Try also</p>
+				<h3>Isolate the effect with the parallax demo</h3>
 				<p>
-					The parallax example keeps the target fixed and changes only the observing position, so
-					you can isolate the geometric effect behind what this fly-through makes visible.
+					The parallax demo keeps Orion fixed and changes only the observing position, letting
+					you focus on the geometric shift before exploring at larger scale.
 				</p>
 				<p class="notes__link">
-					<a href={parallaxPath}>Open the parallax lesson</a>
+					<a href={parallaxPath}>Open the parallax demo</a>
 				</p>
 			</article>
 		</section>

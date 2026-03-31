@@ -22,6 +22,7 @@ interface Props {
 
 const { title, summary, topicNumber, nextTopics, viewer } = Astro.props;
 const hasViewerGuide = Astro.slots.has('viewer-guide');
+const basePath = import.meta.env.BASE_URL;
 ---
 
 <Layout title={`${title} | Learn | Found in Space`}>
@@ -29,6 +30,11 @@ const hasViewerGuide = Astro.slots.has('viewer-guide');
 
 	<main class="page page--narrow">
 		<article class="topic-content">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn/`}>Learn</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>{title}</span>
+			</nav>
 			<p class="eyebrow">Topic {String(topicNumber).padStart(2, '0')}</p>
 			<h1>{title}</h1>
 			<p class="lede">{summary}</p>
@@ -56,6 +62,24 @@ const hasViewerGuide = Astro.slots.has('viewer-guide');
 </Layout>
 
 <style>
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-bottom: 1.5rem;
+		font-size: 0.88rem;
+		color: var(--fis-text-soft);
+	}
+
+	.breadcrumb a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	.breadcrumb__sep {
+		opacity: 0.4;
+	}
+
 	.topic-content {
 		padding: 2rem 0;
 	}

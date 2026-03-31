@@ -5,18 +5,17 @@ import SiteHeader from '../../components/SiteHeader.astro';
 
 const basePath = import.meta.env.BASE_URL;
 const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
-const debugPath = `${basePath}learn/parallax-debug/`;
 ---
 
 <Layout
 	title="Parallax | Found in Space"
-	description="A SkyKit-powered parallax lesson that shifts the observing position around Orion with pointer or device motion."
+	description="Shift the observing position around Orion with pointer or device motion and watch nearby stars move against the distant background."
 >
-	<SiteHeader section="Learn" />
+	<SiteHeader section="Explore" />
 
 	<main class="page">
 		<section class="intro">
-			<p class="eyebrow">Learn</p>
+			<p class="eyebrow">Explore</p>
 			<h1>Parallax</h1>
 			<p class="lede">
 				Parallax is the apparent shift in position caused by a change in viewpoint. Move across
@@ -66,7 +65,6 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 							Enable Device Motion
 						</button>
 						<a class="button button--ghost" href={constellationPath}>Back to fly-through</a>
-						<a class="button button--ghost" href={debugPath}>Motion debug</a>
 					</div>
 					<p class="status">Status: <span data-parallax-status>Loading the parallax example…</span></p>
 				</div>
@@ -92,10 +90,10 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 			</article>
 			<article class="panel">
 				<p class="panel__eyebrow">Try next</p>
-				<h3>Compare it with free movement</h3>
+				<h3>See it with free movement</h3>
 				<p>
-					The fly-through adds larger motion and open navigation. This page narrows the motion down
-					to a single idea so you can recognise the effect before you see it in a bigger journey.
+					The fly-through lets you navigate freely through the same stars. This page isolates the
+					parallax effect so you can recognise it clearly before exploring at larger scale.
 				</p>
 				<p class="notes__link">
 					<a href={constellationPath}>Open the constellation fly-through</a>
@@ -116,11 +114,9 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 		var shell = document.querySelector('[data-example="parallax-viewer"]');
 		if (!shell) return;
 
-		// Prevent page scroll when touching inside the canvas
 		shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
 		shell.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
 
-		// Prevent arrow-key and space page-scroll while the mouse is over the canvas
 		var overCanvas = false;
 		shell.addEventListener('mouseenter', function () { overCanvas = true; });
 		shell.addEventListener('mouseleave', function () { overCanvas = false; });
@@ -212,8 +208,6 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 		color: var(--fis-text-soft);
 	}
 
-	/* Navigation hints */
-
 	.nav-hints {
 		display: grid;
 		grid-template-columns: auto auto 1fr;
@@ -257,8 +251,6 @@ const debugPath = `${basePath}learn/parallax-debug/`;
 	.meta-line span {
 		color: var(--fis-gold);
 	}
-
-	/* Secondary controls */
 
 	.controls-secondary {
 		display: flex;

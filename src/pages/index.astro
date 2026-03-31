@@ -4,8 +4,11 @@ import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 
 const basePath = import.meta.env.BASE_URL;
+const explorePath = `${basePath}explore/`;
 const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
+const parallaxPath = `${basePath}explore/parallax/`;
 const learnPath = `${basePath}learn/`;
+const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
 const aboutPath = `${basePath}about/`;
 ---
 
@@ -26,7 +29,7 @@ const aboutPath = `${basePath}about/`;
 				learn from.
 			</p>
 			<div class="hero__actions">
-				<a class="button button--primary" href={constellationFlyThroughPath}>Take a first look</a>
+				<a class="button button--primary" href={explorePath}>Take a first look</a>
 				<a class="button button--ghost" href="#build">How it's built</a>
 			</div>
 			<div class="hero__note">
@@ -51,25 +54,25 @@ const aboutPath = `${basePath}about/`;
 						Begin with Orion, keep the familiar shape in view, and move through the local stars
 						until the flat pattern starts to open into depth.
 					</p>
-					<a class="panel__link" href={constellationFlyThroughPath}>Open the Orion example</a>
+					<a class="panel__link" href={explorePath}>Go to Explore</a>
+					<a class="panel__link panel__link--secondary" href={constellationFlyThroughPath}>Jump to: Orion fly-through →</a>
 				</div>
 			</article>
 			<article class="panel" id="learn">
 				<p class="panel__eyebrow">Learn</p>
-				<h2>Turn curiosity into understanding with clear explainers and reusable learning routes.</h2>
+				<h2>Turn curiosity into understanding with clear explainers and guided lessons.</h2>
 				<p>
-					This is for self-directed learners, students, and educators who want more than a pretty
-					simulation: plain-language concepts, structured pathways, and activities that can grow
-					into teaching material.
+					For self-directed learners, students, and educators who want more than a pretty
+					simulation: plain-language concepts grounded in real data.
 				</p>
 				<div class="panel__feature">
 					<p class="panel__feature-label">First lesson</p>
-					<h3>Parallax</h3>
+					<h3>The Hertzsprung-Russell diagram</h3>
 					<p>
-						Shift the viewpoint with mouse or tablet motion and watch the nearby stars move
-						against the distant background, like a browser-native version of the GitHub 404 idea.
+						One of astronomy's most powerful maps — plot temperature against luminosity and watch
+						the structure of the stellar population emerge from real Gaia data.
 					</p>
-					<a class="panel__link" href={learnPath}>Open the Learn section</a>
+					<a class="panel__link" href={hrDiagramPath}>Open the HR diagram</a>
 				</div>
 			</article>
 			<article class="panel" id="build">
@@ -114,7 +117,7 @@ const aboutPath = `${basePath}about/`;
 
 		<section class="bands">
 			<article class="band">
-				<p class="band__label">Featured journey</p>
+				<p class="band__label">Featured explore</p>
 				<h3>What constellations hide about 3D space</h3>
 				<p>
 					A familiar pattern in the night sky becomes an entry point for perspective, parallax, and
@@ -125,14 +128,14 @@ const aboutPath = `${basePath}about/`;
 				</p>
 			</article>
 			<article class="band">
-				<p class="band__label">Choose your path</p>
-				<h3>Explore, learn, or build</h3>
+				<p class="band__label">Featured lesson</p>
+				<h3>The HR diagram: a map of stellar physics</h3>
 				<p>
-					Start with an experience, follow it with an explanation, or open up the technical stack.
-					Each route is different, but they are designed to connect.
+					Plot temperature against luminosity for the stars around the Sun and watch the main
+					sequence, white dwarfs, and stellar populations emerge from real Gaia data.
 				</p>
 				<p class="band__link">
-					<a href={learnPath}>See the Learn section</a>
+					<a href={hrDiagramPath}>Open the HR diagram lesson</a>
 				</p>
 			</article>
 		</section>
@@ -238,6 +241,13 @@ const aboutPath = `${basePath}about/`;
 	.band__link a {
 		color: var(--fis-gold);
 		text-decoration-color: rgba(242, 200, 121, 0.42);
+	}
+
+	.panel__link--secondary {
+		display: block;
+		margin-top: 0.6rem;
+		font-size: 0.9rem;
+		opacity: 0.75;
 	}
 
 	.band__label {
