@@ -74,15 +74,17 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 				<h2>Indexed for the browser</h2>
 				<p>
 					A browser cannot download a billion-row table. The merged data is encoded into a
-					spatial octree — a tree structure that divides 3D space recursively, grouping stars
-					by their position and storing them as compact 16-byte records (position, absolute
-					magnitude, temperature).
+					spatial octree — a tree structure that divides 3D space into nested cells across
+					fourteen levels. Each star is placed into a level based on its brightness: the
+					brightest stars sit in the shallowest, largest cells, while fainter stars go into
+					progressively deeper, smaller ones. The threshold at each level is tuned to how
+					the human eye perceives starlight.
 				</p>
 				<p>
-					When you navigate the viewer, it loads only the stars visible from where you are:
-					nearby stars regardless of brightness, and distant stars only if they're bright
-					enough to be seen from that distance. Everything else stays on the server until
-					you need it.
+					When you navigate the viewer, it loads cells level by level. Bright-star cells
+					have large visibility radii and load from anywhere in the scene. Faint-star cells
+					only load when you fly close enough that those stars would actually be visible.
+					Everything else stays on the server until you need it.
 				</p>
 			</article>
 		</section>
