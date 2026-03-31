@@ -1,0 +1,606 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout
+	title="Why do Orion and the Pleiades look elongated? | Next Steps | Found in Space"
+	description="A research topic for students: when nearby stellar groupings are rendered in 3D from Gaia distances, some appear stretched along the line of sight. Is that real structure, or the geometry of the measurement?"
+>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<section class="intro">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn/`}>Learn</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn/next-steps/`}>Next steps</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Orion and Pleiades elongation</span>
+			</nav>
+			<p class="eyebrow">Research topic</p>
+			<h1>Why do the Orion Nebula stars and the Pleiades look elongated?</h1>
+			<p class="lede">
+				When nearby stellar groupings are rendered in three dimensions from Gaia-derived
+				distances, some of the most recognisable structures in the sky can appear unexpectedly
+				stretched along the line of sight — sometimes in a way that seems to point back toward
+				the Sun. That visual impression should immediately be treated with caution.
+			</p>
+		</section>
+
+		<section class="body-section">
+			<h2>The question</h2>
+			<p>
+				The question is simple to state and surprisingly difficult to answer cleanly: when a
+				cluster or nebular population appears elongated in a three-dimensional Gaia rendering,
+				are we seeing a real structure, or are we seeing the geometry of the measurement
+				process?
+			</p>
+			<p>
+				The answer is not that such objects must be spherical and are merely "smeared" by Gaia.
+				That would be too simplistic. A young stellar region embedded in a molecular cloud is
+				not expected to be a neat sphere. Nor is an open cluster necessarily a compact ball of
+				stars. Both may possess genuine three-dimensional substructure. But the opposite
+				mistake is equally easy to make: once a catalogue of sky positions and distances is
+				converted into Cartesian coordinates and displayed in an immersive environment, a
+				radial artefact can become visually persuasive and may be mistaken for a physical
+				feature.
+			</p>
+			<p>
+				The key diagnostic is this: anything that appears to point back at the Sun deserves
+				immediate suspicion. The Sun is not a privileged point in the intrinsic structure of
+				Orion or the Pleiades. It is, however, the privileged point in a heliocentric
+				astrometric catalogue. Any feature aligned with the observer should therefore be
+				treated first as a possible consequence of the observing geometry.
+			</p>
+
+			<h2>Why a Sun-pointing elongation is suspicious</h2>
+			<p>
+				Gaia measures positions on the sky with extraordinary precision, but the geometry of
+				the data is anisotropic. Angular coordinates are typically much better constrained
+				than the inferred radial distance. Once one turns right ascension, declination, and a
+				single best-estimate distance into a point in Cartesian space, that anisotropy becomes
+				a geometric bias: uncertainties are naturally projected into the radial direction.
+			</p>
+			<p>
+				This means that even a physically compact object can look like a cigar or needle
+				aligned with the line of sight if the radial component is less certain than the
+				tangential one. The visualisation does not create the problem, but it makes the
+				problem look like structure.
+			</p>
+			<p>
+				This is especially important for immersive or free-flight visualisations. A user can
+				walk around the point cloud and experience it as spatially real, even though each
+				point is usually a single estimate rather than a full posterior distribution in three
+				dimensions.
+			</p>
+
+			<h2>It is not obvious these systems should be round</h2>
+			<p>
+				The temptation is to compare a stellar grouping to a roughly spherical cloud or
+				cluster and then interpret elongation as an artefact. But that expectation is often
+				unjustified.
+			</p>
+
+			<div class="callout panel">
+				<p class="panel__eyebrow">Orion</p>
+				<h3>Orion is not a simple sphere</h3>
+				<p>
+					The Orion Nebula is a feedback-shaped H&thinsp;II region associated with a much
+					larger molecular complex. Published work describes Orion as a blister-type nebula
+					on the near side of a dense molecular cloud, shaped by ionising radiation and
+					winds from massive stars. In such a system, the visible stellar sample is not an
+					unbiased probe of a symmetric volume. Optical surveys preferentially recover stars
+					that lie in or near lower-extinction sightlines, illuminated cavity walls, or
+					surfaces facing the observer.
+				</p>
+			</div>
+
+			<div class="callout panel">
+				<p class="panel__eyebrow">Pleiades</p>
+				<h3>The Pleiades are not just a tight ball of stars</h3>
+				<p>
+					The Pleiades are a nearby open cluster, but even open clusters can possess halos,
+					coronae, escaping members, and tidal debris. A round central concentration does
+					not imply that every plausible member associated with the system lies in a round
+					volume. Some stars may already be drifting away or belong to a larger dynamical
+					structure than the classical bright core suggests.
+				</p>
+			</div>
+
+			<p>
+				The correct baseline, then, is not "round unless proven otherwise", but "do not trust
+				a radial elongation until you know what combination of structure, selection, and
+				uncertainty produced it".
+			</p>
+
+			<h2>Plausible explanations</h2>
+
+			<h3>Radial astrometric uncertainty</h3>
+			<p>
+				The most obvious explanation is measurement uncertainty in parallax. Gaia's astrometry
+				is excellent, but the conversion from parallax to distance remains the weak axis of
+				the reconstruction. Published Gaia-based work on Orion explicitly notes that the
+				stellar density distribution appears elongated along the line of sight as an effect of
+				parallax errors.
+			</p>
+			<p>
+				This explanation is strongest when the elongation is tightly aligned with the line
+				from the object to the Sun; the object is compact on the sky but deep in the
+				reconstructed Cartesian view; the apparent depth grows when lower-quality astrometry
+				is included; and the feature weakens when distance posteriors or stricter astrometric
+				cuts are used.
+			</p>
+
+			<h3>Distance-estimation choices</h3>
+			<p>
+				A naive inverse-parallax distance can introduce bias, especially when fractional
+				parallax errors become non-negligible. Bayesian geometric distances, photogeometric
+				distances, and hybrid pipelines can behave differently, and the chosen estimator can
+				alter the radial morphology of a cloud or cluster. Many visualisation pipelines must
+				choose one scalar distance per star. That choice can hide a substantial uncertainty
+				distribution and may sharpen, soften, or displace apparent structures.
+			</p>
+
+			<h3>Dust, cavities, and optical-depth selection</h3>
+			<p>
+				A radial needle may arise not because the stars are literally arranged in a cylinder,
+				but because the observer preferentially sees stars along particular low-extinction
+				sightlines through a cavity, blister surface, or feedback-cleared opening.
+			</p>
+			<p>
+				This is physically plausible in Orion — a star-forming environment shaped by molecular
+				gas, ionisation fronts, and expanding bubbles. If the near side is optically
+				accessible while stars deeper in the cloud are obscured except along selected
+				directions, the visible Gaia sample can be skewed into a structure that appears deeper
+				or more radially coherent than the underlying stellar population. The "needle" is
+				neither a pure artefact nor a literal physical pillar; it is a visibility-selected
+				subset of a more complicated three-dimensional system.
+			</p>
+
+			<h3>Genuine physical depth</h3>
+			<p>
+				A further possibility is that the object really does have substantial line-of-sight
+				extent. Modern three-dimensional studies of Orion A and the wider Orion complex have
+				shown that parts of the cloud are significantly extended and inclined with respect to
+				the plane of the sky. A radial-looking structure in a Gaia plot may therefore be
+				partly real. The important point is that one should not jump from "it points at the
+				Sun" to "it must be fake".
+			</p>
+
+			<h3>Membership, contamination, and selection windows</h3>
+			<p>
+				A point cloud is only as good as the sample definition behind it. Young stellar object
+				selections, open-cluster membership catalogues, colour cuts, extinction cuts, and
+				proper-motion cuts can all alter the apparent morphology. Unresolved binaries and
+				non-single-star astrometric solutions can further broaden the radial distribution.
+			</p>
+			<p>
+				This is especially relevant for the Pleiades, where the core is well known but the
+				outer membership is more ambiguous. A plot that includes current members, candidate
+				corona members, escapees, or nearby kinematic neighbours may look far more elongated
+				than one restricted to the compact central cluster.
+			</p>
+
+			<h3>The coordinate transform and rendering itself</h3>
+			<p>
+				Once a catalogue is converted into heliocentric Cartesian coordinates and rendered as
+				a cloud of exact-looking points, the human visual system tends to interpret the result
+				as a direct reconstruction of reality. But the representation has already collapsed an
+				uncertainty distribution into a single coordinate per star. For exploratory
+				visualisation this is acceptable and often very useful. For morphological inference it
+				is dangerous.
+			</p>
+		</section>
+
+		<section class="body-section">
+			<h2>Orion: the strongest case for a mixed explanation</h2>
+			<p>
+				Of the two examples, Orion is the more plausible case for a genuinely mixed
+				interpretation. There is strong literature support for the Orion Nebula as a blister
+				H&thinsp;II region on the front side of a molecular cloud. Modern three-dimensional
+				work on Orion A and the wider complex shows real depth and inclination. And Gaia
+				studies of the young stellar populations explicitly note line-of-sight elongation
+				caused by parallax errors.
+			</p>
+			<p>
+				The most defensible interpretation is therefore a layered one: Orion has real
+				three-dimensional depth; the optically visible stellar sample is shaped by dust and
+				cavity geometry; Gaia distance uncertainties further smear the structure radially; and
+				a Cartesian point-cloud visualisation makes the combined effect look like a coherent
+				physical needle. That does not mean the needle is false. It means it is a compound
+				product of astrophysics and measurement.
+			</p>
+
+			<h2>The Pleiades: a different problem</h2>
+			<p>
+				The Pleiades should be approached more cautiously. Unlike Orion, the Pleiades are
+				nearby, relatively clean, and not being viewed primarily as an embedded
+				emission-nebula population. Their radial distance uncertainties are correspondingly
+				smaller, and the case for a cavity-visibility explanation is much weaker.
+			</p>
+			<p>
+				Published work has identified extended cluster structure, corona members, and likely
+				former members or escapees. But the literature does not make the Pleiades look like a
+				straightforward Orion-style cavity case. If a Pleiades rendering shows a dramatic
+				Sun-pointing spike, the first questions should be methodological: How were members
+				selected? Are escapees or wide-area candidates included? Which distance estimator was
+				used? Were poor astrometric solutions filtered out? Is the elongation still present if
+				one shows only the highest-quality central members?
+			</p>
+		</section>
+
+		<!-- ── Suggested tests ──────────────────────── -->
+
+		<section class="tests-section">
+			<h2>How to test the competing explanations</h2>
+			<p class="tests-intro">
+				A useful analysis should not stop at interpretation. These are concrete tests a
+				student could carry out.
+			</p>
+
+			<div class="tests-grid">
+				<article class="panel">
+					<p class="panel__eyebrow">Test 1</p>
+					<h3>Compare observable space to Cartesian space</h3>
+					<p>
+						Plot the sample first in sky position, parallax, and proper motion before
+						converting to three-dimensional coordinates. If the elongation mainly appears
+						after distance inversion and Cartesian transformation, that is a warning sign.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Test 2</p>
+					<h3>Colour by astrometric quality</h3>
+					<p>
+						Render stars by fractional parallax error, RUWE, or distance-source tier. If
+						the apparent needle is dominated by lower-quality solutions, it is likely
+						being amplified by uncertainty.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Test 3</p>
+					<h3>Re-run with multiple distance estimators</h3>
+					<p>
+						Compare inverse parallax, Bayesian geometric distance, and any photogeometric
+						fallback. A structure that changes dramatically with the estimator is not
+						securely established morphologically.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Test 4</p>
+					<h3>Restrict to clean membership cores</h3>
+					<p>
+						For open clusters, render only high-confidence core members first, then
+						progressively add outer candidates, corona members, and escapees. This
+						reveals whether the elongation belongs to the cluster itself or to the wider
+						selection.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Test 5</p>
+					<h3>Compare optical and infrared selected samples</h3>
+					<p>
+						For Orion-like regions, compare Gaia-selected stars with infrared-selected
+						young stellar objects. If the morphology changes strongly, extinction and
+						visibility bias are likely important.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Test 6</p>
+					<h3>Visualise uncertainty explicitly</h3>
+					<p>
+						Instead of plotting only single points, show radial uncertainty bars,
+						posterior samples, or density clouds. If the feature collapses when
+						uncertainty is displayed honestly, it should not be interpreted as a sharply
+						defined physical structure.
+					</p>
+				</article>
+			</div>
+		</section>
+
+		<!-- ── Key takeaway ─────────────────────────── -->
+
+		<section class="takeaway">
+			<div class="panel panel--accent">
+				<p class="panel__eyebrow">The broader lesson</p>
+				<h3>Structure that points at the observer is not structure until proven otherwise</h3>
+				<p>
+					A three-dimensional rendering of Gaia data is a powerful exploratory instrument,
+					but it is not a neutral photograph of reality. If a structure seems to point at
+					the observer, the first task is not to explain the object. It is to explain the
+					geometry of the measurement.
+				</p>
+			</div>
+		</section>
+
+		<!-- ── Literature ───────────────────────────── -->
+
+		<section class="literature">
+			<h2>Selected literature</h2>
+			<p>
+				These references are starting points for a deeper investigation — not a comprehensive
+				bibliography.
+			</p>
+
+			<div class="lit-grid">
+				<div class="lit-group">
+					<h3>Gaia distances and astrometric interpretation</h3>
+					<ul>
+						<li>Luri et al. (2018), <a href="https://arxiv.org/abs/1804.09376" rel="noopener noreferrer"><em>Gaia Data Release 2: Using Gaia parallaxes</em></a></li>
+						<li><a href="https://www.cosmos.esa.int/web/gaia/dr3" rel="noopener noreferrer"><em>Gaia DR3 documentation</em></a> and <a href="https://www.cosmos.esa.int/web/gaia/science-performance" rel="noopener noreferrer"><em>science performance</em></a> (ESA Cosmos)</li>
+						<li>Bailer-Jones (2015), <a href="https://arxiv.org/abs/1507.02105" rel="noopener noreferrer"><em>Estimating distances from parallaxes</em></a></li>
+						<li>Bailer-Jones et al. (2021), <a href="https://arxiv.org/abs/2012.05220" rel="noopener noreferrer"><em>Geometric and photogeometric distances to 1.47 billion stars in Gaia EDR3</em></a></li>
+					</ul>
+				</div>
+
+				<div class="lit-group">
+					<h3>Orion structure, depth, and visibility geometry</h3>
+					<ul>
+						<li>O'Dell (2001), <a href="https://ui.adsabs.harvard.edu/abs/2001ARA%26A..39...99O" rel="noopener noreferrer"><em>The Orion Nebula and Its Associated Population</em></a></li>
+						<li>Großschedl et al. (2018), <a href="https://arxiv.org/abs/1808.05952" rel="noopener noreferrer"><em>3D shape of Orion A from Gaia DR2</em></a></li>
+						<li>Großschedl et al. (2021), <a href="https://arxiv.org/abs/2007.07254" rel="noopener noreferrer"><em>3D dynamics of the Orion cloud complex</em></a></li>
+						<li>Zari et al. (2019), <a href="https://arxiv.org/abs/1906.07002" rel="noopener noreferrer"><em>Structure, kinematics, and ages of the young stellar populations in Orion</em></a></li>
+						<li>Pabst et al. (2020), <a href="https://arxiv.org/abs/2005.03917" rel="noopener noreferrer"><em>Expanding bubbles in Orion A</em></a></li>
+						<li>Dharmawardena et al. (2022), <a href="https://arxiv.org/abs/2111.06672" rel="noopener noreferrer"><em>Three-dimensional dust density structure of the Orion, Cygnus X, Taurus, and Perseus star-forming regions</em></a></li>
+					</ul>
+				</div>
+
+				<div class="lit-group">
+					<h3>Pleiades structure and extended membership</h3>
+					<ul>
+						<li>Alfonso &amp; García-Varela (2023), <a href="https://arxiv.org/abs/2304.00164" rel="noopener noreferrer"><em>A Gaia astrometric view of the open clusters Pleiades, Praesepe, and Blanco&nbsp;1</em></a></li>
+						<li>Meingast, Alves &amp; Rottensteiner (2021), <a href="https://arxiv.org/abs/2010.06591" rel="noopener noreferrer"><em>Discovery of coronae of nearby star clusters</em></a></li>
+						<li>Risbud, Jadhav &amp; Kroupa (2025), <a href="https://arxiv.org/abs/2501.17225" rel="noopener noreferrer"><em>Tidal tails of nearby open clusters</em></a></li>
+						<li>Heyl, Caiazzo &amp; Richer (2022), <a href="https://arxiv.org/abs/2110.03837" rel="noopener noreferrer"><em>Reconstructing the Pleiades with Gaia EDR3</em></a></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	/* ── Page ──────────────────────────────────────── */
+
+	.page {
+		position: relative;
+		min-height: 100vh;
+		padding-top: 3.5rem;
+	}
+
+	/* ── Intro ─────────────────────────────────────── */
+
+	.intro {
+		max-width: 48rem;
+		padding: 2rem 0 0;
+	}
+
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-bottom: 1.5rem;
+		font-size: 0.88rem;
+		color: var(--fis-text-soft);
+	}
+
+	.breadcrumb a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	.breadcrumb__sep {
+		opacity: 0.4;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+		line-height: 1.02;
+		max-width: 22ch;
+	}
+
+	h2 {
+		font-size: 1.55rem;
+		line-height: 1.1;
+		margin-bottom: 0.85rem;
+		color: var(--fis-text);
+	}
+
+	h3 {
+		font-size: 1.2rem;
+		line-height: 1.15;
+		margin-bottom: 0.65rem;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 1rem;
+	}
+
+	/* ── Body text ─────────────────────────────────── */
+
+	.body-section {
+		max-width: 48rem;
+		padding: 2.5rem 0 1rem;
+	}
+
+	.body-section h2 {
+		margin-top: 2.5rem;
+	}
+
+	.body-section h2:first-child {
+		margin-top: 0;
+	}
+
+	.body-section h3 {
+		margin-top: 2rem;
+		color: var(--fis-text);
+	}
+
+	.body-section p {
+		font-size: 1.1rem;
+		line-height: 1.8;
+		margin-bottom: 1.4rem;
+	}
+
+	.body-section em {
+		color: var(--fis-text);
+		font-style: italic;
+	}
+
+	.body-section .callout {
+		margin: 2.5rem 0;
+		padding: 1.8rem;
+	}
+
+	.body-section .callout h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.3rem;
+		color: var(--fis-text);
+	}
+
+	.body-section .callout p {
+		font-size: 1.02rem;
+		line-height: 1.7;
+		margin-bottom: 0;
+	}
+
+	/* ── Tests grid ────────────────────────────────── */
+
+	.tests-section {
+		max-width: 52rem;
+		padding: 2rem 0 1rem;
+		border-top: 1px solid var(--fis-line);
+		margin-top: 1rem;
+	}
+
+	.tests-intro {
+		max-width: 42rem;
+		font-size: 1.1rem;
+		line-height: 1.8;
+		margin-bottom: 2rem;
+	}
+
+	.tests-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.tests-grid h3 {
+		color: var(--fis-text);
+	}
+
+	.tests-grid p {
+		font-size: 0.96rem;
+		line-height: 1.7;
+	}
+
+	/* ── Takeaway ──────────────────────────────────── */
+
+	.takeaway {
+		max-width: 48rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.takeaway h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.takeaway p {
+		line-height: 1.75;
+	}
+
+	/* ── Literature ────────────────────────────────── */
+
+	.literature {
+		max-width: 48rem;
+		padding: 2.5rem 0 2rem;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.literature > p {
+		font-size: 1.05rem;
+		line-height: 1.75;
+		margin-bottom: 2rem;
+	}
+
+	.lit-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.lit-group h3 {
+		font-size: 1.1rem;
+		margin-bottom: 0.6rem;
+		color: var(--fis-text);
+	}
+
+	.lit-group ul {
+		margin: 0;
+		padding-left: 1.2rem;
+	}
+
+	.lit-group li {
+		font-size: 0.96rem;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+		margin-bottom: 0.4rem;
+	}
+
+	.lit-group em {
+		color: var(--fis-text);
+		font-style: italic;
+	}
+
+	.lit-group a {
+		color: var(--fis-gold);
+		text-decoration-color: rgba(242, 200, 121, 0.35);
+	}
+
+	/* ── Responsive ────────────────────────────────── */
+
+	@media (max-width: 900px) {
+		.tests-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.page {
+			padding-top: 2.2rem;
+		}
+
+		h1 {
+			font-size: clamp(1.8rem, 10vw, 3rem);
+		}
+	}
+</style>
