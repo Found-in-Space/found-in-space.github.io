@@ -39,7 +39,7 @@ const basePath = import.meta.env.BASE_URL;
 			<h1>{title}</h1>
 			<p class="lede">{summary}</p>
 
-			<section class="body">
+			<section class="body prose">
 				<slot />
 			</section>
 
@@ -62,24 +62,6 @@ const basePath = import.meta.env.BASE_URL;
 </Layout>
 
 <style>
-	.breadcrumb {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		margin-bottom: 1.5rem;
-		font-size: 0.88rem;
-		color: var(--fis-text-soft);
-	}
-
-	.breadcrumb a {
-		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.35);
-	}
-
-	.breadcrumb__sep {
-		opacity: 0.4;
-	}
-
 	.topic-content {
 		padding: 2rem 0;
 	}
@@ -94,18 +76,5 @@ const basePath = import.meta.env.BASE_URL;
 
 	.body {
 		margin-top: 3rem;
-	}
-
-	.body :global(p) {
-		font-size: 1.12rem;
-		line-height: 1.8;
-		color: var(--fis-text-soft);
-		margin-bottom: 1.5rem;
-	}
-
-	.body :global(.callout h3) {
-		margin: 0 0 0.75rem;
-		font-size: 1.4rem;
-		color: var(--fis-text);
 	}
 </style>

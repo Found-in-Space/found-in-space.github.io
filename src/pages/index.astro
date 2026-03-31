@@ -217,10 +217,7 @@ const aboutPath = `${basePath}about/`;
 	}
 
 	.section-grid {
-		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 1rem;
-		margin: 2rem 0 4rem;
 	}
 
 	.panel__feature {
@@ -240,7 +237,7 @@ const aboutPath = `${basePath}about/`;
 	.panel__link,
 	.band__link a {
 		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.42);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	.panel__link--secondary {
@@ -331,7 +328,7 @@ const aboutPath = `${basePath}about/`;
 
 	.about a {
 		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.46);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	.about__link {
@@ -339,7 +336,6 @@ const aboutPath = `${basePath}about/`;
 	}
 
 	@media (max-width: 900px) {
-		.section-grid,
 		.story,
 		.bands {
 			grid-template-columns: 1fr;

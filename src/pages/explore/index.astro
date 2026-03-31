@@ -141,13 +141,13 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	}
 
 	.experience-card:hover {
-		border-color: rgba(242, 200, 121, 0.3);
+		border-color: var(--fis-line-strong);
 		transform: translateY(-3px);
 	}
 
 	.experience-card--featured {
 		background: var(--fis-panel-strong);
-		border-color: rgba(242, 200, 121, 0.18);
+		border-color: var(--fis-line);
 	}
 
 	.experience-card__label {
@@ -170,23 +170,13 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		margin-top: 1.25rem;
 		font-size: 0.95rem;
 		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.35);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	.experience-card__tags {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.45rem;
-	}
-
-	.tag {
-		padding: 0.2rem 0.65rem;
-		border-radius: 999px;
-		background: rgba(141, 183, 255, 0.07);
-		border: 1px solid rgba(141, 183, 255, 0.14);
-		font-size: 0.78rem;
-		color: var(--fis-text-soft);
-		font-family: var(--fis-font-ui);
 	}
 
 	/* ── Notes ───────────────────────────────────── */
@@ -220,7 +210,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 	.notes__body a {
 		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.4);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	@media (max-width: 960px) {

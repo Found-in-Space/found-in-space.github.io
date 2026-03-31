@@ -1,0 +1,592 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout title="Style Guide | Found in Space">
+	<SiteHeader section="Dev" />
+
+	<main class="page page--narrow">
+		<header class="hero">
+			<p class="eyebrow">Development reference</p>
+			<h1>Style Guide</h1>
+			<p class="lede">
+				Living reference for the Found in Space design system. Every example below uses the
+				real shared classes from <code>theme.css</code>, <code>components.css</code>, and
+				<code>prose.css</code>.
+			</p>
+		</header>
+
+		<!-- ── Colour palette ─────────────────────────── -->
+
+		<section class="guide-section" id="colours">
+			<h2>Colour palette</h2>
+			<p>All colours are defined as CSS custom properties in <code>theme.css</code>.</p>
+			<div class="swatch-grid">
+				<div class="swatch" style="background: var(--fis-bg);">
+					<span class="swatch__label">--fis-bg</span>
+				</div>
+				<div class="swatch" style="background: var(--fis-bg-deep);">
+					<span class="swatch__label">--fis-bg-deep</span>
+				</div>
+				<div class="swatch" style="background: var(--fis-panel);">
+					<span class="swatch__label">--fis-panel</span>
+				</div>
+				<div class="swatch" style="background: var(--fis-panel-strong);">
+					<span class="swatch__label">--fis-panel-strong</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-gold);">
+					<span class="swatch__label">--fis-gold</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-gold-subtle);">
+					<span class="swatch__label">--fis-gold-subtle</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-blue);">
+					<span class="swatch__label">--fis-blue</span>
+				</div>
+				<div class="swatch" style="background: var(--fis-blue-subtle);">
+					<span class="swatch__label">--fis-blue-subtle</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-text);">
+					<span class="swatch__label">--fis-text</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-text-soft);">
+					<span class="swatch__label">--fis-text-soft</span>
+				</div>
+				<div class="swatch swatch--light" style="background: var(--fis-text-muted);">
+					<span class="swatch__label">--fis-text-muted</span>
+				</div>
+				<div class="swatch" style="background: var(--fis-line); border: 1px solid var(--fis-line-strong);">
+					<span class="swatch__label">--fis-line</span>
+				</div>
+			</div>
+		</section>
+
+		<!-- ── Typography ─────────────────────────────── -->
+
+		<section class="guide-section" id="typography">
+			<h2>Typography</h2>
+			<p>
+				Body text uses <code>--fis-font-body</code> (Georgia stack). UI elements use
+				<code>--fis-font-ui</code> (Avenir stack).
+			</p>
+
+			<div class="type-specimen">
+				<p class="eyebrow">Eyebrow label</p>
+				<h1 class="type-h1">Page heading (h1)</h1>
+				<p class="lede">Lede paragraph — an introductory sentence styled with the <code>.lede</code> class.</p>
+			</div>
+
+			<div class="type-specimen">
+				<h2 class="type-h2">Section heading (h2)</h2>
+				<h3 class="type-h3">Sub-heading (h3)</h3>
+				<p>Body paragraph at default size. Colour is <code>--fis-text-soft</code>.</p>
+			</div>
+		</section>
+
+		<!-- ── Buttons ─────────────────────────────────── -->
+
+		<section class="guide-section" id="buttons">
+			<h2>Buttons</h2>
+			<p>Two variants defined in <code>components.css</code>.</p>
+			<div class="button-row">
+				<a class="button button--primary" href="#">Primary button</a>
+				<a class="button button--ghost" href="#">Ghost button</a>
+			</div>
+			<pre><code>&lt;a class="button button--primary" href="#"&gt;Primary&lt;/a&gt;
+&lt;a class="button button--ghost" href="#"&gt;Ghost&lt;/a&gt;</code></pre>
+		</section>
+
+		<!-- ── Panels / cards ──────────────────────────── -->
+
+		<section class="guide-section" id="panels">
+			<h2>Panels</h2>
+			<p>Glassy card component with variants. All use <code>backdrop-filter: blur</code> and the gold-tinted border.</p>
+			<div class="panel-grid">
+				<div class="panel">
+					<p class="eyebrow">Default</p>
+					<h3>.panel</h3>
+					<p>Base panel with translucent background, gold border, and blur.</p>
+				</div>
+				<div class="panel panel--accent">
+					<p class="eyebrow">Accent</p>
+					<h3>.panel--accent</h3>
+					<p>Gold gradient overlay for emphasis.</p>
+				</div>
+				<div class="panel panel--featured">
+					<p class="eyebrow">Featured</p>
+					<h3>.panel--featured</h3>
+					<p>Subtle gold top-light with stronger border.</p>
+				</div>
+			</div>
+			<pre><code>&lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;div class="panel panel--accent"&gt;...&lt;/div&gt;
+&lt;div class="panel panel--featured"&gt;...&lt;/div&gt;</code></pre>
+		</section>
+
+		<!-- ── Callout ─────────────────────────────────── -->
+
+		<section class="guide-section" id="callouts">
+			<h2>Callouts</h2>
+			<p>Combine <code>.callout</code> with <code>.panel</code> for highlighted asides.</p>
+			<div class="callout panel">
+				<p class="eyebrow">Note</p>
+				<h3>This is a callout</h3>
+				<p>
+					Callouts draw attention to key information within article content. They
+					combine <code>.callout</code> with <code>.panel</code>.
+				</p>
+			</div>
+		</section>
+
+		<!-- ── Breadcrumb ──────────────────────────────── -->
+
+		<section class="guide-section" id="breadcrumb">
+			<h2>Breadcrumb</h2>
+			<p>Navigation trail from <code>components.css</code>.</p>
+			<nav class="breadcrumb" aria-label="Breadcrumb (example)">
+				<a href="#">Learn</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href="#">Next steps</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Current page</span>
+			</nav>
+			<pre><code>&lt;nav class="breadcrumb"&gt;
+  &lt;a href="#"&gt;Learn&lt;/a&gt;
+  &lt;span class="breadcrumb__sep"&gt;›&lt;/span&gt;
+  &lt;span&gt;Current page&lt;/span&gt;
+&lt;/nav&gt;</code></pre>
+		</section>
+
+		<!-- ── Tags ────────────────────────────────────── -->
+
+		<section class="guide-section" id="tags">
+			<h2>Tags</h2>
+			<p>Pill labels from <code>components.css</code>.</p>
+			<div class="tag-row">
+				<span class="tag">Interactive</span>
+				<span class="tag">3D navigation</span>
+				<span class="tag">Gaia</span>
+				<span class="tag">Parallax uncertainty</span>
+			</div>
+			<pre><code>&lt;span class="tag"&gt;Interactive&lt;/span&gt;</code></pre>
+		</section>
+
+		<!-- ── Links ───────────────────────────────────── -->
+
+		<section class="guide-section" id="links">
+			<h2>Gold links</h2>
+			<p>Use <code>.link--gold</code> or the <code>--fis-gold-subtle</code> token for underline colour.</p>
+			<p><a class="link--gold" href="#">A gold-styled link →</a></p>
+			<pre><code>&lt;a class="link--gold" href="#"&gt;Link text&lt;/a&gt;</code></pre>
+		</section>
+
+		<!-- ── Hero ────────────────────────────────────── -->
+
+		<section class="guide-section" id="hero">
+			<h2>Hero</h2>
+			<p>
+				The <code>.hero</code> class provides consistent vertical padding for page headers.
+				Combine with <code>.eyebrow</code>, <code>h1</code>, and <code>.lede</code>.
+			</p>
+			<pre><code>&lt;header class="hero"&gt;
+  &lt;p class="eyebrow"&gt;Section name&lt;/p&gt;
+  &lt;h1&gt;Page title&lt;/h1&gt;
+  &lt;p class="lede"&gt;Introductory text.&lt;/p&gt;
+&lt;/header&gt;</code></pre>
+		</section>
+
+		<!-- ── Section grid ────────────────────────────── -->
+
+		<section class="guide-section" id="section-grid">
+			<h2>Section grid</h2>
+			<p>
+				Base grid layout from <code>components.css</code>. Add
+				<code>grid-template-columns</code> in your page styles to set the column count.
+				Collapses to single column below 900px automatically.
+			</p>
+			<div class="section-grid example-grid">
+				<div class="panel">
+					<p class="eyebrow">Column 1</p>
+					<p>Content panel</p>
+				</div>
+				<div class="panel">
+					<p class="eyebrow">Column 2</p>
+					<p>Content panel</p>
+				</div>
+				<div class="panel">
+					<p class="eyebrow">Column 3</p>
+					<p>Content panel</p>
+				</div>
+			</div>
+			<pre><code>&lt;div class="section-grid"&gt;
+  &lt;div class="panel"&gt;...&lt;/div&gt;
+  &lt;div class="panel"&gt;...&lt;/div&gt;
+  &lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+		</section>
+
+		<!-- ── Page navigation ─────────────────────────── -->
+
+		<section class="guide-section" id="page-nav">
+			<h2>Page navigation</h2>
+			<p>Prev / next links for multi-page articles. From <code>components.css</code>.</p>
+			<nav class="page-nav">
+				<a href="#">← Previous article</a>
+				<a href="#">Next article →</a>
+			</nav>
+			<pre><code>&lt;nav class="page-nav"&gt;
+  &lt;a href="#"&gt;← Previous&lt;/a&gt;
+  &lt;a href="#"&gt;Next →&lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+		</section>
+
+		<!-- ── Prose ───────────────────────────────────── -->
+
+		<section class="guide-section" id="prose">
+			<h2>Prose</h2>
+			<p>
+				Add <code>class="prose"</code> to an article body container to get consistent
+				heading, paragraph, link, code, table, and list styles. Defined in
+				<code>prose.css</code>.
+			</p>
+
+			<div class="prose">
+				<h2>Prose heading (h2)</h2>
+				<p>
+					This is a paragraph inside a <code>.prose</code> container. Links are
+					<a href="#">styled in gold</a> automatically. <strong>Bold text</strong> and
+					<em>italic text</em> get brightened to <code>--fis-text</code>.
+				</p>
+
+				<h3>Sub-heading (h3)</h3>
+				<p>
+					Paragraphs have generous line-height (1.8) and bottom margin for comfortable
+					reading. The prose class handles all the article body typography so individual
+					pages don't need to redefine it.
+				</p>
+
+				<div class="callout panel">
+					<p class="eyebrow">Note</p>
+					<h3>Callout inside prose</h3>
+					<p>
+						When a <code>.callout.panel</code> appears inside <code>.prose</code>,
+						its font sizing is slightly reduced for visual hierarchy.
+					</p>
+				</div>
+
+				<pre><code>// Code blocks in prose
+const stars = await loadStars();
+console.log('Loaded ' + stars.length + ' stars');</code></pre>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Column</th>
+							<th>Type</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>source_id</code></td>
+							<td>string</td>
+							<td>Catalogue identifier</td>
+						</tr>
+						<tr>
+							<td><code>ra_deg</code></td>
+							<td>float64</td>
+							<td>Right ascension (degrees)</td>
+						</tr>
+						<tr>
+							<td><code>dec_deg</code></td>
+							<td>float64</td>
+							<td>Declination (degrees)</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<ul>
+					<li>First list item with body text styling</li>
+					<li>Second item — lists use the same colour and spacing as paragraphs</li>
+					<li>Third item for reference</li>
+				</ul>
+			</div>
+		</section>
+
+		<!-- ── Design tokens ───────────────────────────── -->
+
+		<section class="guide-section" id="tokens">
+			<h2>Design tokens</h2>
+			<p>All tokens defined in <code>theme.css</code> on <code>:root</code>.</p>
+			<table class="token-table">
+				<thead>
+					<tr>
+						<th>Token</th>
+						<th>Value</th>
+						<th>Usage</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr><td><code>--fis-bg</code></td><td>#07111f</td><td>Page background</td></tr>
+					<tr><td><code>--fis-bg-deep</code></td><td>#040914</td><td>HTML background (deepest layer)</td></tr>
+					<tr><td><code>--fis-panel</code></td><td>rgba(10,20,36,0.78)</td><td>Card/panel background</td></tr>
+					<tr><td><code>--fis-panel-strong</code></td><td>rgba(12,24,43,0.9)</td><td>Emphasized panel background</td></tr>
+					<tr><td><code>--fis-line</code></td><td>rgba(242,200,121,0.18)</td><td>Default border</td></tr>
+					<tr><td><code>--fis-line-strong</code></td><td>rgba(242,200,121,0.3)</td><td>Emphasized border / hover</td></tr>
+					<tr><td><code>--fis-text</code></td><td>#f6f1e8</td><td>Primary text (headings, emphasis)</td></tr>
+					<tr><td><code>--fis-text-soft</code></td><td>#d8deea</td><td>Body text</td></tr>
+					<tr><td><code>--fis-text-muted</code></td><td>#aab7ca</td><td>Secondary / meta text</td></tr>
+					<tr><td><code>--fis-gold</code></td><td>#f2c879</td><td>Primary accent colour</td></tr>
+					<tr><td><code>--fis-gold-subtle</code></td><td>rgba(242,200,121,0.35)</td><td>Link underlines, subtle gold borders</td></tr>
+					<tr><td><code>--fis-blue</code></td><td>#8db7ff</td><td>Secondary accent / code colour</td></tr>
+					<tr><td><code>--fis-blue-subtle</code></td><td>rgba(141,183,255,0.14)</td><td>Tag borders, subtle blue borders</td></tr>
+					<tr><td><code>--fis-shadow</code></td><td>0 24px 80px …</td><td>Card shadow</td></tr>
+					<tr><td><code>--fis-radius</code></td><td>1.4rem</td><td>Card / panel border-radius</td></tr>
+					<tr><td><code>--fis-max-width</code></td><td>72rem</td><td>Page container max-width</td></tr>
+					<tr><td><code>--fis-font-body</code></td><td>Georgia stack</td><td>Body / article text</td></tr>
+					<tr><td><code>--fis-font-ui</code></td><td>Avenir stack</td><td>UI labels, tags, nav</td></tr>
+				</tbody>
+			</table>
+		</section>
+
+		<!-- ── File map ────────────────────────────────── -->
+
+		<section class="guide-section" id="files">
+			<h2>File map</h2>
+			<table class="token-table">
+				<thead>
+					<tr>
+						<th>File</th>
+						<th>Purpose</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr><td><code>src/styles/theme.css</code></td><td>Design tokens, resets, global body styles</td></tr>
+					<tr><td><code>src/styles/components.css</code></td><td>Shared UI primitives: page, button, panel, eyebrow, lede, breadcrumb, hero, section-grid, tag, page-nav, link--gold</td></tr>
+					<tr><td><code>src/styles/prose.css</code></td><td>Article body typography: headings, paragraphs, code, tables, lists, callouts inside a <code>.prose</code> wrapper</td></tr>
+					<tr><td><code>src/layouts/Layout.astro</code></td><td>Root HTML shell — imports all three CSS files</td></tr>
+					<tr><td><code>src/layouts/TopicLayout.astro</code></td><td>Learn topic page template with viewer slot</td></tr>
+				</tbody>
+			</table>
+		</section>
+	</main>
+</Layout>
+
+<style>
+	.hero {
+		padding: 2rem 0 3rem;
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 4.2rem);
+		line-height: 1.05;
+		margin: 0 0 1.5rem;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h2 {
+		margin: 0 0 0.85rem;
+		font-size: 1.55rem;
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--fis-text);
+	}
+
+	h3 {
+		margin: 0 0 0.5rem;
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: var(--fis-text);
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 1rem;
+	}
+
+	code {
+		font-size: 0.88em;
+		color: var(--fis-blue);
+	}
+
+	pre {
+		margin: 1rem 0 0;
+		padding: 1rem 1.25rem;
+		background: rgba(4, 9, 20, 0.7);
+		border: 1px solid var(--fis-line);
+		border-radius: 0.8rem;
+		overflow-x: auto;
+	}
+
+	pre code {
+		font-size: 0.85rem;
+		line-height: 1.65;
+		color: var(--fis-text-soft);
+	}
+
+	.guide-section {
+		padding: 3rem 0;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.guide-section:first-of-type {
+		border-top: none;
+		padding-top: 0;
+	}
+
+	/* ── Swatches ────────────────────────────────── */
+
+	.swatch-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		gap: 0.75rem;
+		margin-top: 1.5rem;
+	}
+
+	.swatch {
+		aspect-ratio: 1.6;
+		border-radius: 0.8rem;
+		display: flex;
+		align-items: flex-end;
+		padding: 0.65rem 0.75rem;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	.swatch__label {
+		font-family: var(--fis-font-ui);
+		font-size: 0.72rem;
+		color: var(--fis-text);
+		opacity: 0.85;
+	}
+
+	.swatch--light .swatch__label {
+		color: #0d1524;
+		opacity: 1;
+	}
+
+	/* ── Type specimen ───────────────────────────── */
+
+	.type-specimen {
+		padding: 1.5rem;
+		margin-top: 1.5rem;
+		background: var(--fis-panel);
+		border: 1px solid var(--fis-line);
+		border-radius: var(--fis-radius);
+	}
+
+	.type-h1 {
+		font-size: clamp(2rem, 5vw, 3.2rem);
+		line-height: 1.02;
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.type-h2 {
+		font-size: 1.55rem;
+		line-height: 1.1;
+		margin: 0 0 0.5rem;
+	}
+
+	.type-h3 {
+		font-size: 1.2rem;
+		line-height: 1.15;
+		margin: 0 0 0.5rem;
+	}
+
+	/* ── Buttons ─────────────────────────────────── */
+
+	.button-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin: 1.25rem 0;
+	}
+
+	/* ── Panel grid ──────────────────────────────── */
+
+	.panel-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin: 1.25rem 0;
+	}
+
+	.panel-grid h3 {
+		font-size: 1rem;
+	}
+
+	.panel-grid p {
+		font-size: 0.92rem;
+		line-height: 1.6;
+	}
+
+	/* ── Tag row ─────────────────────────────────── */
+
+	.tag-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+		margin: 1rem 0;
+	}
+
+	/* ── Example grid ────────────────────────────── */
+
+	.example-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.example-grid p {
+		font-size: 0.92rem;
+	}
+
+	/* ── Token table ─────────────────────────────── */
+
+	.token-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 1.25rem;
+		font-size: 0.9rem;
+	}
+
+	.token-table th {
+		padding: 0.6rem 0.85rem;
+		background: rgba(242, 200, 121, 0.08);
+		border: 1px solid var(--fis-line);
+		text-align: left;
+		font-weight: 600;
+		font-family: var(--fis-font-ui);
+		font-size: 0.8rem;
+		letter-spacing: 0.04em;
+		color: var(--fis-text-muted);
+	}
+
+	.token-table td {
+		padding: 0.55rem 0.85rem;
+		border: 1px solid var(--fis-line);
+		line-height: 1.5;
+		color: var(--fis-text-soft);
+		vertical-align: top;
+	}
+
+	.token-table tr:nth-child(even) td {
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	@media (max-width: 720px) {
+		.panel-grid,
+		.example-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

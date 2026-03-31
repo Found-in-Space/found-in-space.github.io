@@ -9,7 +9,9 @@
 	--fis-text-soft: #d8deea;
 	--fis-text-muted: #aab7ca;
 	--fis-gold: #f2c879;
+	--fis-gold-subtle: rgba(242, 200, 121, 0.35);
 	--fis-blue: #8db7ff;
+	--fis-blue-subtle: rgba(141, 183, 255, 0.14);
 	--fis-shadow: 0 24px 80px rgba(1, 5, 14, 0.38);
 	--fis-radius: 1.4rem;
 	--fis-max-width: 72rem;

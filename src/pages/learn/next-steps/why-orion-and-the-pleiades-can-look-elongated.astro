@@ -31,7 +31,7 @@ const basePath = import.meta.env.BASE_URL;
 			</p>
 		</section>
 
-		<section class="body-section">
+		<section class="body-section prose">
 			<h2>The question</h2>
 			<p>
 				The question is simple to state and surprisingly difficult to answer cleanly: when a
@@ -196,7 +196,7 @@ const basePath = import.meta.env.BASE_URL;
 			</p>
 		</section>
 
-		<section class="body-section">
+		<section class="body-section prose">
 			<h2>Orion: the strongest case for a mixed explanation</h2>
 			<p>
 				Of the two examples, Orion is the more plausible case for a genuinely mixed
@@ -386,24 +386,6 @@ const basePath = import.meta.env.BASE_URL;
 		padding: 2rem 0 0;
 	}
 
-	.breadcrumb {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		margin-bottom: 1.5rem;
-		font-size: 0.88rem;
-		color: var(--fis-text-soft);
-	}
-
-	.breadcrumb a {
-		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.35);
-	}
-
-	.breadcrumb__sep {
-		opacity: 0.4;
-	}
-
 	h1,
 	h2,
 	h3 {
@@ -446,47 +428,6 @@ const basePath = import.meta.env.BASE_URL;
 	.body-section {
 		max-width: 48rem;
 		padding: 2.5rem 0 1rem;
-	}
-
-	.body-section h2 {
-		margin-top: 2.5rem;
-	}
-
-	.body-section h2:first-child {
-		margin-top: 0;
-	}
-
-	.body-section h3 {
-		margin-top: 2rem;
-		color: var(--fis-text);
-	}
-
-	.body-section p {
-		font-size: 1.1rem;
-		line-height: 1.8;
-		margin-bottom: 1.4rem;
-	}
-
-	.body-section em {
-		color: var(--fis-text);
-		font-style: italic;
-	}
-
-	.body-section .callout {
-		margin: 2.5rem 0;
-		padding: 1.8rem;
-	}
-
-	.body-section .callout h3 {
-		margin: 0 0 0.65rem;
-		font-size: 1.3rem;
-		color: var(--fis-text);
-	}
-
-	.body-section .callout p {
-		font-size: 1.02rem;
-		line-height: 1.7;
-		margin-bottom: 0;
 	}
 
 	/* ── Tests grid ────────────────────────────────── */
@@ -583,7 +524,7 @@ const basePath = import.meta.env.BASE_URL;
 
 	.lit-group a {
 		color: var(--fis-gold);
-		text-decoration-color: rgba(242, 200, 121, 0.35);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	/* ── Responsive ────────────────────────────────── */

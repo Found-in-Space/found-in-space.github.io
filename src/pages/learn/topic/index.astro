@@ -88,7 +88,7 @@ const topics = (await getCollection('topics'))
 	}
 
 	.topic-card:hover {
-		border-color: rgba(242, 200, 121, 0.3);
+		border-color: var(--fis-line-strong);
 		transform: translateX(8px);
 	}
 
@@ -118,7 +118,7 @@ const topics = (await getCollection('topics'))
 		display: inline-flex;
 		color: var(--fis-gold);
 		font-size: 0.94rem;
-		text-decoration-color: rgba(242, 200, 121, 0.35);
+		text-decoration-color: var(--fis-gold-subtle);
 	}
 
 	@media (max-width: 720px) {

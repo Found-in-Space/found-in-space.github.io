@@ -1,0 +1,171 @@
+/* ───────────────────────────────────────────────────
+   prose.css — Article body typography
+
+   Apply class="prose" to a content container to get
+   consistent heading, paragraph, code, table, and
+   list styles for long-form article content.
+   ─────────────────────────────────────────────────── */
+
+/* ── Headings ────────────────────────────────────── */
+
+.prose h2 {
+	margin: 2.5rem 0 0.85rem;
+	font-size: 1.55rem;
+	font-weight: 600;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
+	color: var(--fis-text);
+}
+
+.prose h2:first-child {
+	margin-top: 0;
+}
+
+.prose h3 {
+	margin: 2rem 0 0.65rem;
+	font-size: 1.2rem;
+	font-weight: 600;
+	line-height: 1.15;
+	color: var(--fis-text);
+}
+
+.prose h4 {
+	margin: 0 0 0.25rem;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--fis-text);
+}
+
+/* ── Body text ───────────────────────────────────── */
+
+.prose p {
+	margin: 0 0 1.4rem;
+	font-size: 1.1rem;
+	line-height: 1.8;
+	color: var(--fis-text-soft);
+}
+
+.prose a {
+	color: var(--fis-gold);
+	text-decoration-color: var(--fis-gold-subtle);
+}
+
+.prose em {
+	color: var(--fis-text);
+	font-style: italic;
+}
+
+.prose strong {
+	color: var(--fis-text);
+	font-weight: 600;
+}
+
+/* ── Code ────────────────────────────────────────── */
+
+.prose code {
+	font-size: 0.88em;
+	color: var(--fis-blue);
+	background: rgba(141, 183, 255, 0.08);
+	padding: 0.1em 0.35em;
+	border-radius: 4px;
+}
+
+.prose pre {
+	margin: 0 0 1.5rem;
+	padding: 1.25rem 1.5rem;
+	background: rgba(4, 9, 20, 0.7);
+	border: 1px solid var(--fis-line);
+	border-radius: 0.8rem;
+	overflow-x: auto;
+}
+
+.prose pre code {
+	background: none;
+	padding: 0;
+	font-size: 0.9rem;
+	line-height: 1.7;
+	color: var(--fis-text-soft);
+}
+
+/* ── Lists ───────────────────────────────────────── */
+
+.prose ul {
+	margin: 0 0 1.25rem;
+	padding-left: 1.4rem;
+}
+
+.prose li {
+	margin-bottom: 0.75rem;
+	font-size: 1.05rem;
+	line-height: 1.75;
+	color: var(--fis-text-soft);
+}
+
+/* ── Tables ──────────────────────────────────────── */
+
+.prose table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.25rem 0 1.75rem;
+	font-size: 0.95rem;
+}
+
+.prose th {
+	padding: 0.65rem 1rem;
+	background: rgba(242, 200, 121, 0.08);
+	border: 1px solid var(--fis-line);
+	text-align: left;
+	font-weight: 600;
+	font-family: var(--fis-font-ui);
+	font-size: 0.85rem;
+	letter-spacing: 0.04em;
+	color: var(--fis-text-muted);
+}
+
+.prose td {
+	padding: 0.6rem 1rem;
+	border: 1px solid var(--fis-line);
+	line-height: 1.6;
+	color: var(--fis-text-soft);
+	vertical-align: top;
+}
+
+.prose tr:nth-child(even) td {
+	background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Callouts (used with .panel inside prose) ──── */
+
+.prose .callout {
+	margin: 2.5rem 0;
+	padding: 1.8rem;
+}
+
+.prose .callout h3 {
+	margin: 0 0 0.65rem;
+	font-size: 1.3rem;
+	color: var(--fis-text);
+}
+
+.prose .callout p {
+	font-size: 1.02rem;
+	line-height: 1.7;
+	margin-bottom: 0;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+
+@media (max-width: 720px) {
+	.prose pre {
+		padding: 1rem;
+	}
+
+	.prose table {
+		font-size: 0.85rem;
+	}
+
+	.prose td,
+	.prose th {
+		padding: 0.5rem 0.75rem;
+	}
+}
