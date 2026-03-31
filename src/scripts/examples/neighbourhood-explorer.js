@@ -75,11 +75,17 @@ function parseBoolean(value) {
 	return value === '' || value === 'true' || value === '1' || value === 'yes';
 }
 
-function createLocalDatasetSession(id) {
+function readDatasetString(root, key) {
+	const value = root.dataset[key];
+	return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function createLocalDatasetSession(id, datasetOverrides = {}) {
 	return getDatasetSession(
 		createFoundInSpaceDatasetOptions({
 			id,
 			...resolveFoundInSpaceDatasetOverrides(),
+			...datasetOverrides,
 			capabilities: {
 				sharedCaches: true,
 				bootstrapLoading: id,
@@ -118,6 +124,7 @@ async function mountExplorer(root) {
 	}
 
 	const status = root.querySelector('[data-neighbourhood-status]');
+	const recenterButton = root.querySelector('[data-action="recenter-neighbourhood"]');
 	const hrCanvasElement = root.querySelector('[data-neighbourhood-hr]');
 	const highlightName = root.dataset.highlight || '';
 	const showHr = parseBoolean(root.dataset.showHr);
@@ -126,7 +133,12 @@ async function mountExplorer(root) {
 	let hrDiagram = null;
 
 	const sessionId = root.dataset.datasetId || `website-learn-neighbourhood-${root.dataset.topic || 'topic'}`;
-	const datasetSession = createLocalDatasetSession(sessionId);
+	const octreeUrl = readDatasetString(root, 'octreeUrl');
+	const metaUrl = readDatasetString(root, 'metaUrl');
+	const datasetSession = createLocalDatasetSession(sessionId, {
+		...(octreeUrl ? { octreeUrl } : {}),
+		...(metaUrl ? { metaUrl } : {}),
+	});
 
 	const highlightState = buildHighlightState(highlightName);
 	const highlightPreset = HIGHLIGHT_PRESETS[highlightName] || null;
@@ -159,8 +171,9 @@ async function mountExplorer(root) {
 			}
 		: null;
 
+	const topicId = root.dataset.topic || 'topic';
 	const starLayer = createStarFieldLayer({
-		id: `website-neighbourhood-stars-${root.dataset.topic || 'topic'}`,
+		id: `website-neighbourhood-stars-${topicId}`,
 		materialFactory: () =>
 			createHighlightStarFieldMaterialProfile({
 				exposure: 80,
@@ -170,7 +183,12 @@ async function mountExplorer(root) {
 		},
 	});
 
-	try {
+	async function createAndMountViewer() {
+		if (viewer) {
+			await viewer.dispose();
+			viewer = null;
+		}
+
 		setStatus('Loading nearby stars…');
 		await datasetSession.ensureRenderRootShard();
 		await datasetSession.ensureRenderBootstrap();
@@ -178,19 +196,19 @@ async function mountExplorer(root) {
 		viewer = await createViewer(mount, {
 			datasetSession,
 			interestField: createObserverShellField({
-				id: `website-neighbourhood-field-${root.dataset.topic || 'topic'}`,
+				id: `website-neighbourhood-field-${topicId}`,
 				maxLevel: 13,
 				note: 'Website local-neighbourhood field.',
 			}),
 			controllers: [
 				createFreeFlyController({
-					id: `website-neighbourhood-fly-${root.dataset.topic || 'topic'}`,
+					id: `website-neighbourhood-fly-${topicId}`,
 					observerPc: SOLAR_ORIGIN_PC,
 					lookAtPc: PLEIADES_CENTER_PC,
 					moveSpeedPcPerSecond: 12,
 				}),
 				createSelectionRefreshController({
-					id: `website-neighbourhood-refresh-${root.dataset.topic || 'topic'}`,
+					id: `website-neighbourhood-refresh-${topicId}`,
 					observerDistancePc: 6,
 					minIntervalMs: 220,
 					watchSize: false,
@@ -208,19 +226,30 @@ async function mountExplorer(root) {
 			clearColor: 0x02040b,
 		});
 
-		window.addEventListener('resize', () => {
-			hrDiagram?.resize();
-		});
-
 		setStatus(
 			highlightPreset
 				? `Fly around with WASD and drag to look. Highlighting: ${highlightPreset.label}.`
 				: 'Fly around with WASD and drag to look.',
 		);
+	}
+
+	try {
+		await createAndMountViewer();
+
+		window.addEventListener('resize', () => {
+			hrDiagram?.resize();
+		});
 	} catch (error) {
 		console.error('[website:neighbourhood-mount]', error);
 		setStatus(error instanceof Error ? error.message : String(error));
 	}
+
+	recenterButton?.addEventListener('click', () => {
+		createAndMountViewer().catch((error) => {
+			console.error('[website:neighbourhood-recenter]', error);
+			setStatus(error instanceof Error ? error.message : String(error));
+		});
+	});
 
 	window.addEventListener('beforeunload', () => {
 		viewer?.dispose().catch((error) => {
