@@ -4,10 +4,12 @@ import TopicLayout from '../../../layouts/TopicLayout.astro';
 
 export async function getStaticPaths() {
 	const topics = await getCollection('topics');
-	return topics.map((entry) => ({
-		params: { slug: entry.id },
-		props: { entry },
-	}));
+	return topics
+		.filter((entry) => entry.id !== 'hr-diagram')
+		.map((entry) => ({
+			params: { slug: entry.id },
+			props: { entry },
+		}));
 }
 
 const { entry } = Astro.props;
@@ -32,10 +34,6 @@ const nextTopics = entry.data.next_topics
 	summary={entry.data.summary}
 	topicNumber={entry.data.topic_number}
 	nextTopics={nextTopics}
-	viewer={entry.data.viewer}
 >
 	<Content />
-	{entry.data.viewer_guide && (
-		<Fragment slot="viewer-guide" set:html={entry.data.viewer_guide} />
-	)}
 </TopicLayout>

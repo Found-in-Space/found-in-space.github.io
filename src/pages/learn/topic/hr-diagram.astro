@@ -131,53 +131,14 @@ const nextTopics = [
 
 		<div
 			class="viewer-wrapper"
-			data-example="neighbourhood-explorer"
+			data-hr-diagram-viewer
 			data-topic="hr-diagram"
 			data-show-hr="true"
-			data-octree-url="https://foundinspace.s3.eu-central-1.amazonaws.com/v02/stars.octree"
 		>
 			<section class="viewer-section" id="viewer">
 				<div class="viewer-panels">
-					<div class="viewer-shell" data-neighbourhood-mount></div>
-					<canvas class="hr-canvas" data-neighbourhood-hr aria-label="Live HR diagram"></canvas>
-				</div>
-			</section>
-
-			<section class="controls-section">
-				<div class="controls-inner">
-					<div class="controls-primary">
-						<p class="controls-heading">How to fly</p>
-						<div class="nav-hints">
-							<span class="nav-hint">Drag</span><span class="nav-sep">—</span><span class="nav-desc">look around</span>
-							<span class="nav-hint">Touch drag</span><span class="nav-sep">—</span><span class="nav-desc">look around on mobile</span>
-						</div>
-						<div class="key-guide">
-							<div class="key-row">
-								<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
-								<span class="key-label">move forward · left · back · right</span>
-							</div>
-							<div class="key-row">
-								<kbd>&uarr;</kbd><kbd>&darr;</kbd><kbd>&larr;</kbd><kbd>&rarr;</kbd>
-								<span class="key-label">look up · down · left · right</span>
-							</div>
-							<div class="key-row">
-								<kbd>Q</kbd><kbd>E</kbd>
-								<span class="key-label">move down · up</span>
-								<span class="key-sep">&nbsp;or&nbsp;</span>
-								<kbd>Shift</kbd><kbd>Space</kbd>
-								<span class="key-label">move down · up</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="controls-secondary">
-						<div class="controls-actions">
-							<button type="button" class="button button--ghost" data-action="recenter-neighbourhood">
-								Return to Sun
-							</button>
-						</div>
-						<p class="status">Status: <span data-neighbourhood-status>Loading viewer…</span></p>
-					</div>
+					<div class="viewer-shell" data-hr-diagram-viewer-shell></div>
+					<canvas class="hr-canvas" data-hr-diagram-viewer-hr aria-label="Live HR diagram"></canvas>
 				</div>
 			</section>
 		</div>
@@ -266,12 +227,12 @@ const nextTopics = [
 </Layout>
 
 <script>
-	import '../../../scripts/examples/neighbourhood-explorer.js';
+	import '../../../scripts/hr-diagram-viewer.js';
 </script>
 
 <script is:inline>
 	(function () {
-		var shell = document.querySelector('[data-neighbourhood-mount]');
+		var shell = document.querySelector('[data-hr-diagram-viewer-shell]');
 		if (!shell) return;
 
 		shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
@@ -361,6 +322,7 @@ const nextTopics = [
 
 	.viewer-wrapper {
 		margin-top: 1rem;
+		margin-bottom: 2.5rem;
 	}
 
 	.viewer-section {
@@ -376,6 +338,7 @@ const nextTopics = [
 	}
 
 	.viewer-shell {
+		position: relative;
 		width: 100%;
 		height: clamp(28rem, 64vh, 48rem);
 		border-radius: var(--fis-radius);
@@ -397,116 +360,6 @@ const nextTopics = [
 		background: rgba(1, 6, 16, 0.92);
 		border: 1px solid rgba(242, 200, 121, 0.25);
 		border-radius: var(--fis-radius);
-	}
-
-	/* ── Controls ──────────────────────────────────── */
-
-	.controls-section {
-		padding: 1.25rem 0 1.5rem;
-		border-bottom: 1px solid var(--fis-line);
-		margin-bottom: 2.5rem;
-	}
-
-	.controls-inner {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 2.5rem;
-		align-items: start;
-	}
-
-	.controls-heading {
-		margin: 0 0 0.85rem;
-		font-size: 0.78rem;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--fis-text-soft);
-	}
-
-	.nav-hints {
-		display: grid;
-		grid-template-columns: auto auto 1fr;
-		gap: 0.3rem 0.6rem;
-		align-items: baseline;
-		margin-bottom: 1rem;
-	}
-
-	.nav-hint {
-		font-size: 0.9rem;
-		color: var(--fis-text);
-		font-family: var(--fis-font-ui);
-	}
-
-	.nav-sep {
-		color: var(--fis-line-strong);
-	}
-
-	.nav-desc {
-		font-size: 0.9rem;
-		color: var(--fis-text-soft);
-	}
-
-	.key-guide {
-		display: flex;
-		flex-direction: column;
-		gap: 0.55rem;
-	}
-
-	.key-row {
-		display: flex;
-		align-items: center;
-		gap: 0.3rem;
-		flex-wrap: wrap;
-	}
-
-	kbd {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 1.9em;
-		padding: 0.18em 0.45em;
-		border: 1px solid rgba(255, 255, 255, 0.18);
-		border-radius: 5px;
-		background: rgba(255, 255, 255, 0.05);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.8rem;
-		color: var(--fis-text);
-		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
-		line-height: 1;
-	}
-
-	.key-label {
-		font-size: 0.82rem;
-		color: var(--fis-text-soft);
-		margin-left: 0.2rem;
-	}
-
-	.key-sep {
-		font-size: 0.82rem;
-		color: var(--fis-text-soft);
-		margin: 0 0.1rem;
-	}
-
-	.controls-secondary {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		min-width: 14rem;
-		align-items: flex-start;
-	}
-
-	.controls-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-
-	.status {
-		font-size: 0.88rem;
-		color: var(--fis-text-soft);
-	}
-
-	.status span {
-		color: var(--fis-gold);
 	}
 
 	/* ── Explore section ───────────────────────────── */
@@ -555,17 +408,6 @@ const nextTopics = [
 	}
 
 	/* ── Responsive ────────────────────────────────── */
-
-	@media (max-width: 1024px) {
-		.controls-inner {
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
-		}
-
-		.controls-secondary {
-			min-width: 0;
-		}
-	}
 
 	@media (max-width: 900px) {
 		.viewer-panels {

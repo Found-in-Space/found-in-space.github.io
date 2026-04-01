@@ -1,8 +1,13 @@
 import * as THREE from 'three';
 import {
+	createCameraRigController,
+	createDistanceReadout,
+	createFlyToAction,
 	createFoundInSpaceDatasetOptions,
-	createFreeFlyController,
+	createFullscreenPreset,
 	createHighlightStarFieldMaterialProfile,
+	createHud,
+	createLookAtAction,
 	createObserverShellField,
 	createSelectionRefreshController,
 	createStarFieldLayer,
@@ -11,7 +16,7 @@ import {
 	resolveFoundInSpaceDatasetOverrides,
 	SOLAR_ORIGIN_PC,
 } from '@found-in-space/skykit';
-import { HRDiagramGL } from '../hr-diagram-gl.js';
+import { HRDiagramGL } from './hr-diagram-gl.js';
 
 const DEFAULT_MAG_LIMIT = 6.5;
 const PLEIADES_CENTER_PC = Object.freeze({
@@ -94,12 +99,6 @@ function createLocalDatasetSession(id, datasetOverrides = {}) {
 	);
 }
 
-function setText(node, text) {
-	if (node) {
-		node.textContent = text;
-	}
-}
-
 function buildHighlightState(name) {
 	const preset = HIGHLIGHT_PRESETS[name];
 	if (!preset) {
@@ -117,22 +116,22 @@ function buildHighlightState(name) {
 	};
 }
 
-async function mountExplorer(root) {
-	const mount = root.querySelector('[data-neighbourhood-mount]');
+async function mountHrDiagramViewer(root) {
+	const mount = root.querySelector('[data-hr-diagram-viewer-shell]');
 	if (!mount) {
 		return;
 	}
 
-	const status = root.querySelector('[data-neighbourhood-status]');
-	const recenterButton = root.querySelector('[data-action="recenter-neighbourhood"]');
-	const hrCanvasElement = root.querySelector('[data-neighbourhood-hr]');
+	const hrCanvasElement = root.querySelector('[data-hr-diagram-viewer-hr]');
 	const highlightName = root.dataset.highlight || '';
 	const showHr = parseBoolean(root.dataset.showHr);
 	const activeMag = DEFAULT_MAG_LIMIT;
 	let viewer = null;
 	let hrDiagram = null;
 
-	const sessionId = root.dataset.datasetId || `website-learn-neighbourhood-${root.dataset.topic || 'topic'}`;
+	const topicId = root.dataset.topic || 'hr-diagram';
+	const sessionId =
+		root.dataset.datasetId || `website-learn-hr-diagram-${topicId}`;
 	const octreeUrl = readDatasetString(root, 'octreeUrl');
 	const metaUrl = readDatasetString(root, 'metaUrl');
 	const datasetSession = createLocalDatasetSession(sessionId, {
@@ -156,10 +155,6 @@ async function mountExplorer(root) {
 		}
 	}
 
-	function setStatus(message) {
-		setText(status, message);
-	}
-
 	const cameraWorldPos = new THREE.Vector3();
 	const hrOverlay = hrDiagram
 		? {
@@ -171,9 +166,8 @@ async function mountExplorer(root) {
 			}
 		: null;
 
-	const topicId = root.dataset.topic || 'topic';
 	const starLayer = createStarFieldLayer({
-		id: `website-neighbourhood-stars-${topicId}`,
+		id: `website-hr-diagram-stars-${topicId}`,
 		materialFactory: () =>
 			createHighlightStarFieldMaterialProfile({
 				exposure: 80,
@@ -189,29 +183,55 @@ async function mountExplorer(root) {
 			viewer = null;
 		}
 
-		setStatus('Loading nearby stars…');
 		await datasetSession.ensureRenderRootShard();
 		await datasetSession.ensureRenderBootstrap();
+
+		const cameraController = createCameraRigController({
+			id: `website-hr-diagram-fly-${topicId}`,
+			observerPc: SOLAR_ORIGIN_PC,
+			lookAtPc: PLEIADES_CENTER_PC,
+			moveSpeed: 12,
+		});
+
+		const fullscreen = createFullscreenPreset();
 
 		viewer = await createViewer(mount, {
 			datasetSession,
 			interestField: createObserverShellField({
-				id: `website-neighbourhood-field-${topicId}`,
-				maxLevel: 13,
-				note: 'Website local-neighbourhood field.',
+				id: `website-hr-diagram-field-${topicId}`,
+				note: 'HR diagram topic observer-shell field.',
 			}),
 			controllers: [
-				createFreeFlyController({
-					id: `website-neighbourhood-fly-${topicId}`,
-					observerPc: SOLAR_ORIGIN_PC,
-					lookAtPc: PLEIADES_CENTER_PC,
-					moveSpeedPcPerSecond: 12,
-				}),
+				cameraController,
 				createSelectionRefreshController({
-					id: `website-neighbourhood-refresh-${topicId}`,
+					id: `website-hr-diagram-refresh-${topicId}`,
 					observerDistancePc: 6,
 					minIntervalMs: 220,
 					watchSize: false,
+				}),
+				fullscreen.controller,
+				createHud({
+					cameraController,
+					controls: [
+						{ preset: 'arrows', position: 'bottom-right' },
+						{ preset: 'wasd-qe', position: 'bottom-left' },
+						createDistanceReadout(cameraController, SOLAR_ORIGIN_PC, {
+							label: 'Distance to Sun',
+							position: 'top-left',
+						}),
+						createLookAtAction(cameraController, SOLAR_ORIGIN_PC, {
+							label: '⟳ Sun',
+							title: 'Look toward the Sun',
+							position: 'top-right',
+						}),
+						createFlyToAction(cameraController, SOLAR_ORIGIN_PC, {
+							label: '→ Sun',
+							title: 'Fly back to the Sun',
+							speed: 120,
+							position: 'top-right',
+						}),
+						...fullscreen.controls,
+					],
 				}),
 			],
 			layers: [starLayer],
@@ -225,12 +245,6 @@ async function mountExplorer(root) {
 			},
 			clearColor: 0x02040b,
 		});
-
-		setStatus(
-			highlightPreset
-				? `Fly around with WASD and drag to look. Highlighting: ${highlightPreset.label}.`
-				: 'Fly around with WASD and drag to look.',
-		);
 	}
 
 	try {
@@ -240,27 +254,18 @@ async function mountExplorer(root) {
 			hrDiagram?.resize();
 		});
 	} catch (error) {
-		console.error('[website:neighbourhood-mount]', error);
-		setStatus(error instanceof Error ? error.message : String(error));
+		console.error('[website:hr-diagram-viewer]', error);
 	}
-
-	recenterButton?.addEventListener('click', () => {
-		createAndMountViewer().catch((error) => {
-			console.error('[website:neighbourhood-recenter]', error);
-			setStatus(error instanceof Error ? error.message : String(error));
-		});
-	});
 
 	window.addEventListener('beforeunload', () => {
 		viewer?.dispose().catch((error) => {
-			console.error('[website:neighbourhood-dispose]', error);
+			console.error('[website:hr-diagram-viewer-dispose]', error);
 		});
 	});
 }
 
-document.querySelectorAll('[data-example="neighbourhood-explorer"]').forEach((root) => {
-	mountExplorer(root).catch((error) => {
-		console.error('[website:neighbourhood]', error);
+document.querySelectorAll('[data-hr-diagram-viewer]').forEach((root) => {
+	mountHrDiagramViewer(root).catch((error) => {
+		console.error('[website:hr-diagram-viewer]', error);
 	});
 });
-

@@ -11,15 +11,6 @@ const topics = defineCollection({
 		prerequisites: z.array(z.string()).default([]),
 		next_topics: z.array(z.string()).default([]),
 		topic_number: z.number(),
-		viewer: z.object({
-			variant: z.enum(['neighbourhood', 'constellation', 'parsec', 'lightyear']),
-			topic: z.string(),
-			highlight: z.string().optional(),
-			showHr: z.boolean().optional(),
-			offsetPc: z.number().optional(),
-			maxSpeed: z.number().optional(),
-		}),
-		viewer_guide: z.string().optional(),
 	}),
 });
 

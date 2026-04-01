@@ -3,25 +3,15 @@ import Layout from './Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import TopicNext from '../components/TopicNext.astro';
 import MadeByKaj from '../components/MadeByKaj.astro';
-import TopicSkykitViewer from '../components/TopicSkykitViewer.astro';
 
 interface Props {
 	title: string;
 	summary: string;
 	topicNumber: number;
 	nextTopics: Array<{ slug: string; title: string }>;
-	viewer: {
-		variant: 'neighbourhood' | 'constellation' | 'parsec' | 'lightyear';
-		topic: string;
-		highlight?: string;
-		showHr?: boolean;
-		offsetPc?: number;
-		maxSpeed?: number;
-	};
 }
 
-const { title, summary, topicNumber, nextTopics, viewer } = Astro.props;
-const hasViewerGuide = Astro.slots.has('viewer-guide');
+const { title, summary, topicNumber, nextTopics } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
 ---
 
@@ -42,17 +32,6 @@ const basePath = import.meta.env.BASE_URL;
 			<section class="body prose">
 				<slot />
 			</section>
-
-			<TopicSkykitViewer
-				variant={viewer.variant}
-				topic={viewer.topic}
-				highlight={viewer.highlight}
-				showHr={viewer.showHr}
-				offsetPc={viewer.offsetPc}
-				maxSpeed={viewer.maxSpeed}
-			>
-				{hasViewerGuide && <slot name="viewer-guide" slot="guide" />}
-			</TopicSkykitViewer>
 
 			<TopicNext topics={nextTopics} />
 		</article>
