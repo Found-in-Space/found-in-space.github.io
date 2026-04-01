@@ -56,6 +56,15 @@ export const tiltNeedsPermission =
 	typeof DeviceOrientationEvent.requestPermission === 'function';
 
 /**
+ * Whether to offer tilt / device-orientation UI (e.g. parallax "device motion").
+ *
+ * Many desktop browsers define `DeviceOrientationEvent` even when no IMU is
+ * exposed, so {@link tiltApiExists} alone is not enough. Touch-primary
+ * devices (phones, tablets) are the common case where orientation is useful.
+ */
+export const showDeviceOrientationUi = tiltApiExists && touchPrimary;
+
+/**
  * Attempt to confirm that a real gyroscope / accelerometer is producing
  * data. Resolves with `{ supported: true }` on first real reading, or
  * `{ supported: false, reason }` on timeout / denial.

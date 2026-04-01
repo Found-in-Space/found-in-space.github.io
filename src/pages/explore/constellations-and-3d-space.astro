@@ -25,76 +25,8 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		</section>
 
 		<section class="viewer-section" id="viewer">
-			<div class="viewer-shell" data-example="constellation-viewer"></div>
-		</section>
-
-		<section class="controls-section">
-			<div class="controls-inner">
-				<div class="controls-primary">
-					<p class="controls-heading">How to fly</p>
-					<div class="nav-hints">
-						<span class="nav-hint">Drag</span><span class="nav-sep">—</span><span class="nav-desc">look around</span>
-						<span class="nav-hint">Touch drag</span><span class="nav-sep">—</span><span class="nav-desc">look around on mobile</span>
-					</div>
-					<div class="key-guide">
-						<div class="key-row">
-							<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
-							<span class="key-label">keyboard keys &mdash; move forward · left · back · right</span>
-						</div>
-						<div class="key-row">
-							<kbd>&uarr;</kbd><kbd>&darr;</kbd><kbd>&larr;</kbd><kbd>&rarr;</kbd>
-							<span class="key-label">arrow keys &mdash; look up · down · left · right</span>
-						</div>
-						<div class="key-row">
-							<kbd>Q</kbd><kbd>E</kbd>
-							<span class="key-label">move down · up</span>
-							<span class="key-sep">&nbsp;or&nbsp;</span>
-							<kbd>Shift</kbd><kbd>Space</kbd>
-							<span class="key-label">move down · up</span>
-						</div>
-					</div>
-				</div>
-
-				<div class="controls-secondary">
-					<div class="control-group" data-touch-control hidden>
-						<label for="constellation-fly-speed">Flying speed <span class="speed-hint">(drag to look, set speed to fly)</span></label>
-						<div class="control-row">
-							<input
-								id="constellation-fly-speed"
-								data-constellation-fly-speed
-								type="range"
-								min="0"
-								max="1"
-								step="0.05"
-								value="0"
-							/>
-							<span class="control-value" data-constellation-fly-speed-value>Off</span>
-						</div>
-					</div>
-					<div class="control-group">
-						<label for="constellation-mag-limit">Magnitude limit</label>
-						<div class="control-row">
-							<input
-								id="constellation-mag-limit"
-								data-constellation-mag-limit
-								type="range"
-								min="5"
-								max="9.5"
-								step="0.5"
-								value="7.5"
-							/>
-							<span class="control-value" data-constellation-mag-limit-value>7.5</span>
-						</div>
-					</div>
-					<div class="controls-actions">
-						<button type="button" class="button button--ghost" data-action="recenter-constellation">
-							Return to Sun
-						</button>
-						<a class="button button--ghost" href={parallaxPath}>Try: parallax demo</a>
-					</div>
-					<p class="status">Status: <span data-constellation-status>Loading the Orion fly-through…</span></p>
-				</div>
-			</div>
+			<div class="viewer-shell" data-constellation-viewer="freeFly"></div>
+			<p class="status">Status: <span data-viewer-status>Loading the Orion fly-through…</span></p>
 		</section>
 
 		<section class="notes">
@@ -132,57 +64,22 @@ const parallaxPath = `${basePath}explore/parallax/`;
 </Layout>
 
 <script>
-	import { setFlySpeed } from '../../scripts/examples/constellation-fly-through.js';
+	import { mountConstellationViewer } from '../../scripts/examples/constellation-viewer.js';
 
-	const touchControl = document.querySelector('[data-touch-control]');
-	const flySpeedInput = document.querySelector('[data-constellation-fly-speed]');
-	const flySpeedValue = document.querySelector('[data-constellation-fly-speed-value]');
+	const mount = document.querySelector('[data-constellation-viewer]');
+	const statusEl = document.querySelector('[data-viewer-status]');
 
-	const MAX_SPEED_PC_PER_SEC = 18;
-
-	function syncFlySpeedLabel(raw) {
-		if (!flySpeedValue) return;
-		flySpeedValue.textContent = raw <= 0 ? 'Off' : `${Math.round(raw * 100)}%`;
-	}
-
-	flySpeedInput?.addEventListener('input', () => {
-		const v = Number(flySpeedInput.value);
-		if (!Number.isFinite(v)) return;
-		setFlySpeed(v * MAX_SPEED_PC_PER_SEC);
-		syncFlySpeedLabel(v);
-	});
-
-	// Reveal the speed control the first time a touch is detected
-	window.addEventListener('touchstart', () => {
-		touchControl?.removeAttribute('hidden');
-	}, { once: true, passive: true });
-</script>
-
-<script is:inline>
-	(function () {
-		var shell = document.querySelector('[data-example="constellation-viewer"]');
-		if (!shell) return;
-
-		// Prevent page scroll when touching inside the canvas
-		shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
-		shell.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
-
-		// Prevent arrow-key and space page-scroll while the mouse is over the canvas
-		var overCanvas = false;
-		shell.addEventListener('mouseenter', function () { overCanvas = true; });
-		shell.addEventListener('mouseleave', function () { overCanvas = false; });
-
-		document.addEventListener('keydown', function (e) {
-			if (!overCanvas) return;
-			if (
-				e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
-				e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
-				e.key === ' '
-			) {
-				e.preventDefault();
-			}
+	if (mount) {
+		mountConstellationViewer(mount, {
+			mode: 'freeFly',
+			onStatus: (msg) => {
+				if (statusEl) statusEl.textContent = msg;
+			},
+		}).catch((err) => {
+			console.error('[website:constellation-mount]', err);
+			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
 		});
-	})();
+	}
 </script>
 
 <style>
@@ -240,153 +137,8 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		cursor: grabbing;
 	}
 
-	/* ── Controls section ────────────────────────── */
-
-	.controls-section {
-		padding: 1.5rem 0 1.75rem;
-		border-bottom: 1px solid var(--fis-line);
-		margin-bottom: 2rem;
-	}
-
-	.controls-inner {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 2.5rem;
-		align-items: start;
-	}
-
-	.controls-heading {
-		margin: 0 0 0.85rem;
-		font-size: 0.78rem;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--fis-text-soft);
-	}
-
-	/* Navigation hints (drag / touch) */
-
-	.nav-hints {
-		display: grid;
-		grid-template-columns: auto auto 1fr;
-		gap: 0.3rem 0.6rem;
-		align-items: baseline;
-		margin-bottom: 1rem;
-	}
-
-	.nav-hint {
-		font-size: 0.9rem;
-		color: var(--fis-text);
-		font-family: var(--fis-font-ui);
-	}
-
-	.nav-sep {
-		color: var(--fis-line-strong);
-	}
-
-	.nav-desc {
-		font-size: 0.9rem;
-		color: var(--fis-text-soft);
-	}
-
-	/* Keyboard key guide */
-
-	.key-guide {
-		display: flex;
-		flex-direction: column;
-		gap: 0.55rem;
-	}
-
-	.key-row {
-		display: flex;
-		align-items: center;
-		gap: 0.3rem;
-		flex-wrap: wrap;
-	}
-
-	kbd {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 1.9em;
-		padding: 0.18em 0.45em;
-		border: 1px solid rgba(255, 255, 255, 0.18);
-		border-radius: 5px;
-		background: rgba(255, 255, 255, 0.05);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.8rem;
-		color: var(--fis-text);
-		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.4);
-		line-height: 1;
-	}
-
-	.key-label {
-		font-size: 0.82rem;
-		color: var(--fis-text-soft);
-		margin-left: 0.2rem;
-	}
-
-	.key-sep {
-		font-size: 0.82rem;
-		color: var(--fis-text-soft);
-		margin: 0 0.1rem;
-	}
-
-	/* Secondary controls */
-
-	.controls-secondary {
-		display: flex;
-		flex-direction: column;
-		gap: 1.1rem;
-		min-width: 17rem;
-	}
-
-	.control-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	[data-touch-control][hidden] {
-		display: none !important;
-	}
-
-	label {
-		font-size: 0.88rem;
-		color: var(--fis-text);
-		font-family: var(--fis-font-ui);
-	}
-
-	.control-row {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 0.8rem;
-		align-items: center;
-	}
-
-	input[type='range'] {
-		width: 100%;
-	}
-
-	.control-value {
-		min-width: 2.6rem;
-		font-family: var(--fis-font-ui);
-		color: var(--fis-gold);
-		text-align: right;
-	}
-
-	.speed-hint {
-		font-size: 0.82rem;
-		color: var(--fis-text-soft);
-		font-weight: 400;
-	}
-
-	.controls-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-
 	.status {
+		padding: 0.75rem 1.5rem;
 		font-size: 0.88rem;
 		color: var(--fis-text-soft);
 	}
@@ -411,17 +163,6 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 	/* ── Responsive ──────────────────────────────── */
 
-	@media (max-width: 1024px) {
-		.controls-inner {
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
-		}
-
-		.controls-secondary {
-			min-width: 0;
-		}
-	}
-
 	@media (max-width: 800px) {
 		.notes {
 			grid-template-columns: 1fr;
@@ -435,11 +176,6 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 		h1 {
 			font-size: clamp(2.4rem, 13vw, 4rem);
-		}
-
-		.viewer-section {
-			margin-left: -1.5rem;
-			margin-right: -1.5rem;
 		}
 	}
 </style>
