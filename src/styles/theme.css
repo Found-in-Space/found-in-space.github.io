@@ -95,9 +95,9 @@ main {
 	z-index: 1;
 	margin: 0;
 	padding: 0.8rem 1.5rem;
-	border-bottom: 1px solid rgba(242, 200, 121, 0.35);
-	background: rgba(242, 200, 121, 0.14);
-	color: var(--fis-text);
+	border-bottom: 1px solid var(--fis-line);
+	background: var(--fis-bg-deep);
+	color: var(--fis-text-soft);
 	font-family: var(--fis-font-ui);
 	font-size: 0.85rem;
 	letter-spacing: 0.03em;
