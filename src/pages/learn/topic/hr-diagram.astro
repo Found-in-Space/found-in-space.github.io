@@ -119,11 +119,29 @@ const nextTopics = [
 				<p class="panel__eyebrow">In the viewer below</p>
 				<h3>A live HR diagram built from Gaia data</h3>
 				<p>
-					The diagram below is built in real time from the same Gaia stars loaded in the 3D
-					view. Each dot is coloured by its blackbody temperature. As you fly through space,
-					different stars load and the diagram updates — the bright supergiants at the top
-					barely change, but the faint dwarfs in the tail shift constantly.
+					The diagram is drawn in real time from the same stars loaded in the 3D view.
+					Each dot is coloured by its blackbody temperature. Three modes let you sample
+					the stellar population in different ways:
 				</p>
+				<ul>
+					<li>
+						<strong>All stars</strong> — plots every star in the sky brighter than the
+						chosen magnitude limit, in all directions at once. Drag the slider to push
+						the limit fainter and watch the diagram fill in. This is the widest sample,
+						but it is biased toward bright stars — faint dwarfs only appear when they
+						are nearby.
+					</li>
+					<li>
+						<strong>View only</strong> — the same magnitude filter, but restricted to
+						the stars currently in front of you. Point the view at a cluster and watch
+						its population appear in isolation on the diagram.
+					</li>
+					<li>
+						<strong>Volume</strong> — loads every star within a sphere of chosen radius,
+						regardless of brightness. A fairer census of local space: faint red dwarfs
+						appear in proportion to how common they really are.
+					</li>
+				</ul>
 			</div>
 		</section>
 
@@ -138,7 +156,28 @@ const nextTopics = [
 			<section class="viewer-section" id="viewer">
 				<div class="viewer-panels">
 					<div class="viewer-shell" data-hr-diagram-viewer-shell></div>
-					<canvas class="hr-canvas" data-hr-diagram-viewer-hr aria-label="Live HR diagram"></canvas>
+					<div class="hr-panel">
+						<div class="hr-controls" data-hr-controls>
+							<div class="hr-mode-buttons">
+								<button type="button" class="hr-mode-btn active" data-hr-mode="0">All stars</button>
+								<button type="button" class="hr-mode-btn" data-hr-mode="2">View only</button>
+								<button type="button" class="hr-mode-btn" data-hr-mode="1">Volume</button>
+							</div>
+							<div class="hr-slider-row" data-hr-mag-row>
+								<label for="hr-mag-limit">Mag limit</label>
+								<input id="hr-mag-limit" type="range" min="1" max="11" step="0.5" value="6.5"
+									data-hr-mag-limit />
+								<span class="hr-range-value" data-hr-mag-value>6.5</span>
+							</div>
+							<div class="hr-slider-row" data-hr-volume-row hidden>
+								<label for="hr-radius">Radius</label>
+								<input id="hr-radius" type="range" min="1" max="100" step="1" value="25"
+									data-hr-radius />
+								<span class="hr-range-value" data-hr-radius-value>25 pc</span>
+							</div>
+						</div>
+						<canvas class="hr-canvas" data-hr-diagram-viewer-hr aria-label="Live HR diagram"></canvas>
+					</div>
 				</div>
 			</section>
 		</div>
@@ -148,11 +187,24 @@ const nextTopics = [
 		<section class="explore-section">
 			<h2>What you're seeing</h2>
 			<p>
-				This HR diagram plots every star currently loaded in the viewer — in every direction
-				from your position, not just the stars in front of you. The bright supergiants at the
-				top are visible from far away and stay anchored in place as you move. The faint dwarfs
-				at the bottom only load when they are close enough, so the lower tail of the diagram
-				shifts as you fly. That is not a bug — it is selection effects happening in real time.
+				In <strong>All stars</strong> mode, the diagram shows every star in the sky brighter
+				than the chosen limit, in all directions from your position. The bright supergiants
+				near the top are visible from far away and barely shift as you move. The faint dwarfs
+				in the lower tail only enter the sample when they are close enough to clear the
+				magnitude cutoff, so the tail grows and shifts as you fly. That is not a bug — it is
+				selection bias playing out in real time.
+			</p>
+			<p>
+				<strong>View only</strong> uses the same magnitude filter but restricts the diagram
+				to stars currently in front of you. Point directly at a star cluster and its
+				population appears in isolation, separated from the background field — without needing
+				to switch datasets.
+			</p>
+			<p>
+				In <strong>Volume</strong> mode the bias is inverted: every star within the chosen
+				radius is included, however faint. The lower main sequence fills in dramatically
+				because faint red dwarfs are very common — they simply don't make the cut in
+				magnitude-limited surveys.
 			</p>
 
 			<div class="explore-grid">
@@ -202,6 +254,42 @@ const nextTopics = [
 					</p>
 				</article>
 			</div>
+		</section>
+
+		<!-- ── Data artifacts ──────────────────────── -->
+
+		<section class="body-section prose">
+			<h2>Artefacts in the diagram</h2>
+			<p>
+				If you look carefully at the cool (right) edge of the diagram, you will notice two
+				features that come not from physics but from how the data is processed.
+			</p>
+
+			<h3>The ~2 700 K wall</h3>
+			<p>
+				The main sequence appears to hit a hard vertical wall at around 2 700 K. This is
+				real — but it is a pipeline artefact, not a physical boundary. Most faint red stars
+				in the Gaia catalogue lack a spectroscopic temperature estimate. For those stars the
+				pipeline falls back to converting the Gaia BP&ndash;RP colour index to an effective
+				temperature using the
+				<a href="https://github.com/Found-in-Space/pipeline/blob/main/src/foundinspace/pipeline/common/photometry.py"
+				   class="link--gold">Ballesteros (2012) relation</a>.
+				That conversion clamps the B&ndash;V colour index at 2.5 to avoid singularities,
+				which maps every star redder than BP&ndash;RP&nbsp;&asymp;&nbsp;3.0 to the same
+				temperature of roughly 2 725 K. The result is a hard pile-up at that value. Real M
+				dwarfs extend to cooler temperatures, but this dataset cannot distinguish them.
+			</p>
+
+			<h3>The 5 800 K default</h3>
+			<p>
+				A small number of stars have no usable temperature from any source: no Gaia
+				spectroscopic estimate, no BP&ndash;RP colour, no B&ndash;V. The pipeline
+				<a href="https://github.com/Found-in-Space/pipeline/blob/main/src/foundinspace/pipeline/gaia/photometry.py"
+				   class="link--gold">assigns these a default of 5 800 K</a>
+				(roughly solar). You may notice a faint vertical streak at the Sun's temperature —
+				that is these default-temperature stars landing at the same x-coordinate. The
+				effect is subtle but visible when a large volume is loaded.
+			</p>
 		</section>
 
 		<!-- ── Gaia note ───────────────────────────── -->
@@ -354,9 +442,86 @@ const nextTopics = [
 		cursor: grabbing;
 	}
 
+	/* ── HR panel (right column) ──────────────────── */
+
+	.hr-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: clamp(28rem, 64vh, 48rem);
+	}
+
+	.hr-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		flex-shrink: 0;
+	}
+
+	.hr-mode-buttons {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	.hr-mode-btn {
+		flex: 1;
+		padding: 0.35rem 0.5rem;
+		min-height: 0;
+		border: 1px solid var(--fis-line);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--fis-text-muted);
+		font: inherit;
+		font-size: 0.78rem;
+		cursor: pointer;
+		transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+	}
+
+	.hr-mode-btn:hover {
+		color: var(--fis-text);
+		border-color: var(--fis-line-strong);
+	}
+
+	.hr-mode-btn.active {
+		border-color: var(--fis-gold-subtle);
+		color: var(--fis-gold);
+		background: rgba(242, 200, 121, 0.08);
+	}
+
+	.hr-slider-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.hr-slider-row[hidden] {
+		display: none;
+	}
+
+	.hr-slider-row label {
+		font-size: 0.78rem;
+		color: var(--fis-text-muted);
+		white-space: nowrap;
+	}
+
+	.hr-slider-row input[type="range"] {
+		flex: 1;
+		accent-color: var(--fis-gold);
+		height: 4px;
+	}
+
+	.hr-range-value {
+		font-size: 0.78rem;
+		min-width: 3rem;
+		text-align: right;
+		color: var(--fis-gold);
+		font-variant-numeric: tabular-nums;
+	}
+
 	.hr-canvas {
 		width: 100%;
-		height: clamp(28rem, 64vh, 48rem);
+		flex: 1;
+		min-height: 0;
 		background: rgba(1, 6, 16, 0.92);
 		border: 1px solid rgba(242, 200, 121, 0.25);
 		border-radius: var(--fis-radius);
@@ -414,9 +579,12 @@ const nextTopics = [
 			grid-template-columns: 1fr;
 		}
 
-		.viewer-shell,
-		.hr-canvas {
+		.viewer-shell {
 			height: clamp(22rem, 50vh, 36rem);
+		}
+
+		.hr-panel {
+			height: clamp(20rem, 40vh, 30rem);
 		}
 
 		.explore-grid {

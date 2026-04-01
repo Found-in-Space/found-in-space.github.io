@@ -4,19 +4,18 @@ import {
 	createDistanceReadout,
 	createFlyToAction,
 	createFoundInSpaceDatasetOptions,
-	createFullscreenPreset,
 	createHighlightStarFieldMaterialProfile,
 	createHud,
-	createLookAtAction,
 	createObserverShellField,
 	createSelectionRefreshController,
 	createStarFieldLayer,
 	createViewer,
+	createVolumeHRLoader,
 	getDatasetSession,
+	HRDiagramRenderer,
 	resolveFoundInSpaceDatasetOverrides,
 	SOLAR_ORIGIN_PC,
 } from '@found-in-space/skykit';
-import { HRDiagramGL } from './hr-diagram-gl.js';
 
 const DEFAULT_MAG_LIMIT = 6.5;
 const PLEIADES_CENTER_PC = Object.freeze({
@@ -125,9 +124,16 @@ async function mountHrDiagramViewer(root) {
 	const hrCanvasElement = root.querySelector('[data-hr-diagram-viewer-hr]');
 	const highlightName = root.dataset.highlight || '';
 	const showHr = parseBoolean(root.dataset.showHr);
-	const activeMag = DEFAULT_MAG_LIMIT;
+	let activeMagLimit = DEFAULT_MAG_LIMIT;
+	let activeMode = 0;
+	let activeRadius = 25;
 	let viewer = null;
 	let hrDiagram = null;
+	let volumeLoader = null;
+	let reloadQueued = false;
+	let lastObserverPc = { x: 0, y: 0, z: 0 };
+	let lastStarFieldGeometry = null;
+	let lastStarFieldCount = 0;
 
 	const topicId = root.dataset.topic || 'hr-diagram';
 	const sessionId =
@@ -139,10 +145,65 @@ async function mountHrDiagramViewer(root) {
 		...(metaUrl ? { metaUrl } : {}),
 	});
 
+	// ── Controls ────────────────────────────────────────────────────────
+	const modeButtons = root.querySelectorAll('[data-hr-mode]');
+	const magRow = root.querySelector('[data-hr-mag-row]');
+	const magInput = root.querySelector('[data-hr-mag-limit]');
+	const magValue = root.querySelector('[data-hr-mag-value]');
+	const volumeRow = root.querySelector('[data-hr-volume-row]');
+	const radiusInput = root.querySelector('[data-hr-radius]');
+	const radiusValue = root.querySelector('[data-hr-radius-value]');
+
+	function setActiveMode(mode) {
+		activeMode = mode;
+		modeButtons.forEach((btn) => {
+			btn.classList.toggle('active', Number(btn.dataset.hrMode) === mode);
+		});
+		hrDiagram?.setMode(mode);
+
+		if (magRow) magRow.hidden = mode === 1;
+		if (volumeRow) volumeRow.hidden = mode !== 1;
+	}
+
+	function syncHrFromStarField() {
+		if (!hrDiagram || !lastStarFieldGeometry) return;
+		hrDiagram.setGeometry(lastStarFieldGeometry);
+		hrDiagram.setStarCount(lastStarFieldCount);
+	}
+
+	// ── Volume loading ─────────────────────────────────────────────────
+	async function loadVolumeHR() {
+		if (!volumeLoader || activeMode !== 1) return;
+		const observerPc =
+			viewer?.getSnapshotState?.()?.state?.observerPc ?? SOLAR_ORIGIN_PC;
+		lastObserverPc = { ...observerPc };
+
+		const result = await volumeLoader.load({
+			observerPc,
+			maxRadiusPc: activeRadius,
+		});
+		if (!result) return;
+
+		hrDiagram?.setGeometry(result.geometry);
+		hrDiagram?.setStarCount(result.starCount);
+	}
+
+	function queueVolumeReload() {
+		if (reloadQueued) return;
+		reloadQueued = true;
+		requestAnimationFrame(() => {
+			reloadQueued = false;
+			loadVolumeHR().catch((err) =>
+				console.error('[website:hr-diagram-viewer] volume load failed', err),
+			);
+		});
+	}
+
+	// ── HR diagram ─────────────────────────────────────────────────────
 	const highlightState = buildHighlightState(highlightName);
 	const highlightPreset = HIGHLIGHT_PRESETS[highlightName] || null;
 	if (showHr && hrCanvasElement instanceof HTMLCanvasElement) {
-		hrDiagram = new HRDiagramGL(hrCanvasElement);
+		hrDiagram = new HRDiagramRenderer(hrCanvasElement, { mode: activeMode });
 		if (highlightPreset) {
 			hrDiagram.setHighlightRegion({
 				teffMin: highlightPreset.teffMin,
@@ -156,12 +217,35 @@ async function mountHrDiagramViewer(root) {
 	}
 
 	const cameraWorldPos = new THREE.Vector3();
+	const vpMatrix = new THREE.Matrix4();
 	const hrOverlay = hrDiagram
 		? {
 				id: 'hr-diagram-render',
 				update(context) {
 					context.camera.getWorldPosition(cameraWorldPos);
+
+					if (activeMode === 2) {
+						vpMatrix.multiplyMatrices(
+							context.camera.projectionMatrix,
+							context.camera.matrixWorldInverse,
+						);
+						hrDiagram.setViewProjection(vpMatrix);
+					}
+
 					hrDiagram.render(cameraWorldPos);
+
+					if (activeMode === 1) {
+						const obs = context.state?.observerPc;
+						if (obs) {
+							const dx = obs.x - lastObserverPc.x;
+							const dy = obs.y - lastObserverPc.y;
+							const dz = obs.z - lastObserverPc.z;
+							const moved = Math.sqrt(dx * dx + dy * dy + dz * dz);
+							if (moved > Math.max(2, activeRadius * 0.15)) {
+								queueVolumeReload();
+							}
+						}
+					}
 				},
 			}
 		: null;
@@ -172,8 +256,13 @@ async function mountHrDiagramViewer(root) {
 			createHighlightStarFieldMaterialProfile({
 				exposure: 80,
 			}),
-		onCommit({ geometry }) {
-			hrDiagram?.setGeometry(geometry);
+		onCommit({ geometry, starCount }) {
+			lastStarFieldGeometry = geometry;
+			lastStarFieldCount = starCount;
+			if (activeMode !== 1) {
+				hrDiagram?.setGeometry(geometry);
+				hrDiagram?.setStarCount(starCount);
+			}
 		},
 	});
 
@@ -193,8 +282,6 @@ async function mountHrDiagramViewer(root) {
 			moveSpeed: 12,
 		});
 
-		const fullscreen = createFullscreenPreset();
-
 		viewer = await createViewer(mount, {
 			datasetSession,
 			interestField: createObserverShellField({
@@ -209,7 +296,6 @@ async function mountHrDiagramViewer(root) {
 					minIntervalMs: 220,
 					watchSize: false,
 				}),
-				fullscreen.controller,
 				createHud({
 					cameraController,
 					controls: [
@@ -219,18 +305,12 @@ async function mountHrDiagramViewer(root) {
 							label: 'Distance to Sun',
 							position: 'top-left',
 						}),
-						createLookAtAction(cameraController, SOLAR_ORIGIN_PC, {
-							label: '⟳ Sun',
-							title: 'Look toward the Sun',
-							position: 'top-right',
-						}),
 						createFlyToAction(cameraController, SOLAR_ORIGIN_PC, {
 							label: '→ Sun',
 							title: 'Fly back to the Sun',
 							speed: 120,
 							position: 'top-right',
 						}),
-						...fullscreen.controls,
 					],
 				}),
 			],
@@ -239,13 +319,61 @@ async function mountHrDiagramViewer(root) {
 			state: {
 				observerPc: { ...SOLAR_ORIGIN_PC },
 				fieldStrategy: 'observer-shell',
-				mDesired: activeMag,
+				mDesired: activeMagLimit,
 				starFieldExposure: 80,
 				...highlightState,
 			},
 			clearColor: 0x02040b,
 		});
+
+		volumeLoader = createVolumeHRLoader({ datasetSession });
 	}
+
+	// ── Event handlers ──────────────────────────────────────────────────
+
+	modeButtons.forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const mode = Number(btn.dataset.hrMode);
+			setActiveMode(mode);
+			if (mode === 1) {
+				queueVolumeReload();
+			} else {
+				syncHrFromStarField();
+			}
+		});
+	});
+
+	magInput?.addEventListener('input', () => {
+		activeMagLimit = Number(magInput.value) || DEFAULT_MAG_LIMIT;
+		if (magValue) magValue.textContent = activeMagLimit.toFixed(1);
+	});
+
+	magInput?.addEventListener('change', () => {
+		activeMagLimit = Number(magInput.value) || DEFAULT_MAG_LIMIT;
+		if (magValue) magValue.textContent = activeMagLimit.toFixed(1);
+		hrDiagram?.setAppMagLimit(activeMagLimit);
+		if (viewer) {
+			viewer.setState({ mDesired: activeMagLimit });
+			viewer.refreshSelection().catch((err) => {
+				console.error('[website:hr-diagram-viewer] mag refresh failed', err);
+			});
+		}
+	});
+
+	radiusInput?.addEventListener('input', () => {
+		activeRadius = Number(radiusInput.value) || 25;
+		if (radiusValue) radiusValue.textContent = `${activeRadius} pc`;
+	});
+
+	radiusInput?.addEventListener('change', () => {
+		activeRadius = Number(radiusInput.value) || 25;
+		if (radiusValue) radiusValue.textContent = `${activeRadius} pc`;
+		if (activeMode === 1) queueVolumeReload();
+	});
+
+	// ── Boot ────────────────────────────────────────────────────────────
+
+	setActiveMode(activeMode);
 
 	try {
 		await createAndMountViewer();
@@ -258,6 +386,7 @@ async function mountHrDiagramViewer(root) {
 	}
 
 	window.addEventListener('beforeunload', () => {
+		volumeLoader?.cancel();
 		viewer?.dispose().catch((error) => {
 			console.error('[website:hr-diagram-viewer-dispose]', error);
 		});
