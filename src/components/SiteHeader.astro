@@ -8,36 +8,146 @@ const basePath = import.meta.env.BASE_URL;
 ---
 
 <header class="site-header">
-	<a class="wordmark" href={basePath} aria-label="Found in Space home">
-		<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
-		<span class="wordmark__text">
-			<span class="wordmark__title">Found in Space</span>
-			<span class="wordmark__meta">{section}</span>
-		</span>
-	</a>
-	<nav class="site-nav" aria-label="Primary">
-		<a href={basePath}>Home</a>
-		<a href={`${basePath}explore/`}>Explore</a>
-		<a href={`${basePath}learn/`}>Learn</a>
-		<a href={`${basePath}build/`}>Build</a>
-		<a href={`${basePath}about/`}>About</a>
-	</nav>
+	<div class="site-header__glass" aria-hidden="true"></div>
+	<div class="site-header__inner">
+		<div class="site-header__bar">
+			<a class="wordmark" href={basePath} aria-label="Found in Space home">
+				<img class="wordmark__mark" src={`${basePath}robbie.svg`} alt="" aria-hidden="true" />
+				<span class="wordmark__text">
+					<span class="wordmark__title">Found in Space</span>
+					<span class="wordmark__meta">{section}</span>
+				</span>
+			</a>
+			<button
+				type="button"
+				class="site-nav-toggle"
+				id="site-nav-toggle"
+				aria-controls="site-nav-primary"
+				aria-expanded="false"
+				aria-label="Open menu"
+			>
+				<span class="site-nav-toggle__bars" aria-hidden="true">
+					<span class="site-nav-toggle__bar"></span>
+					<span class="site-nav-toggle__bar"></span>
+					<span class="site-nav-toggle__bar"></span>
+				</span>
+			</button>
+		</div>
+		<div class="site-header__backdrop" aria-hidden="true" hidden></div>
+		<nav class="site-nav" id="site-nav-primary" aria-label="Primary">
+			<a href={basePath}>Home</a>
+			<a href={`${basePath}explore/`}>Explore</a>
+			<a href={`${basePath}learn/`}>Learn</a>
+			<a href={`${basePath}build/`}>Build</a>
+			<a href={`${basePath}about/`}>About</a>
+		</nav>
+	</div>
 </header>
+
+<script>
+	const mq = window.matchMedia('(max-width: 720px)');
+
+	function initSiteHeader(header) {
+		const toggle = header.querySelector('#site-nav-toggle');
+		const nav = header.querySelector('#site-nav-primary');
+		const backdrop = header.querySelector('.site-header__backdrop');
+		if (!toggle || !nav || !backdrop) return;
+
+		function applyMobileNavState() {
+			const mobile = mq.matches;
+			if (!mobile) {
+				header.classList.remove('site-header--nav-open');
+				toggle.setAttribute('aria-expanded', 'false');
+				toggle.setAttribute('aria-label', 'Open menu');
+				nav.removeAttribute('inert');
+				backdrop.hidden = true;
+				document.body.style.overflow = '';
+				return;
+			}
+			const open = header.classList.contains('site-header--nav-open');
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+			if (open) {
+				nav.removeAttribute('inert');
+				backdrop.hidden = false;
+				document.body.style.overflow = 'hidden';
+			} else {
+				nav.setAttribute('inert', '');
+				backdrop.hidden = true;
+				document.body.style.overflow = '';
+			}
+		}
+
+		function setOpen(open) {
+			header.classList.toggle('site-header--nav-open', open);
+			applyMobileNavState();
+		}
+
+		toggle.addEventListener('click', () => {
+			if (!mq.matches) return;
+			setOpen(!header.classList.contains('site-header--nav-open'));
+		});
+
+		backdrop.addEventListener('click', () => setOpen(false));
+
+		nav.querySelectorAll('a').forEach((link) => {
+			link.addEventListener('click', () => {
+				if (mq.matches) setOpen(false);
+			});
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && mq.matches && header.classList.contains('site-header--nav-open')) {
+				setOpen(false);
+				toggle.focus();
+			}
+		});
+
+		mq.addEventListener('change', applyMobileNavState);
+		applyMobileNavState();
+	}
+
+	const header = document.querySelector('.site-header');
+	if (header) initSiteHeader(header);
+</script>
 
 <style>
 	.site-header {
 		position: sticky;
 		top: 0;
 		z-index: 4;
+		width: 100%;
+	}
+
+	/* Full-bleed glass; content stays in .site-header__inner (centred column). */
+	.site-header__glass {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
+		backdrop-filter: blur(12px);
+	}
+
+	.site-header__inner {
+		position: relative;
+		z-index: 1;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		max-width: calc(var(--fis-max-width) + 3rem);
+		max-width: var(--fis-max-width);
 		margin: 0 auto;
-		padding: 1rem 1.5rem 0;
-		background: linear-gradient(180deg, rgba(7, 17, 31, 0.88), rgba(7, 17, 31, 0));
-		backdrop-filter: blur(12px);
+		padding: 1rem 1.5rem 0.5rem;
+	}
+
+	.site-header__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-width: 0;
+		flex: 1;
 	}
 
 	.wordmark {
@@ -77,6 +187,69 @@ const basePath = import.meta.env.BASE_URL;
 		color: var(--fis-text-muted);
 	}
 
+	.site-nav-toggle {
+		display: none;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 2.75rem;
+		height: 2.75rem;
+		padding: 0;
+		border-radius: 999px;
+		border: 1px solid var(--fis-blue-subtle);
+		background: rgba(8, 15, 27, 0.62);
+		color: var(--fis-text-soft);
+		cursor: pointer;
+		transition:
+			background-color 160ms ease,
+			border-color 160ms ease,
+			color 160ms ease;
+	}
+
+	.site-nav-toggle:hover {
+		background: rgba(15, 28, 50, 0.82);
+		border-color: var(--fis-gold-subtle);
+		color: var(--fis-text);
+	}
+
+	.site-nav-toggle:focus-visible {
+		outline: 2px solid var(--fis-gold);
+		outline-offset: 2px;
+	}
+
+	.site-nav-toggle__bars {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 5px;
+		width: 1.15rem;
+	}
+
+	.site-nav-toggle__bar {
+		display: block;
+		height: 2px;
+		border-radius: 1px;
+		background: currentColor;
+		transition: transform 200ms ease, opacity 200ms ease;
+		transform-origin: center;
+	}
+
+	.site-header--nav-open .site-nav-toggle__bar:nth-child(1) {
+		transform: translateY(7px) rotate(45deg);
+	}
+
+	.site-header--nav-open .site-nav-toggle__bar:nth-child(2) {
+		opacity: 0;
+	}
+
+	.site-header--nav-open .site-nav-toggle__bar:nth-child(3) {
+		transform: translateY(-7px) rotate(-45deg);
+	}
+
+	.site-header__backdrop {
+		display: none;
+	}
+
 	.site-nav {
 		display: flex;
 		flex-wrap: wrap;
@@ -110,10 +283,83 @@ const basePath = import.meta.env.BASE_URL;
 	}
 
 	@media (max-width: 720px) {
-		.site-header {
-			align-items: flex-start;
+		.site-header__inner {
+			flex-wrap: wrap;
+			align-items: center;
+		}
+
+		.site-header__bar {
+			flex: 1 1 100%;
+		}
+
+		.site-nav-toggle {
+			display: inline-flex;
+		}
+
+		.site-header__backdrop {
+			display: block;
+			position: fixed;
+			inset: 0;
+			z-index: 3;
+			margin: 0;
+			border: none;
+			padding: 0;
+			background: rgba(4, 9, 20, 0.62);
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
+			transition:
+				opacity 200ms ease,
+				visibility 200ms ease;
+		}
+
+		.site-header--nav-open .site-header__backdrop {
+			opacity: 1;
+			visibility: visible;
+			pointer-events: auto;
+		}
+
+		.site-nav {
+			position: absolute;
+			left: 1.5rem;
+			right: 1.5rem;
+			top: calc(100% - 0.35rem);
+			z-index: 4;
 			flex-direction: column;
-			padding-bottom: 0.25rem;
+			flex-wrap: nowrap;
+			align-items: stretch;
+			padding: 0.85rem;
+			border-radius: var(--fis-radius);
+			background: var(--fis-panel-strong);
+			border: 1px solid var(--fis-line);
+			box-shadow: var(--fis-shadow);
+			opacity: 0;
+			visibility: hidden;
+			transform: translateY(-0.35rem);
+			pointer-events: none;
+			transition:
+				opacity 200ms ease,
+				visibility 200ms ease,
+				transform 200ms ease;
+		}
+
+		.site-header--nav-open .site-nav {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.site-nav a {
+			justify-content: flex-start;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-nav-toggle__bar,
+		.site-header__backdrop,
+		.site-nav {
+			transition: none;
 		}
 	}
 </style>
