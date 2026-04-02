@@ -5,7 +5,7 @@ import TopicLayout from '../../../layouts/TopicLayout.astro';
 export async function getStaticPaths() {
 	const topics = await getCollection('topics');
 	return topics
-		.filter((entry) => entry.id !== 'hr-diagram')
+		.filter((entry) => entry.id !== 'hr-diagram' && entry.id !== 'star-clusters' && entry.id !== 'radio-bubble')
 		.map((entry) => ({
 			params: { slug: entry.id },
 			props: { entry },

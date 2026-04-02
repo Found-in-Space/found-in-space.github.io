@@ -5,6 +5,8 @@ import MadeByKaj from '../../components/MadeByKaj.astro';
 
 const basePath = import.meta.env.BASE_URL;
 const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
+const starClustersPath = `${basePath}learn/topic/star-clusters/`;
+const radioBubblePath = `${basePath}learn/topic/radio-bubble/`;
 const nextStepsPath = `${basePath}learn/next-steps/`;
 ---
 
@@ -36,6 +38,32 @@ const nextStepsPath = `${basePath}learn/next-steps/`;
 						actually made of. Built on a live 3D star viewer using real Gaia data.
 					</p>
 					<a href={hrDiagramPath} class="button button--primary">Open the lesson</a>
+				</div>
+			</article>
+
+			<article class="panel panel--featured">
+				<div class="panel__content">
+					<p class="panel__eyebrow">Lesson</p>
+					<h2>Star clusters: families of stars</h2>
+					<p>
+						Stars are born in groups. Fly between real clusters — from stellar nurseries
+						to ancient globulars — to see how age, gravity, and the galaxy shape stellar
+						families.
+					</p>
+					<a href={starClustersPath} class="button button--primary">Open the lesson</a>
+				</div>
+			</article>
+
+			<article class="panel panel--featured">
+				<div class="panel__content">
+					<p class="panel__eyebrow">Lesson</p>
+					<h2>The radio bubble</h2>
+					<p>
+						How far have Earth's radio signals travelled? Fly outside humanity's
+						electromagnetic footprint to see how small it really is — and discover
+						that our signals are about to reach the nearest star cluster.
+					</p>
+					<a href={radioBubblePath} class="button button--primary">Open the lesson</a>
 				</div>
 			</article>
 		</section>
