@@ -1,11 +1,7 @@
 import {
 	createCameraRigController,
 	createDefaultStarFieldMaterialProfile,
-	createDistanceReadout,
-	createFlyToAction,
 	createFoundInSpaceDatasetOptions,
-	createFullscreenPreset,
-	createHud,
 	createObserverShellField,
 	createRadioBubbleMeshes,
 	createSceneOrientationTransforms,
@@ -20,6 +16,12 @@ import {
 	SOLAR_ORIGIN_PC,
 	resolveFoundInSpaceDatasetOverrides,
 } from '@found-in-space/skykit';
+
+/** Disables WASD / arrows on the rig while keeping pointer drag-to-look on the canvas. */
+const NO_KEYBOARD_EVENTS_TARGET = {
+	addEventListener() {},
+	removeEventListener() {},
+};
 
 const VIEWPOINTS = [
 	{
@@ -105,9 +107,8 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		sceneToIcrsTransform: SCENE_TO_ICRS,
 		lookAtPc: ORION_NEBULA_PC,
 		moveSpeed: 18,
+		keyboardTarget: NO_KEYBOARD_EVENTS_TARGET,
 	});
-
-	const fullscreen = createFullscreenPreset();
 
 	const viewer = await createViewer(mount, {
 		datasetSession,
@@ -121,25 +122,6 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 				observerDistancePc: 12,
 				minIntervalMs: 250,
 				watchSize: false,
-			}),
-			fullscreen.controller,
-			createHud({
-				cameraController,
-				controls: [
-					{ preset: 'arrows', position: 'bottom-right' },
-					{ preset: 'wasd-qe', position: 'bottom-left' },
-					createDistanceReadout(cameraController, SOLAR_ORIGIN_PC, {
-						label: 'Distance to Sun',
-						position: 'top-left',
-					}),
-					createFlyToAction(cameraController, SOLAR_ORIGIN_PC, {
-						label: '→ Sun',
-						title: 'Fly back to the Sun',
-						speed: 120,
-						position: 'top-right',
-					}),
-					...fullscreen.controls,
-				],
 			}),
 		],
 		layers: [
@@ -161,7 +143,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	const { group: bubbleGroup, radiusPc, radiusLy } = createRadioBubbleMeshes();
 	viewer.contentRoot.add(bubbleGroup);
 
-	onStatus('Drag to look around. Use on-screen buttons or WASD to move.');
+	onStatus('Drag on the view to look around.');
 
 	let activeViewpoint = null;
 

@@ -1,11 +1,7 @@
 import {
 	createCameraRigController,
 	createDefaultStarFieldMaterialProfile,
-	createDistanceReadout,
-	createFlyToAction,
 	createFoundInSpaceDatasetOptions,
-	createFullscreenPreset,
-	createHud,
 	createObserverShellField,
 	createSceneOrientationTransforms,
 	createSelectionRefreshController,
@@ -22,6 +18,12 @@ import {
 	UPPER_SCO_CENTER_PC,
 	resolveFoundInSpaceDatasetOverrides,
 } from '@found-in-space/skykit';
+
+/** Disables WASD / arrows on the rig while keeping pointer drag-to-look on the canvas. */
+const NO_KEYBOARD_EVENTS_TARGET = {
+	addEventListener() {},
+	removeEventListener() {},
+};
 
 const CLUSTER_PRESETS = [
 	{
@@ -115,9 +117,8 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		sceneToIcrsTransform: SCENE_TO_ICRS,
 		lookAtPc: ORION_NEBULA_PC,
 		moveSpeed: 18,
+		keyboardTarget: NO_KEYBOARD_EVENTS_TARGET,
 	});
-
-	const fullscreen = createFullscreenPreset();
 
 	const viewer = await createViewer(mount, {
 		datasetSession,
@@ -131,25 +132,6 @@ export async function mountClusterTourViewer(mount, options = {}) {
 				observerDistancePc: 12,
 				minIntervalMs: 250,
 				watchSize: false,
-			}),
-			fullscreen.controller,
-			createHud({
-				cameraController,
-				controls: [
-					{ preset: 'arrows', position: 'bottom-right' },
-					{ preset: 'wasd-qe', position: 'bottom-left' },
-					createDistanceReadout(cameraController, SOLAR_ORIGIN_PC, {
-						label: 'Distance to Sun',
-						position: 'top-left',
-					}),
-					createFlyToAction(cameraController, SOLAR_ORIGIN_PC, {
-						label: '→ Sun',
-						title: 'Fly back to the Sun',
-						speed: 120,
-						position: 'top-right',
-					}),
-					...fullscreen.controls,
-				],
 			}),
 		],
 		layers: [
@@ -168,7 +150,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		clearColor: 0x02040b,
 	});
 
-	onStatus('Drag to look around. Use on-screen buttons or WASD to move.');
+	onStatus('Drag on the view to look around.');
 
 	let activeClusterId = null;
 
