@@ -1,7 +1,9 @@
 import {
+	buildConstellationDirectionResolver,
+	buildSimbadBasicSearch,
 	createCameraRigController,
 	createParallaxPositionController,
-	buildConstellationDirectionResolver,
+	createPickController,
 	icrsDirectionToTargetPc,
 	createDefaultStarFieldMaterialProfile,
 	createFoundInSpaceDatasetOptions,
@@ -17,6 +19,7 @@ import {
 	getDatasetSession,
 	loadConstellationArtManifest,
 	ORION_CENTER_PC,
+	SCALE,
 	SOLAR_ORIGIN_PC,
 	resolveFoundInSpaceDatasetOverrides,
 	createConstellationPreset,
@@ -24,6 +27,7 @@ import {
 	createLookAtAction,
 	createSpeedReadout,
 	createDistanceReadout,
+	formatDistancePc,
 } from '@found-in-space/skykit';
 
 import { showDeviceOrientationUi } from '../device-capabilities.js';
@@ -82,6 +86,227 @@ function createConstellationJumpCatalog(manifest) {
 	return { catalog, byIau };
 }
 
+function scenePositionToIcrsPc(pos) {
+	const [ix, iy, iz] = SCENE_TO_ICRS_TRANSFORM(pos.x, pos.y, pos.z);
+	return { x: ix / SCALE, y: iy / SCALE, z: iz / SCALE };
+}
+
+/**
+ * @param {HTMLElement} starPickCard
+ * @param {{ datasetSession: object, starFieldLayer: object, cameraController: object }} ctx
+ * @returns {{ pickController: object, dispose: () => void }}
+ */
+function createStarPickCardBinding(starPickCard, ctx) {
+	const { datasetSession, starFieldLayer, cameraController } = ctx;
+	const root = starPickCard;
+	const properEl = root.querySelector('[data-star-pick-proper]');
+	const bayerEl = root.querySelector('[data-star-pick-bayer]');
+	const catalogValueEl = root.querySelector('[data-star-pick-catalog-value]');
+	const distanceEl = root.querySelector('[data-star-pick-distance]');
+	const dismissBtn = root.querySelector('[data-star-pick-dismiss]');
+	const flyOrbitBtn = root.querySelector('[data-star-pick-fly-orbit]');
+	const simbadBtn = root.querySelector('[data-star-pick-simbad]');
+
+	let pickGeneration = 0;
+	let lastResult = null;
+	let lastSimbadUrl = null;
+	let distanceRafId = null;
+
+	function stopDistanceUpdates() {
+		if (distanceRafId != null) {
+			cancelAnimationFrame(distanceRafId);
+			distanceRafId = null;
+		}
+	}
+
+	function updateDistanceDisplay() {
+		if (!distanceEl || !lastResult?.position || !cameraController) {
+			if (distanceEl) distanceEl.textContent = '—';
+			return;
+		}
+		const starPc = scenePositionToIcrsPc(lastResult.position);
+		const obs = cameraController.getStats()?.motion?.observerPc;
+		if (
+			!obs
+			|| !Number.isFinite(starPc.x)
+			|| !Number.isFinite(obs.x)
+		) {
+			distanceEl.textContent = '—';
+			return;
+		}
+		const dPc = Math.hypot(
+			starPc.x - obs.x,
+			starPc.y - obs.y,
+			starPc.z - obs.z,
+		);
+		distanceEl.textContent = formatDistancePc(dPc);
+	}
+
+	function distanceTick() {
+		distanceRafId = null;
+		if (root.hidden || !lastResult?.position) return;
+		updateDistanceDisplay();
+		distanceRafId = requestAnimationFrame(distanceTick);
+	}
+
+	function startDistanceUpdates() {
+		stopDistanceUpdates();
+		updateDistanceDisplay();
+		if (!root.hidden && lastResult?.position) {
+			distanceRafId = requestAnimationFrame(distanceTick);
+		}
+	}
+
+	function renderCatalogFields(fields) {
+		const f = fields && typeof fields === 'object' ? fields : {};
+		if (properEl) {
+			properEl.textContent =
+				typeof f.properName === 'string' && f.properName.trim() ? f.properName.trim() : '—';
+		}
+		if (bayerEl) {
+			bayerEl.textContent =
+				typeof f.bayer === 'string' && f.bayer.trim() ? f.bayer.trim() : '—';
+		}
+		const simbad = buildSimbadBasicSearch(f);
+		lastSimbadUrl = simbad?.url ?? null;
+		if (catalogValueEl) {
+			if (simbad) {
+				catalogValueEl.textContent = simbad.label;
+			} else {
+				const hdOnly = typeof f.hd === 'string' && f.hd.trim() ? f.hd.trim() : '';
+				catalogValueEl.textContent = hdOnly ? `HD ${hdOnly}` : '—';
+			}
+		}
+		if (simbadBtn) {
+			simbadBtn.hidden = !simbad;
+		}
+	}
+
+	function hideCard() {
+		stopDistanceUpdates();
+		if (distanceEl) distanceEl.textContent = '—';
+		root.hidden = true;
+		pickGeneration += 1;
+		lastResult = null;
+		lastSimbadUrl = null;
+	}
+
+	function handlePick(result) {
+		pickGeneration += 1;
+		const gen = pickGeneration;
+		lastResult = result;
+
+		if (!result) {
+			if (!root.hidden) {
+				cameraController?.cancelAutomation();
+			}
+			stopDistanceUpdates();
+			if (distanceEl) distanceEl.textContent = '—';
+			root.hidden = true;
+			lastResult = null;
+			return;
+		}
+
+		delete result.sidecarFields;
+		root.hidden = false;
+		renderCatalogFields({});
+		startDistanceUpdates();
+
+		const starData = starFieldLayer.getStarData();
+		const pickMeta = starData?.pickMeta?.[result.index];
+		if (!pickMeta || !datasetSession.getSidecarService('meta')) {
+			return;
+		}
+
+		void (async () => {
+			try {
+				const fields = await datasetSession.resolveSidecarMetaFields('meta', pickMeta);
+				if (gen !== pickGeneration || lastResult !== result) return;
+				if (fields) {
+					result.sidecarFields = fields;
+					renderCatalogFields(fields);
+				} else {
+					renderCatalogFields({});
+				}
+			} catch {
+				if (gen !== pickGeneration || lastResult !== result) return;
+				renderCatalogFields({});
+			}
+		})();
+	}
+
+	const pickController = createPickController({
+		id: 'website-explore-constellations-pick',
+		getStarData: () => starFieldLayer.getStarData(),
+		onPick(result) {
+			handlePick(result);
+		},
+	});
+
+	function dismiss() {
+		cameraController?.cancelAutomation();
+		pickController.clearSelection();
+		hideCard();
+	}
+
+	function onFlyOrbitClick(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!cameraController || !lastResult?.position) return;
+		const centerPc = scenePositionToIcrsPc(lastResult.position);
+		const distPc = Number.isFinite(lastResult.distancePc) ? lastResult.distancePc : 1;
+		const orbitRadius = Math.min(Math.max(distPc * 0.065, 0.12), 28);
+		cameraController.cancelAutomation();
+		cameraController.lockAt(centerPc, {
+			dwellMs: 120_000,
+			recenterSpeed: 0.06,
+		});
+		cameraController.orbitalInsert(centerPc, {
+			orbitRadius,
+			angularSpeed: 0.12,
+			approachSpeed: 120,
+			deceleration: 2.5,
+		});
+	}
+
+	function onSimbadClick(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!lastSimbadUrl) return;
+		window.open(lastSimbadUrl, '_blank', 'noopener,noreferrer');
+	}
+
+	function onStarPickActionPointerDown(e) {
+		e.stopPropagation();
+	}
+
+	function onKeydown(e) {
+		if (e.key === 'Escape' && !root.hidden) {
+			dismiss();
+		}
+	}
+
+	document.addEventListener('keydown', onKeydown);
+	dismissBtn?.addEventListener('click', dismiss);
+	flyOrbitBtn?.addEventListener('click', onFlyOrbitClick);
+	flyOrbitBtn?.addEventListener('pointerdown', onStarPickActionPointerDown);
+	simbadBtn?.addEventListener('click', onSimbadClick);
+	simbadBtn?.addEventListener('pointerdown', onStarPickActionPointerDown);
+
+	return {
+		pickController,
+		dispose() {
+			stopDistanceUpdates();
+			document.removeEventListener('keydown', onKeydown);
+			dismissBtn?.removeEventListener('click', dismiss);
+			flyOrbitBtn?.removeEventListener('click', onFlyOrbitClick);
+			flyOrbitBtn?.removeEventListener('pointerdown', onStarPickActionPointerDown);
+			simbadBtn?.removeEventListener('click', onSimbadClick);
+			simbadBtn?.removeEventListener('pointerdown', onStarPickActionPointerDown);
+		},
+	};
+}
+
 /**
  * Mount a constellation viewer in free-fly or parallax mode.
  *
@@ -89,6 +314,7 @@ function createConstellationJumpCatalog(manifest) {
  * @param {object}      options
  * @param {'freeFly'|'parallax'} options.mode
  * @param {(msg: string) => void} [options.onStatus]
+ * @param {HTMLElement} [options.starPickCard] When set (freeFly only), enables click-to-identify with a compact catalog card.
  * @returns {Promise<{
  *  viewer: object,
  *  cameraController: object,
@@ -100,6 +326,8 @@ function createConstellationJumpCatalog(manifest) {
 export async function mountConstellationViewer(mount, options = {}) {
 	const mode = options.mode ?? 'freeFly';
 	const onStatus = typeof options.onStatus === 'function' ? options.onStatus : () => {};
+	const starPickCard = options.starPickCard instanceof HTMLElement ? options.starPickCard : null;
+	const enableStarPick = Boolean(starPickCard && mode === 'freeFly');
 
 	const sessionId = mode === 'parallax'
 		? 'website-explore-parallax'
@@ -201,6 +429,21 @@ export async function mountConstellationViewer(mount, options = {}) {
 				id: 'website-explore-freeFly-field',
 			});
 
+	const starFieldLayer = createStarFieldLayer({
+		id: `website-explore-${mode}-stars`,
+		positionTransform: SCENE_TRANSFORM,
+		materialFactory: () => createDefaultStarFieldMaterialProfile(),
+		includePickMeta: enableStarPick,
+	});
+
+	const starPickBinding = enableStarPick
+		? createStarPickCardBinding(starPickCard, {
+				datasetSession,
+				starFieldLayer,
+				cameraController,
+			})
+		: null;
+
 	const viewer = await createViewer(mount, {
 		datasetSession,
 		interestField,
@@ -216,6 +459,7 @@ export async function mountConstellationViewer(mount, options = {}) {
 			}),
 			constellation.compassController,
 			fullscreen.controller,
+			...(starPickBinding ? [starPickBinding.pickController] : []),
 			createHud({
 				cameraController,
 				controls: [
@@ -228,11 +472,7 @@ export async function mountConstellationViewer(mount, options = {}) {
 		],
 		layers: [
 			constellation.artLayer,
-			createStarFieldLayer({
-				id: `website-explore-${mode}-stars`,
-				positionTransform: SCENE_TRANSFORM,
-				materialFactory: () => createDefaultStarFieldMaterialProfile(),
-			}),
+			starFieldLayer,
 		],
 		state: {
 			...DEFAULT_STAR_FIELD_STATE,
@@ -244,12 +484,17 @@ export async function mountConstellationViewer(mount, options = {}) {
 	});
 
 	if (mode === 'freeFly') {
-		onStatus('Drag to look around. Use on-screen buttons or WASD to move.');
+		onStatus(
+			enableStarPick
+				? 'Drag to look around. Use on-screen buttons or WASD to move. Click a star for catalog names.'
+				: 'Drag to look around. Use on-screen buttons or WASD to move.',
+		);
 	} else {
 		onStatus('Move the pointer across the scene to shift Earth and watch nearer stars slide more than distant ones.');
 	}
 
 	window.addEventListener('beforeunload', () => {
+		starPickBinding?.dispose();
 		viewer.dispose().catch((err) => {
 			console.error(`[website:${mode}-cleanup]`, err);
 		});

@@ -36,7 +36,71 @@ const parallaxPath = `${basePath}explore/parallax/`;
 					<option value="">Loading constellations…</option>
 				</select>
 			</div>
-			<div class="viewer-shell" data-constellation-viewer="freeFly"></div>
+			<div class="viewer-stage">
+				<div class="viewer-shell" data-constellation-viewer="freeFly"></div>
+				<aside class="star-pick-card panel" data-star-pick-card hidden>
+					<button
+						type="button"
+						class="star-pick-card__close"
+						data-star-pick-dismiss
+						aria-label="Close star details"
+					>
+						×
+					</button>
+					<p class="star-pick-card__line">
+						<span class="star-pick-card__label">Name</span>
+						<span data-star-pick-proper>—</span>
+					</p>
+					<p class="star-pick-card__line">
+						<span class="star-pick-card__label">Bayer</span>
+						<span data-star-pick-bayer>—</span>
+					</p>
+					<p class="star-pick-card__line">
+						<span class="star-pick-card__label">Catalog</span>
+						<span class="star-pick-card__catalog-value" data-star-pick-catalog-value>—</span>
+					</p>
+					<p class="star-pick-card__line">
+						<span class="star-pick-card__label">Distance</span>
+						<span class="star-pick-card__catalog-value" data-star-pick-distance>—</span>
+					</p>
+					<div class="star-pick-card__actions">
+						<button
+							type="button"
+							class="star-pick-card__icon-btn"
+							data-star-pick-fly-orbit
+							aria-label="Fly to this star and orbit"
+							title="Fly to this star and orbit"
+						>
+							<span class="star-pick-card__icon-btn-char" aria-hidden="true">→</span>
+						</button>
+						<button
+							type="button"
+							class="star-pick-card__icon-btn"
+							data-star-pick-simbad
+							hidden
+							aria-label="Open this object in SIMBAD"
+							title="Open in SIMBAD"
+						>
+							<svg
+								class="star-pick-card__icon-svg"
+								xmlns="http://www.w3.org/2000/svg"
+								width="13"
+								height="13"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<circle cx="11" cy="11" r="8"></circle>
+								<path d="m21 21-4.3-4.3"></path>
+							</svg>
+						</button>
+					</div>
+				</aside>
+			</div>
 			<p class="status">Status: <span data-viewer-status>Loading the Orion fly-through…</span></p>
 		</section>
 
@@ -80,6 +144,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	const mount = document.querySelector('[data-constellation-viewer]');
 	const statusEl = document.querySelector('[data-viewer-status]');
 	const constellationSelect = document.querySelector('[data-freefly-constellation]');
+	const starPickCard = document.querySelector('[data-star-pick-card]');
 
 	if (mount) {
 		mountConstellationViewer(mount, {
@@ -87,6 +152,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 			onStatus: (msg) => {
 				if (statusEl) statusEl.textContent = msg;
 			},
+			...(starPickCard instanceof HTMLElement ? { starPickCard } : {}),
 		})
 			.then(({ viewer, constellations = [], setConstellation } = {}) => {
 				if (!(constellationSelect instanceof HTMLSelectElement)) return;
@@ -172,6 +238,138 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	.viewer-section {
 		margin-left: -1.5rem;
 		margin-right: -1.5rem;
+	}
+
+	.viewer-stage {
+		position: relative;
+		width: 100%;
+	}
+
+	.star-pick-card {
+		position: absolute;
+		left: 0.75rem;
+		bottom: 0.75rem;
+		/* Above SkyKit HUD (createHud uses z-index: 100). */
+		z-index: 110;
+		max-width: min(22rem, calc(100% - 1.5rem));
+		padding: 0.85rem 2.25rem 0.85rem 1rem;
+		margin: 0;
+		font-family: var(--fis-font-ui);
+		font-size: 0.88rem;
+		line-height: 1.45;
+		color: var(--fis-text-soft);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.star-pick-card__close {
+		position: absolute;
+		top: 0.35rem;
+		right: 0.35rem;
+		width: 1.75rem;
+		height: 1.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		border: none;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--fis-text-muted);
+		font-size: 1.35rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.star-pick-card__close:hover,
+	.star-pick-card__close:focus-visible {
+		color: var(--fis-gold);
+		outline: none;
+	}
+
+	.star-pick-card__close:focus-visible {
+		box-shadow: 0 0 0 2px var(--fis-gold-subtle);
+	}
+
+	.star-pick-card__line {
+		margin: 0;
+		word-break: break-word;
+	}
+
+	.star-pick-card__line + .star-pick-card__line {
+		margin-top: 0.35rem;
+	}
+
+	.star-pick-card__label {
+		display: inline-block;
+		min-width: 4.5rem;
+		font-size: 0.72rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--fis-text-muted);
+		vertical-align: top;
+	}
+
+	.star-pick-card__catalog-value {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.82rem;
+		color: var(--fis-text);
+	}
+
+	.star-pick-card__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 0.35rem;
+		margin-top: 0.6rem;
+		padding-top: 0.55rem;
+		border-top: 1px solid var(--fis-line);
+		pointer-events: auto;
+	}
+
+	.star-pick-card__icon-btn {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.65rem;
+		height: 1.65rem;
+		padding: 0;
+		margin: 0;
+		border: 1px solid var(--fis-line-strong);
+		border-radius: 0.4rem;
+		background: rgba(8, 16, 32, 0.55);
+		color: var(--fis-text-soft);
+		font: inherit;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			border-color 0.12s ease,
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+
+	.star-pick-card__icon-btn:hover,
+	.star-pick-card__icon-btn:focus-visible {
+		border-color: var(--fis-gold-subtle);
+		color: var(--fis-gold);
+		background: rgba(20, 40, 70, 0.55);
+		outline: none;
+	}
+
+	.star-pick-card__icon-btn:focus-visible {
+		box-shadow: 0 0 0 2px var(--fis-gold-subtle);
+	}
+
+	.star-pick-card__icon-btn-char {
+		font-size: 0.78rem;
+		font-weight: 600;
+		transform: translateY(-0.04em);
+	}
+
+	.star-pick-card__icon-svg {
+		display: block;
+		flex-shrink: 0;
 	}
 
 	.viewer-controls {
