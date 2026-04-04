@@ -64,11 +64,11 @@ const basePath = import.meta.env.BASE_URL;
 
 		<!-- ── Tour zone (two-column scrollytelling) ── -->
 
-		<div class="tour" data-cluster-tour>
-			<div class="tour__chapters">
-				<section class="tour__chapter" data-cluster="home">
-					<p class="chapter-eyebrow">Home · 0 pc</p>
-					<h2>The solar neighbourhood</h2>
+		<div class="narrated-tour" data-cluster-tour>
+			<div class="narrated-tour__chapters">
+				<section class="narrated-tour__chapter" data-cluster="home">
+					<p class="narrated-tour__chapter-eyebrow">Home · 0 pc</p>
+					<h2 class="narrated-tour__chapter-title">The solar neighbourhood</h2>
 					<p>
 						We start at the Sun. The stars you see are the brightest within a few hundred
 						parsecs — a tiny corner of the Milky Way's disc. From here, several of the
@@ -77,9 +77,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="orion-nebula">
-					<p class="chapter-eyebrow">Star-forming region · ~400 pc · &lt;2 Myr</p>
-					<h2>The Orion Nebula</h2>
+				<section class="narrated-tour__chapter" data-cluster="orion-nebula">
+					<p class="narrated-tour__chapter-eyebrow">Star-forming region · ~400 pc · &lt;2 Myr</p>
+					<h2 class="narrated-tour__chapter-title">The Orion Nebula</h2>
 					<p>
 						The Orion Nebula is one of the closest active stellar nurseries — roughly
 						400 parsecs away, visible to the naked eye as a fuzzy patch below Orion's belt.
@@ -94,9 +94,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="upper-sco">
-					<p class="chapter-eyebrow">OB association · ~145 pc · ~10 Myr</p>
-					<h2>Upper Scorpius</h2>
+				<section class="narrated-tour__chapter" data-cluster="upper-sco">
+					<p class="narrated-tour__chapter-eyebrow">OB association · ~145 pc · ~10 Myr</p>
+					<h2 class="narrated-tour__chapter-title">Upper Scorpius</h2>
 					<p>
 						At around 10 million years, the natal gas has been blown away by stellar winds
 						and radiation. What remains is a group of young stars moving through space
@@ -112,9 +112,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="pleiades">
-					<p class="chapter-eyebrow">Young open cluster · ~135 pc · ~100 Myr</p>
-					<h2>The Pleiades</h2>
+				<section class="narrated-tour__chapter" data-cluster="pleiades">
+					<p class="narrated-tour__chapter-eyebrow">Young open cluster · ~135 pc · ~100 Myr</p>
+					<h2 class="narrated-tour__chapter-title">The Pleiades</h2>
 					<p>
 						The Pleiades — the Seven Sisters — are the archetype of an open cluster. At
 						roughly 100 million years old and 135 parsecs away, they are compact enough
@@ -135,9 +135,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="hyades">
-					<p class="chapter-eyebrow">Older open cluster · ~48 pc · ~680 Myr</p>
-					<h2>The Hyades</h2>
+				<section class="narrated-tour__chapter" data-cluster="hyades">
+					<p class="narrated-tour__chapter-eyebrow">Older open cluster · ~48 pc · ~680 Myr</p>
+					<h2 class="narrated-tour__chapter-title">The Hyades</h2>
 					<p>
 						The Hyades are the nearest open cluster to the Sun — only about 48 parsecs
 						away. At roughly 680 million years old, they are well past their prime. The
@@ -157,9 +157,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="omega-cen">
-					<p class="chapter-eyebrow">Globular cluster · ~5.2 kpc · ~10 Gyr</p>
-					<h2>Omega Centauri</h2>
+				<section class="narrated-tour__chapter" data-cluster="omega-cen">
+					<p class="narrated-tour__chapter-eyebrow">Globular cluster · ~5.2 kpc · ~10 Gyr</p>
+					<h2 class="narrated-tour__chapter-title">Omega Centauri</h2>
 					<p>
 						Omega Centauri is the most massive globular cluster in the Milky Way — and
 						it may not be a globular cluster at all. At roughly 5,200 parsecs, it contains
@@ -177,9 +177,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-cluster="home">
-					<p class="chapter-eyebrow">Return · 0 pc</p>
-					<h2>Back to the Sun</h2>
+				<section class="narrated-tour__chapter" data-cluster="home">
+					<p class="narrated-tour__chapter-eyebrow">Return · 0 pc</p>
+					<h2 class="narrated-tour__chapter-title">Back to the Sun</h2>
 					<p>
 						The journey back from Omega Centauri crosses thousands of parsecs of
 						increasingly familiar space. Watch the local stars reappear as the Sun's
@@ -194,22 +194,20 @@ const basePath = import.meta.env.BASE_URL;
 				</section>
 
 				<!-- spacer so the last chapter can scroll fully into the trigger zone -->
-				<div class="tour__spacer" aria-hidden="true"></div>
+				<div class="narrated-tour__spacer" aria-hidden="true"></div>
 			</div>
 
-			<div class="tour__viewer-col">
-				<div class="tour__viewer-sticky">
-					<div class="tour__nav">
-						<button type="button" class="cluster-nav-btn" data-cluster-fly="orion-nebula">Orion Nebula</button>
-						<button type="button" class="cluster-nav-btn" data-cluster-fly="upper-sco">Upper Sco</button>
-						<button type="button" class="cluster-nav-btn" data-cluster-fly="pleiades">Pleiades</button>
-						<button type="button" class="cluster-nav-btn" data-cluster-fly="hyades">Hyades</button>
-						<button type="button" class="cluster-nav-btn" data-cluster-fly="omega-cen">ω Cen</button>
+			<div class="narrated-tour__viewer-col">
+				<div class="narrated-tour__viewer-sticky">
+					<div class="narrated-tour__nav">
+						<button type="button" class="narrated-tour__nav-button" data-cluster-fly="orion-nebula">Orion Nebula</button>
+						<button type="button" class="narrated-tour__nav-button" data-cluster-fly="upper-sco">Upper Sco</button>
+						<button type="button" class="narrated-tour__nav-button" data-cluster-fly="pleiades">Pleiades</button>
+						<button type="button" class="narrated-tour__nav-button" data-cluster-fly="hyades">Hyades</button>
+						<button type="button" class="narrated-tour__nav-button" data-cluster-fly="omega-cen">ω Cen</button>
 					</div>
-					<div class="viewer-shell" data-cluster-tour-shell></div>
-					<span class="tour__status">
-						<span data-cluster-tour-status>Loading…</span>
-					</span>
+					<div class="narrated-tour__viewer-shell" data-cluster-tour-shell></div>
+					<span class="narrated-tour__status" data-cluster-tour-status>Loading…</span>
 				</div>
 			</div>
 		</div>
@@ -285,116 +283,47 @@ const basePath = import.meta.env.BASE_URL;
 
 <script>
 	import { mountClusterTourViewer } from '../../../scripts/cluster-tour-viewer.js';
+	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
 
+	const tourRoot = document.querySelector('[data-cluster-tour]');
 	const mount = document.querySelector('[data-cluster-tour-shell]');
 	const statusEl = document.querySelector('[data-cluster-tour-status]');
-	const chapters = document.querySelectorAll('.tour__chapter[data-cluster]');
-	const navButtons = document.querySelectorAll('[data-cluster-fly]');
-
-	let currentCluster = null;
-	let flyTo = null;
-	let suppressObserver = false;
-	let suppressTimer = null;
-
-	function setActiveCluster(id) {
-		if (id === currentCluster) return;
-		currentCluster = id;
-
-		chapters.forEach((ch) => {
-			ch.classList.toggle('active', ch.dataset.cluster === id);
-		});
-		navButtons.forEach((btn) => {
-			btn.classList.toggle('active', btn.dataset.clusterFly === id);
-		});
-	}
-
-	// Suppress observer-driven fly-to briefly after a manual click,
-	// so clicking a nav button doesn't get immediately overridden
-	// by the observer firing on the current scroll position.
-	function suppressObserverBriefly() {
-		suppressObserver = true;
-		clearTimeout(suppressTimer);
-		suppressTimer = setTimeout(() => { suppressObserver = false; }, 1200);
-	}
-
-	// ── IntersectionObserver ──────────────────────────────────────────
-	// Trigger band: top 30–40% of viewport. When a chapter's top edge
-	// enters this band, we consider the user to be "reading" it.
-	let goHome = null;
-
-	const observer = new IntersectionObserver((entries) => {
-		if (suppressObserver || !flyTo) return;
-
-		for (const entry of entries) {
-			if (!entry.isIntersecting) continue;
-			const id = entry.target.dataset.cluster;
-			if (id && id !== currentCluster) {
-				setActiveCluster(id);
-				if (id === 'home') {
-					goHome?.();
-				} else {
-					flyTo(id);
-				}
-			}
-		}
-	}, {
-		rootMargin: '-25% 0px -65% 0px',
-		threshold: 0,
-	});
-
-	chapters.forEach((ch) => observer.observe(ch));
+	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-cluster]') ?? [];
+	const navButtons = tourRoot?.querySelectorAll('[data-cluster-fly]') ?? [];
 
 	// ── Viewer mount ─────────────────────────────────────────────────
-	if (mount) {
+	if (mount && tourRoot) {
 		mountClusterTourViewer(mount, {
 			onStatus(msg) {
 				if (statusEl) statusEl.textContent = msg;
 			},
-			onClusterChange(id) {
-				setActiveCluster(id);
-			},
 		}).then((result) => {
-			flyTo = result.flyTo;
-			goHome = result.goHome;
+			setupNarratedTour({
+				root: tourRoot,
+				chapters,
+				navButtons,
+				getChapterId(chapter) {
+					return chapter.dataset.cluster;
+				},
+				getNavButtonId(button) {
+					return button.dataset.clusterFly;
+				},
+				activate(id) {
+					if (id === 'home') {
+						result.goHome();
+						return;
+					}
 
-			navButtons.forEach((btn) => {
-				btn.addEventListener('click', () => {
-					suppressObserverBriefly();
-					setActiveCluster(btn.dataset.clusterFly);
-					result.flyTo(btn.dataset.clusterFly);
-				});
+					result.flyTo(id);
+				},
+				statusEl,
+				initialId: 'home',
 			});
-
-			// Start with a gentle Sun orbit
-			result.goHome();
-			setActiveCluster('home');
-
-			// If user has already scrolled to a cluster chapter, fly there instead
-			for (const ch of chapters) {
-				const rect = ch.getBoundingClientRect();
-				const triggerTop = window.innerHeight * 0.25;
-				const triggerBottom = window.innerHeight * 0.40;
-				if (rect.top >= triggerTop && rect.top <= triggerBottom && ch.dataset.cluster !== 'home') {
-					setActiveCluster(ch.dataset.cluster);
-					result.flyTo(ch.dataset.cluster);
-					break;
-				}
-			}
 		}).catch((err) => {
 			console.error('[website:cluster-tour]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
 		});
 	}
-</script>
-
-<script is:inline>
-	(function () {
-		var shell = document.querySelector('[data-cluster-tour-shell]');
-		if (!shell) return;
-
-		shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
-		shell.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
-	})();
 </script>
 
 <style>
@@ -457,128 +386,6 @@ const basePath = import.meta.env.BASE_URL;
 		padding: 2.5rem 0 1rem;
 	}
 
-	/* ── Tour zone ─────────────────────────────────── */
-
-	.tour {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(340px, 52%);
-		gap: 2.5rem;
-		margin: 2rem 0 3rem;
-		/* Break out of .page's max-width so the viewer column has room */
-		margin-right: -1.5rem;
-	}
-
-	/* ── Chapters (left column) ───────────────────── */
-
-	.tour__chapters {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.tour__chapter {
-		padding: 2rem 0;
-		border-left: 3px solid transparent;
-		padding-left: 1.5rem;
-		transition: border-color 300ms ease;
-	}
-
-	.tour__chapter + .tour__chapter {
-		border-top: 1px solid var(--fis-line);
-	}
-
-	.tour__chapter.active {
-		border-left-color: var(--fis-gold);
-	}
-
-	.tour__chapter.active h2 {
-		color: var(--fis-gold);
-	}
-
-	.chapter-eyebrow {
-		font-family: var(--fis-font-ui);
-		font-size: 0.78rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fis-text-muted);
-		margin-bottom: 0.4rem;
-	}
-
-	.tour__chapter h2 {
-		transition: color 300ms ease;
-	}
-
-	.tour__spacer {
-		min-height: 40vh;
-	}
-
-	/* ── Viewer (right column, sticky) ────────────── */
-
-	.tour__viewer-col {
-		position: relative;
-	}
-
-	.tour__viewer-sticky {
-		position: sticky;
-		top: 5.5rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.viewer-shell {
-		width: 100%;
-		height: clamp(24rem, 56vh, 44rem);
-		border-radius: var(--fis-radius);
-		overflow: hidden;
-		background:
-			radial-gradient(circle at top, rgba(148, 220, 255, 0.08), transparent 20%),
-			#02040b;
-		touch-action: none;
-		cursor: grab;
-	}
-
-	.viewer-shell:active {
-		cursor: grabbing;
-	}
-
-	/* ── Cluster nav row ──────────────────────────── */
-
-	.tour__nav {
-		display: flex;
-		gap: 0.35rem;
-		flex-wrap: wrap;
-	}
-
-	.cluster-nav-btn {
-		padding: 0.3rem 0.7rem;
-		border: 1px solid var(--fis-line);
-		border-radius: 999px;
-		background: transparent;
-		color: var(--fis-text-muted);
-		font: inherit;
-		font-size: 0.78rem;
-		cursor: pointer;
-		transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
-	}
-
-	.cluster-nav-btn:hover {
-		color: var(--fis-text);
-		border-color: var(--fis-line-strong);
-	}
-
-	.cluster-nav-btn.active {
-		border-color: var(--fis-gold-subtle);
-		color: var(--fis-gold);
-		background: rgba(242, 200, 121, 0.08);
-	}
-
-	.tour__status {
-		font-size: 0.82rem;
-		color: var(--fis-blue);
-		padding: 0 0.25rem;
-	}
-
 	/* ── Explore section ──────────────────────────── */
 
 	.explore-section {
@@ -623,38 +430,6 @@ const basePath = import.meta.env.BASE_URL;
 	/* ── Responsive ───────────────────────────────── */
 
 	@media (max-width: 960px) {
-		.tour {
-			grid-template-columns: 1fr;
-			margin-right: 0;
-		}
-
-		.tour__viewer-sticky {
-			position: relative;
-			top: auto;
-		}
-
-		.tour__viewer-col {
-			order: -1;
-		}
-
-		.viewer-shell {
-			height: clamp(20rem, 45vh, 32rem);
-		}
-
-		.tour__chapter {
-			border-left: none;
-			padding-left: 0;
-		}
-
-		.tour__chapter.active {
-			border-left: none;
-		}
-
-		.tour__spacer {
-			min-height: 0;
-			display: none;
-		}
-
 		.explore-grid {
 			grid-template-columns: 1fr;
 		}

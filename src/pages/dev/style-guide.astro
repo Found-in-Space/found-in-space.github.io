@@ -222,9 +222,59 @@ const basePath = import.meta.env.BASE_URL;
 				</div>
 			</div>
 			<pre><code>&lt;div class="section-grid"&gt;
-  &lt;div class="panel"&gt;...&lt;/div&gt;
-  &lt;div class="panel"&gt;...&lt;/div&gt;
-  &lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;div class="panel"&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+		</section>
+
+		<!-- ── Narrated tour ─────────────────────────── -->
+
+		<section class="guide-section" id="narrated-tour">
+			<h2>Narrated tour</h2>
+			<p>
+				Story-driven lesson layout from <code>components.css</code> with a sticky viewer on
+				large screens and a phone-specific sticky stage above the chapters.
+			</p>
+			<div class="narrated-tour guide-tour-demo">
+				<div class="narrated-tour__chapters">
+					<section class="narrated-tour__chapter active">
+						<p class="narrated-tour__chapter-eyebrow">Scene 1</p>
+						<h3 class="narrated-tour__chapter-title">Introduce the journey</h3>
+						<p>The chapter stack drives the viewer as each section reaches the reading zone.</p>
+					</section>
+					<section class="narrated-tour__chapter">
+						<p class="narrated-tour__chapter-eyebrow">Scene 2</p>
+						<h3 class="narrated-tour__chapter-title">Let the text advance the view</h3>
+						<p>Use nav pills for direct jumps, but keep the main rhythm tied to scrolling.</p>
+					</section>
+					<div class="narrated-tour__spacer" aria-hidden="true"></div>
+				</div>
+
+				<div class="narrated-tour__viewer-col">
+					<div class="narrated-tour__viewer-sticky">
+						<div class="narrated-tour__nav">
+							<button type="button" class="narrated-tour__nav-button active">Scene 1</button>
+							<button type="button" class="narrated-tour__nav-button">Scene 2</button>
+						</div>
+						<div class="narrated-tour__viewer-shell"></div>
+						<p class="narrated-tour__status">Scroll the story to advance the viewer.</p>
+					</div>
+				</div>
+			</div>
+			<pre><code>&lt;div class="narrated-tour"&gt;
+  &lt;div class="narrated-tour__chapters"&gt;
+    &lt;section class="narrated-tour__chapter"&gt;...&lt;/section&gt;
+  &lt;/div&gt;
+  &lt;div class="narrated-tour__viewer-col"&gt;
+    &lt;div class="narrated-tour__viewer-sticky"&gt;
+      &lt;div class="narrated-tour__nav"&gt;
+        &lt;button class="narrated-tour__nav-button"&gt;Scene&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class="narrated-tour__viewer-shell"&gt;&lt;/div&gt;
+      &lt;p class="narrated-tour__status"&gt;...&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 &lt;/div&gt;</code></pre>
 		</section>
 
@@ -365,7 +415,7 @@ console.log('Loaded ' + stars.length + ' stars');</code></pre>
 				</thead>
 				<tbody>
 					<tr><td><code>src/styles/theme.css</code></td><td>Design tokens, resets, global body styles</td></tr>
-					<tr><td><code>src/styles/components.css</code></td><td>Shared UI primitives: page, button, panel, eyebrow, lede, breadcrumb, hero, section-grid, tag, page-nav, link--gold</td></tr>
+					<tr><td><code>src/styles/components.css</code></td><td>Shared UI primitives: page, button, panel, eyebrow, lede, breadcrumb, hero, section-grid, narrated-tour, tag, page-nav, link--gold</td></tr>
 					<tr><td><code>src/styles/prose.css</code></td><td>Article body typography: headings, paragraphs, code, tables, lists, callouts inside a <code>.prose</code> wrapper</td></tr>
 					<tr><td><code>src/layouts/Layout.astro</code></td><td>Root HTML shell — imports all three CSS files</td></tr>
 					<tr><td><code>src/layouts/TopicLayout.astro</code></td><td>Learn topic page template (prose body + next topics)</td></tr>
@@ -511,6 +561,12 @@ console.log('Loaded ' + stars.length + ' stars');</code></pre>
 		flex-wrap: wrap;
 		gap: 0.75rem;
 		margin: 1.25rem 0;
+	}
+
+	.guide-tour-demo {
+		margin-right: 0;
+		--fis-tour-shell-height: 18rem;
+		--fis-tour-phone-shell-height: 14rem;
 	}
 
 	/* ── Panel grid ──────────────────────────────── */

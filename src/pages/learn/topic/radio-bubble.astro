@@ -52,11 +52,11 @@ const basePath = import.meta.env.BASE_URL;
 
 		<!-- ── Tour zone ──────────────────────────── -->
 
-		<div class="tour" data-radio-bubble-tour>
-			<div class="tour__chapters">
-				<section class="tour__chapter" data-viewpoint="inside">
-					<p class="chapter-eyebrow">Sun orbit · inside the shell</p>
-					<h2>Inside the bubble</h2>
+		<div class="narrated-tour" data-radio-bubble-tour>
+			<div class="narrated-tour__chapters">
+				<section class="narrated-tour__chapter" data-viewpoint="inside">
+					<p class="narrated-tour__chapter-eyebrow">Sun orbit · inside the shell</p>
+					<h2 class="narrated-tour__chapter-title">Inside the bubble</h2>
 					<p>
 						From inside, there is nothing to see — the bubble is invisible. You are
 						surrounded by stars, many of which have been bathed in our radio signals for
@@ -71,9 +71,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-viewpoint="outside">
-					<p class="chapter-eyebrow">65 pc from the Sun · outside the shell</p>
-					<h2>Seeing the shell</h2>
+				<section class="narrated-tour__chapter" data-viewpoint="outside">
+					<p class="narrated-tour__chapter-eyebrow">65 pc from the Sun · outside the shell</p>
+					<h2 class="narrated-tour__chapter-title">Seeing the shell</h2>
 					<p>
 						Pull back far enough and the bubble becomes visible — a faint sphere centred
 						on the Sun, threading through the local stars. At 40 parsecs radius it
@@ -95,9 +95,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-viewpoint="hyades">
-					<p class="chapter-eyebrow">~48 pc from the Sun · just outside the bubble</p>
-					<h2>The Hyades: almost in reach</h2>
+				<section class="narrated-tour__chapter" data-viewpoint="hyades">
+					<p class="narrated-tour__chapter-eyebrow">~48 pc from the Sun · just outside the bubble</p>
+					<h2 class="narrated-tour__chapter-title">The Hyades: almost in reach</h2>
 					<p>
 						The Hyades — the nearest open star cluster to the Sun — sit at about
 						48 parsecs. That puts them just outside the radio bubble. Our earliest
@@ -127,9 +127,9 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="tour__chapter" data-viewpoint="home">
-					<p class="chapter-eyebrow">Return · 0 pc</p>
-					<h2>Back inside</h2>
+				<section class="narrated-tour__chapter" data-viewpoint="home">
+					<p class="narrated-tour__chapter-eyebrow">Return · 0 pc</p>
+					<h2 class="narrated-tour__chapter-title">Back inside</h2>
 					<p>
 						The journey back from the Hyades is short — only 48 parsecs. Watch the
 						bubble's shell pass over you as you re-enter the volume of space that
@@ -142,21 +142,19 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<div class="tour__spacer" aria-hidden="true"></div>
+				<div class="narrated-tour__spacer" aria-hidden="true"></div>
 			</div>
 
-			<div class="tour__viewer-col">
-				<div class="tour__viewer-sticky">
-					<div class="tour__nav">
-						<button type="button" class="viewpoint-nav-btn" data-viewpoint-fly="inside">Inside</button>
-						<button type="button" class="viewpoint-nav-btn" data-viewpoint-fly="outside">Outside</button>
-						<button type="button" class="viewpoint-nav-btn" data-viewpoint-fly="hyades">Hyades</button>
-						<button type="button" class="viewpoint-nav-btn" data-viewpoint-fly="home">Home</button>
+			<div class="narrated-tour__viewer-col">
+				<div class="narrated-tour__viewer-sticky">
+					<div class="narrated-tour__nav">
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="inside">Inside</button>
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="outside">Outside</button>
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="hyades">Hyades</button>
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="home">Home</button>
 					</div>
-					<div class="viewer-shell" data-radio-bubble-shell></div>
-					<span class="tour__status">
-						<span data-radio-bubble-status>Loading…</span>
-					</span>
+					<div class="narrated-tour__viewer-shell" data-radio-bubble-shell></div>
+					<span class="narrated-tour__status" data-radio-bubble-status>Loading…</span>
 				</div>
 			</div>
 		</div>
@@ -229,102 +227,41 @@ const basePath = import.meta.env.BASE_URL;
 
 <script>
 	import { mountRadioBubbleViewer } from '../../../scripts/radio-bubble-viewer.js';
+	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
 
+	const tourRoot = document.querySelector('[data-radio-bubble-tour]');
 	const mount = document.querySelector('[data-radio-bubble-shell]');
 	const statusEl = document.querySelector('[data-radio-bubble-status]');
-	const chapters = document.querySelectorAll('.tour__chapter[data-viewpoint]');
-	const navButtons = document.querySelectorAll('[data-viewpoint-fly]');
+	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-viewpoint]') ?? [];
+	const navButtons = tourRoot?.querySelectorAll('[data-viewpoint-fly]') ?? [];
 
-	let currentViewpoint = null;
-	let goTo = null;
-	let suppressObserver = false;
-	let suppressTimer = null;
-
-	function setActiveViewpoint(id) {
-		if (id === currentViewpoint) return;
-		currentViewpoint = id;
-
-		chapters.forEach((ch) => {
-			ch.classList.toggle('active', ch.dataset.viewpoint === id);
-		});
-		navButtons.forEach((btn) => {
-			btn.classList.toggle('active', btn.dataset.viewpointFly === id);
-		});
-	}
-
-	function suppressObserverBriefly() {
-		suppressObserver = true;
-		clearTimeout(suppressTimer);
-		suppressTimer = setTimeout(() => { suppressObserver = false; }, 1200);
-	}
-
-	const observer = new IntersectionObserver((entries) => {
-		if (suppressObserver || !goTo) return;
-
-		for (const entry of entries) {
-			if (!entry.isIntersecting) continue;
-			const id = entry.target.dataset.viewpoint;
-			if (id && id !== currentViewpoint) {
-				setActiveViewpoint(id);
-				goTo(id);
-			}
-		}
-	}, {
-		rootMargin: '-25% 0px -65% 0px',
-		threshold: 0,
-	});
-
-	chapters.forEach((ch) => observer.observe(ch));
-
-	if (mount) {
+	if (mount && tourRoot) {
 		mountRadioBubbleViewer(mount, {
 			onStatus(msg) {
 				if (statusEl) statusEl.textContent = msg;
 			},
-			onViewpointChange(id) {
-				setActiveViewpoint(id);
-			},
 		}).then((result) => {
-			goTo = result.goTo;
-
-			navButtons.forEach((btn) => {
-				btn.addEventListener('click', () => {
-					suppressObserverBriefly();
-					setActiveViewpoint(btn.dataset.viewpointFly);
-					result.goTo(btn.dataset.viewpointFly);
-				});
+			setupNarratedTour({
+				root: tourRoot,
+				chapters,
+				navButtons,
+				getChapterId(chapter) {
+					return chapter.dataset.viewpoint;
+				},
+				getNavButtonId(button) {
+					return button.dataset.viewpointFly;
+				},
+				activate(id) {
+					result.goTo(id);
+				},
+				statusEl,
+				initialId: 'inside',
 			});
-
-			// Start with an orbit inside the bubble
-			result.goTo('inside');
-			setActiveViewpoint('inside');
-
-			// If user has already scrolled past, pick the right viewpoint
-			for (const ch of chapters) {
-				const rect = ch.getBoundingClientRect();
-				const triggerTop = window.innerHeight * 0.25;
-				const triggerBottom = window.innerHeight * 0.40;
-				if (rect.top >= triggerTop && rect.top <= triggerBottom && ch.dataset.viewpoint !== 'inside') {
-					setActiveViewpoint(ch.dataset.viewpoint);
-					result.goTo(ch.dataset.viewpoint);
-					break;
-				}
-			}
 		}).catch((err) => {
 			console.error('[website:radio-bubble]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
 		});
 	}
-</script>
-
-<script is:inline>
-	(function () {
-		var shell = document.querySelector('[data-radio-bubble-shell]');
-		if (!shell) return;
-
-		shell.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
-		shell.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
-	})();
 </script>
 
 <style>
@@ -387,127 +324,6 @@ const basePath = import.meta.env.BASE_URL;
 		padding: 2.5rem 0 1rem;
 	}
 
-	/* ── Tour zone ─────────────────────────────────── */
-
-	.tour {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(340px, 52%);
-		gap: 2.5rem;
-		margin: 2rem 0 3rem;
-		margin-right: -1.5rem;
-	}
-
-	/* ── Chapters (left column) ───────────────────── */
-
-	.tour__chapters {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.tour__chapter {
-		padding: 2rem 0;
-		border-left: 3px solid transparent;
-		padding-left: 1.5rem;
-		transition: border-color 300ms ease;
-	}
-
-	.tour__chapter + .tour__chapter {
-		border-top: 1px solid var(--fis-line);
-	}
-
-	.tour__chapter.active {
-		border-left-color: var(--fis-gold);
-	}
-
-	.tour__chapter.active h2 {
-		color: var(--fis-gold);
-	}
-
-	.chapter-eyebrow {
-		font-family: var(--fis-font-ui);
-		font-size: 0.78rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fis-text-muted);
-		margin-bottom: 0.4rem;
-	}
-
-	.tour__chapter h2 {
-		transition: color 300ms ease;
-	}
-
-	.tour__spacer {
-		min-height: 40vh;
-	}
-
-	/* ── Viewer (right column, sticky) ────────────── */
-
-	.tour__viewer-col {
-		position: relative;
-	}
-
-	.tour__viewer-sticky {
-		position: sticky;
-		top: 5.5rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.viewer-shell {
-		width: 100%;
-		height: clamp(24rem, 56vh, 44rem);
-		border-radius: var(--fis-radius);
-		overflow: hidden;
-		background:
-			radial-gradient(circle at top, rgba(148, 220, 255, 0.08), transparent 20%),
-			#02040b;
-		touch-action: none;
-		cursor: grab;
-	}
-
-	.viewer-shell:active {
-		cursor: grabbing;
-	}
-
-	/* ── Viewpoint nav row ────────────────────────── */
-
-	.tour__nav {
-		display: flex;
-		gap: 0.35rem;
-		flex-wrap: wrap;
-	}
-
-	.viewpoint-nav-btn {
-		padding: 0.3rem 0.7rem;
-		border: 1px solid var(--fis-line);
-		border-radius: 999px;
-		background: transparent;
-		color: var(--fis-text-muted);
-		font: inherit;
-		font-size: 0.78rem;
-		cursor: pointer;
-		transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
-	}
-
-	.viewpoint-nav-btn:hover {
-		color: var(--fis-text);
-		border-color: var(--fis-line-strong);
-	}
-
-	.viewpoint-nav-btn.active {
-		border-color: var(--fis-gold-subtle);
-		color: var(--fis-gold);
-		background: rgba(242, 200, 121, 0.08);
-	}
-
-	.tour__status {
-		font-size: 0.82rem;
-		color: var(--fis-blue);
-		padding: 0 0.25rem;
-	}
-
 	/* ── Explore section ──────────────────────────── */
 
 	.explore-section {
@@ -552,38 +368,6 @@ const basePath = import.meta.env.BASE_URL;
 	/* ── Responsive ───────────────────────────────── */
 
 	@media (max-width: 960px) {
-		.tour {
-			grid-template-columns: 1fr;
-			margin-right: 0;
-		}
-
-		.tour__viewer-sticky {
-			position: relative;
-			top: auto;
-		}
-
-		.tour__viewer-col {
-			order: -1;
-		}
-
-		.viewer-shell {
-			height: clamp(20rem, 45vh, 32rem);
-		}
-
-		.tour__chapter {
-			border-left: none;
-			padding-left: 0;
-		}
-
-		.tour__chapter.active {
-			border-left: none;
-		}
-
-		.tour__spacer {
-			min-height: 0;
-			display: none;
-		}
-
 		.explore-grid {
 			grid-template-columns: 1fr;
 		}
