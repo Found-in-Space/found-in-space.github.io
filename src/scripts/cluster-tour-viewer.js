@@ -75,6 +75,11 @@ const {
 	sceneToIcrs: SCENE_TO_ICRS,
 } = createSceneOrientationTransforms(ORION_CENTER_PC);
 
+const CLUSTER_TOUR_MOTION_ADAPTIVE_MAX_LEVEL = Object.freeze({
+	lookaheadSecs: 0.5,
+	minLevel: 8,
+});
+
 function createDatasetSession() {
 	return getDatasetSession(
 		createFoundInSpaceDatasetOptions({
@@ -124,6 +129,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		datasetSession,
 		interestField: createObserverShellField({
 			id: 'website-cluster-tour-field',
+			motionAdaptiveMaxLevel: CLUSTER_TOUR_MOTION_ADAPTIVE_MAX_LEVEL,
 		}),
 		controllers: [
 			cameraController,
