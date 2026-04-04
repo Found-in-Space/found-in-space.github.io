@@ -60,7 +60,7 @@ function resolveManifestName(name, iau) {
 	return iau;
 }
 
-function createParallaxConstellationCatalog(manifest) {
+function createConstellationJumpCatalog(manifest) {
 	const resolver = buildConstellationDirectionResolver(manifest);
 	const byIau = new Map();
 	const catalog = [];
@@ -92,8 +92,9 @@ function createParallaxConstellationCatalog(manifest) {
  * @returns {Promise<{
  *  viewer: object,
  *  cameraController: object,
- *  constellations?: Array<{iau: string, label: string}>,
- *  setConstellation?: (iau: string) => boolean
+ *  parallaxController?: object,
+ *  constellations: Array<{iau: string, label: string}>,
+ *  setConstellation: (iau: string) => boolean
  * }>}
  */
 export async function mountConstellationViewer(mount, options = {}) {
@@ -112,9 +113,7 @@ export async function mountConstellationViewer(mount, options = {}) {
 	const manifest = await loadConstellationArtManifest({
 		manifestUrl: DEFAULT_WESTERN_MANIFEST_URL,
 	});
-	const parallaxCatalog = mode === 'parallax'
-		? createParallaxConstellationCatalog(manifest)
-		: null;
+	const constellationCatalog = createConstellationJumpCatalog(manifest);
 
 	const cameraController = createCameraRigController({
 		id: `website-explore-${mode}-camera`,
@@ -256,11 +255,43 @@ export async function mountConstellationViewer(mount, options = {}) {
 		});
 	});
 
-	if (mode !== 'parallax') {
-		return { viewer, cameraController };
+	const setConstellationFreeFly = (iau) => {
+		const entry = constellationCatalog.byIau.get(iau) ?? null;
+		if (!entry) {
+			return false;
+		}
+		const observerPc =
+			viewer.getSnapshotState().state?.observerPc
+			?? cameraController.getStats().observerPc
+			?? { x: 0, y: 0, z: 0 };
+		const targetPc = icrsDirectionToTargetPc(
+			entry.centroidIcrs,
+			PARALLAX_TARGET_DISTANCE_PC,
+			observerPc,
+		);
+		if (!targetPc) {
+			return false;
+		}
+
+		viewer.setState({ targetPc });
+		cameraController.lookAt(targetPc, {
+			blend: 0.06,
+			upIcrs: entry.imageUpIcrs ?? null,
+		});
+
+		return true;
+	};
+
+	if (mode === 'freeFly') {
+		return {
+			viewer,
+			cameraController,
+			constellations: constellationCatalog.catalog,
+			setConstellation: setConstellationFreeFly,
+		};
 	}
 
-	const orionEntry = parallaxCatalog?.byIau.get('Ori') ?? null;
+	const orionEntry = constellationCatalog.byIau.get('Ori') ?? null;
 	cameraController.lockAt(ORION_CENTER_PC, {
 		upIcrs: orionEntry?.imageUpIcrs ?? null,
 		recenterSpeed: 1.0,
@@ -268,7 +299,7 @@ export async function mountConstellationViewer(mount, options = {}) {
 	parallaxController.enable();
 
 	const setConstellation = (iau) => {
-		const entry = parallaxCatalog?.byIau.get(iau) ?? null;
+		const entry = constellationCatalog.byIau.get(iau) ?? null;
 		if (!entry) {
 			return false;
 		}
@@ -299,7 +330,7 @@ export async function mountConstellationViewer(mount, options = {}) {
 		viewer,
 		cameraController,
 		parallaxController,
-		constellations: parallaxCatalog?.catalog ?? [],
+		constellations: constellationCatalog.catalog,
 		setConstellation,
 	};
 }

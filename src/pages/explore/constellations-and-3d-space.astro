@@ -25,6 +25,17 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		</section>
 
 		<section class="viewer-section" id="viewer">
+			<div class="viewer-controls">
+				<label class="viewer-controls__label" for="freefly-constellation-select">Look toward</label>
+				<select
+					id="freefly-constellation-select"
+					class="viewer-controls__select"
+					data-freefly-constellation
+					disabled
+				>
+					<option value="">Loading constellations…</option>
+				</select>
+			</div>
 			<div class="viewer-shell" data-constellation-viewer="freeFly"></div>
 			<p class="status">Status: <span data-viewer-status>Loading the Orion fly-through…</span></p>
 		</section>
@@ -68,6 +79,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 	const mount = document.querySelector('[data-constellation-viewer]');
 	const statusEl = document.querySelector('[data-viewer-status]');
+	const constellationSelect = document.querySelector('[data-freefly-constellation]');
 
 	if (mount) {
 		mountConstellationViewer(mount, {
@@ -75,10 +87,49 @@ const parallaxPath = `${basePath}explore/parallax/`;
 			onStatus: (msg) => {
 				if (statusEl) statusEl.textContent = msg;
 			},
-		}).catch((err) => {
-			console.error('[website:constellation-mount]', err);
-			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
-		});
+		})
+			.then(({ viewer, constellations = [], setConstellation } = {}) => {
+				if (!(constellationSelect instanceof HTMLSelectElement)) return;
+
+				const canvas = viewer?.canvas;
+				if (canvas instanceof HTMLCanvasElement) {
+					canvas.tabIndex = -1;
+				}
+
+				constellationSelect.innerHTML = '';
+				for (const { iau, label } of constellations) {
+					const option = document.createElement('option');
+					option.value = iau;
+					option.textContent = label;
+					constellationSelect.append(option);
+				}
+
+				const defaultIau = constellations.some((entry) => entry.iau === 'Ori')
+					? 'Ori'
+					: constellations[0]?.iau;
+
+				// Initial aim uses ORION_CENTER_PC; skip lookAt here so the view does not tween on load.
+				if (defaultIau) {
+					constellationSelect.value = defaultIau;
+				}
+
+				constellationSelect.disabled = constellations.length === 0;
+				constellationSelect.addEventListener('change', () => {
+					setConstellation?.(constellationSelect.value);
+					constellationSelect.blur();
+					if (canvas instanceof HTMLCanvasElement) {
+						canvas.focus({ preventScroll: true });
+					}
+				});
+			})
+			.catch((err) => {
+				console.error('[website:constellation-mount]', err);
+				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+				if (constellationSelect instanceof HTMLSelectElement) {
+					constellationSelect.disabled = true;
+					constellationSelect.innerHTML = '<option value="">Unable to load constellations</option>';
+				}
+			});
 	}
 </script>
 
@@ -123,6 +174,46 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		margin-right: -1.5rem;
 	}
 
+	.viewer-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		padding: 0.8rem 1.5rem 0.65rem;
+		background: rgba(2, 4, 11, 0.92);
+		border-top: 1px solid var(--fis-line);
+		border-bottom: 1px solid var(--fis-line);
+	}
+
+	.viewer-controls__label {
+		font-family: var(--fis-font-ui);
+		font-size: 0.78rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--fis-text-muted);
+	}
+
+	.viewer-controls__select {
+		min-width: min(26rem, 100%);
+		max-width: 100%;
+		background-color: var(--fis-panel);
+		color: var(--fis-text);
+		border: 1px solid var(--fis-line-strong);
+		border-radius: 0.6rem;
+		padding: 0.38rem 0.62rem;
+		font-family: var(--fis-font-ui);
+		font-size: 0.92rem;
+	}
+
+	.viewer-controls__select:focus-visible {
+		outline: 2px solid var(--fis-gold);
+		outline-offset: 1px;
+	}
+
+	.viewer-controls__select:disabled {
+		opacity: 0.65;
+		cursor: not-allowed;
+	}
+
 	.viewer-shell {
 		width: 100%;
 		height: clamp(28rem, 72vh, 54rem);
@@ -135,6 +226,12 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 	.viewer-shell:active {
 		cursor: grabbing;
+	}
+
+	/* Programmatic focus after constellation select; skykit appends canvas client-side — :global so scoped Astro CSS matches it. */
+	.viewer-shell :global(canvas:is(:focus, :focus-visible)) {
+		outline: none;
+		box-shadow: none;
 	}
 
 	.status {
@@ -172,6 +269,17 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	@media (max-width: 720px) {
 		.page {
 			padding-top: 2.2rem;
+		}
+
+		.viewer-controls {
+			flex-direction: column;
+			align-items: flex-start;
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+
+		.viewer-controls__select {
+			width: 100%;
 		}
 
 		h1 {
