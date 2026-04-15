@@ -6,9 +6,11 @@ import SiteHeader from '../components/SiteHeader.astro';
 const basePath = import.meta.env.BASE_URL;
 const explorePath = `${basePath}explore/`;
 const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
-const parallaxPath = `${basePath}explore/parallax/`;
 const learnPath = `${basePath}learn/`;
 const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
+const astrophagePath = `${basePath}learn/topic/astrophage/`;
+const nextStepsPath = `${basePath}learn/next-steps/`;
+const buildPath = `${basePath}build/`;
 const aboutPath = `${basePath}about/`;
 ---
 
@@ -19,33 +21,79 @@ const aboutPath = `${basePath}about/`;
 	<SiteHeader />
 
 	<main class="page">
+		<!-- ── Hero ─────────────────────────────────── -->
+
 		<section class="hero">
 			<p class="eyebrow">A guide to the stars near the Sun</p>
 			<h1>Start with the night sky you know. Discover the space it hides.</h1>
 			<p class="intro">
-				Found in Space is a growing home for exploring the solar neighbourhood: the stars nearest
-				to our Sun. Using measurements from ESA's Gaia mission, it turns catalogues and
-				visualisations into guided journeys, clear explanations, and tools people can actually
-				learn from.
+				Explore real 3D star data, follow guided learning journeys, use it to teach
+				and investigate questions — or see how the whole thing is built. All grounded
+				in measurements from ESA's Gaia mission.
 			</p>
 			<div class="hero__actions">
 				<a class="button button--primary" href={explorePath}>Take a first look</a>
-				<a class="button button--ghost" href="#build">How it's built</a>
-			</div>
-			<div class="hero__note">
-				<p>
-					Still early, but already taking shape as part exhibit, part classroom, part lab.
-				</p>
+				<a class="button button--ghost" href={learnPath}>Start learning</a>
 			</div>
 		</section>
 
-		<section class="section-grid" aria-label="Choose your path">
+		<!-- ── Start here ──────────────────────────── -->
+
+		<section class="ways-in" aria-label="Choose a way in">
+			<h2 class="ways-in__title">Choose a way in</h2>
+			<div class="ways-in__grid">
+				<a class="way-card" href={constellationFlyThroughPath}>
+					<p class="way-card__label">Just curious?</p>
+					<h3>Fly through the nearby stars in 3D</h3>
+					<p>Start with Orion, then watch familiar patterns open into real depth.</p>
+				</a>
+				<a class="way-card" href={hrDiagramPath}>
+					<p class="way-card__label">Want to understand?</p>
+					<h3>Learn a concept with real data</h3>
+					<p>Start with the HR diagram — one of astronomy's most powerful maps.</p>
+				</a>
+				<a class="way-card" href={nextStepsPath}>
+					<p class="way-card__label">Teaching a class?</p>
+					<h3>Explore a question together</h3>
+					<p>Open investigations designed for inquiry — real data, no fixed answers.</p>
+				</a>
+				<a class="way-card" href={buildPath}>
+					<p class="way-card__label">Want to see how it works?</p>
+					<h3>Open the pipeline and data notes</h3>
+					<p>Every step from raw catalogue to rendered star is documented and open.</p>
+				</a>
+			</div>
+		</section>
+
+		<!-- ── Use to... ───────────────────────────── -->
+
+		<section class="use-strip" aria-label="Use Found in Space to">
+			<div class="use-strip__items">
+				<a class="use-item" href={explorePath}>
+					<span class="use-item__verb">See</span> the nearby stars in 3D
+				</a>
+				<a class="use-item" href={learnPath}>
+					<span class="use-item__verb">Understand</span> what the data means
+				</a>
+				<a class="use-item" href={nextStepsPath}>
+					<span class="use-item__verb">Investigate</span> questions with students
+				</a>
+				<a class="use-item" href={buildPath}>
+					<span class="use-item__verb">Inspect</span> how it is built
+				</a>
+			</div>
+		</section>
+
+		<!-- ── Explore / Learn / Build triad ────────── -->
+
+		<section class="section-grid" aria-label="What you can do here">
 			<article class="panel panel--accent" id="explore">
 				<p class="panel__eyebrow">Explore</p>
-				<h2>Follow guided journeys from familiar skies into depth, distance, and scale.</h2>
+				<h2>Open an experience</h2>
 				<p>
-					Start with constellations, bright stars, and recognisable patterns, then see what
-					changes when those same stars are placed in three-dimensional space.
+					Guided journeys through real 3D star data. No prior knowledge needed —
+					start with familiar constellations and see what changes when you place
+					each star at its real distance.
 				</p>
 				<div class="panel__feature">
 					<p class="panel__feature-label">Now live</p>
@@ -60,28 +108,29 @@ const aboutPath = `${basePath}about/`;
 			</article>
 			<article class="panel" id="learn">
 				<p class="panel__eyebrow">Learn</p>
-				<h2>Turn curiosity into understanding with clear explainers and guided lessons.</h2>
+				<h2>Understand a concept</h2>
 				<p>
-					For self-directed learners, students, and educators who want more than a pretty
-					simulation: plain-language concepts grounded in real data.
+					Clear explainers and guided lessons for self-directed learners, students,
+					and educators. Plain-language concepts grounded in real Gaia data — not
+					just pretty pictures, but things you can think with.
 				</p>
 				<div class="panel__feature">
-					<p class="panel__feature-label">First lesson</p>
-					<h3>The Hertzsprung-Russell diagram</h3>
+					<p class="panel__feature-label">Featured lesson</p>
+					<h3>The HR diagram</h3>
 					<p>
-						One of astronomy's most powerful maps — plot temperature against luminosity and watch
-						the structure of the stellar population emerge from real Gaia data.
+						Plot temperature against luminosity and watch the structure of the stellar
+						population emerge from real data.
 					</p>
 					<a class="panel__link" href={hrDiagramPath}>Open the HR diagram</a>
 				</div>
 			</article>
 			<article class="panel" id="build">
 				<p class="panel__eyebrow">Build</p>
-				<h2>See how astronomical measurements become something you can explore in a browser.</h2>
+				<h2>Inspect the machinery</h2>
 				<p>
-					Behind the scenes are source catalogues, data cleaning, spatial indexing, and a
-					browser-based viewer. The technical side will stay open, inspectable, and explained in
-					human terms.
+					Source catalogues, data cleaning, spatial indexing, and a browser-based
+					viewer — all documented in human terms. Open, inspectable, and explained
+					so you can understand or extend it.
 				</p>
 				<div class="panel__feature">
 					<p class="panel__feature-label">The dataset</p>
@@ -90,34 +139,38 @@ const aboutPath = `${basePath}about/`;
 						Real distance measurements from ESA's Gaia spacecraft, combined with the
 						Hipparcos survey — merged into a single navigable dataset. All open source.
 					</p>
-					<a class="panel__link" href={`${basePath}build/`}>Read the technical notes</a>
+					<a class="panel__link" href={buildPath}>Read the technical notes</a>
 				</div>
 			</article>
 		</section>
 
-		<section class="story">
-			<div class="story__lead">
-				<p class="eyebrow">Why this project exists</p>
-				<h2>Wonder is a great starting point, but it should lead somewhere.</h2>
+		<!-- ── For teaching ─────────────────────────── -->
+
+		<section class="teaching">
+			<div class="teaching__lead">
+				<p class="eyebrow">For teaching and inquiry</p>
+				<h2>Not just to watch — to think with.</h2>
 			</div>
-			<div class="story__body">
+			<div class="teaching__body">
 				<p>
-					Most people meet astronomy through images, headlines, or the visible sky. That first
-					spark matters. Found in Space is about carrying it further: helping people move from
-					"that's beautiful" to "I understand what I'm looking at."
+					Use Found in Space with students to ask questions, compare observations,
+					and test ideas using real astronomical data. The lessons are structured
+					enough to use in a classroom, open enough to support genuine investigation.
 				</p>
 				<p>
-					The solar neighbourhood is a good place to begin because scale becomes easier to feel when
-					it starts close to home. From there we can talk honestly about distance, measurement,
-					structure, and uncertainty without losing the sense of wonder that brought people here in
-					the first place.
+					Every topic ends with questions, not answers. The
+					<a href={nextStepsPath}>next steps</a> section collects open research
+					questions that students can pursue using the tools on this site and their
+					own analysis.
 				</p>
 			</div>
 		</section>
 
+		<!-- ── Featured content ─────────────────────── -->
+
 		<section class="bands">
 			<article class="band">
-				<p class="band__label">Featured explore</p>
+				<p class="band__label">Featured experience</p>
 				<h3>What constellations hide about 3D space</h3>
 				<p>
 					A familiar pattern in the night sky becomes an entry point for perspective, parallax, and
@@ -129,16 +182,31 @@ const aboutPath = `${basePath}about/`;
 			</article>
 			<article class="band">
 				<p class="band__label">Featured lesson</p>
-				<h3>The HR diagram: a map of stellar physics</h3>
+				<h3>The astrophage infestation</h3>
 				<p>
-					Plot temperature against luminosity for the stars around the Sun and watch the main
-					sequence, white dwarfs, and stellar populations emerge from real Gaia data.
+					Trace the spread of a fictional alien organism through real stars — from
+					Tau Ceti to the Sun — inspired by Andy Weir's <em>Project Hail Mary</em>.
+					Every star position is from the Gaia catalogue.
 				</p>
 				<p class="band__link">
-					<a href={hrDiagramPath}>Open the HR diagram lesson</a>
+					<a href={astrophagePath}>Open the astrophage tour</a>
+				</p>
+			</article>
+			<article class="band">
+				<p class="band__label">Featured investigation</p>
+				<h3>Do the brightest stars have to be the closest?</h3>
+				<p>
+					Some of the brightest stars in the sky are hundreds of light-years away.
+					Some of the nearest stars are invisible to the naked eye. Use the HR diagram
+					to understand why — and what brightness actually tells you.
+				</p>
+				<p class="band__link">
+					<a href={hrDiagramPath}>Explore in the HR diagram</a>
 				</p>
 			</article>
 		</section>
+
+		<!-- ── About ───────────────────────────────── -->
 
 		<section class="about" id="about">
 			<p class="eyebrow">About</p>
@@ -164,6 +232,8 @@ const aboutPath = `${basePath}about/`;
 		min-height: 100vh;
 		padding-top: 3.5rem;
 	}
+
+	/* ── Hero ──────────────────────────────────────── */
 
 	.hero {
 		padding: 4.2rem 0 2.4rem;
@@ -195,7 +265,6 @@ const aboutPath = `${basePath}about/`;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.85rem;
-		margin-bottom: 1.5rem;
 	}
 
 	.button--primary {
@@ -206,15 +275,99 @@ const aboutPath = `${basePath}about/`;
 		background: rgba(9, 18, 33, 0.5);
 	}
 
-	.hero__note {
+	/* ── Ways in ───────────────────────────────────── */
+
+	.ways-in {
+		margin-bottom: 3rem;
+	}
+
+	.ways-in__title {
+		margin: 0 0 1.2rem;
+		font-size: 1.5rem;
+		line-height: 1.1;
+		color: var(--fis-text);
+	}
+
+	.ways-in__grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	.way-card {
+		display: block;
+		padding: 1.4rem;
 		background: var(--fis-panel);
-		border: 1px solid rgba(141, 183, 255, 0.16);
+		border: 1px solid var(--fis-line);
 		border-radius: var(--fis-radius);
 		backdrop-filter: blur(10px);
 		box-shadow: var(--fis-shadow);
-		max-width: 36rem;
-		padding: 1.05rem 1.15rem;
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
 	}
+
+	.way-card:hover {
+		border-color: var(--fis-gold-subtle);
+		transform: translateY(-3px);
+	}
+
+	.way-card__label {
+		margin: 0 0 0.4rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--fis-gold);
+	}
+
+	.way-card h3 {
+		margin: 0 0 0.5rem;
+		font-size: 1.1rem;
+		line-height: 1.2;
+		color: var(--fis-text);
+	}
+
+	.way-card p {
+		margin: 0;
+		font-size: 0.92rem;
+		line-height: 1.6;
+		color: var(--fis-text-muted);
+	}
+
+	/* ── Use strip ─────────────────────────────────── */
+
+	.use-strip {
+		margin-bottom: 3.5rem;
+		padding: 1.6rem 0;
+		border-top: 1px solid var(--fis-line);
+		border-bottom: 1px solid var(--fis-line);
+	}
+
+	.use-strip__items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.5rem 2.5rem;
+	}
+
+	.use-item {
+		font-size: 1.05rem;
+		line-height: 1.5;
+		color: var(--fis-text-soft);
+		text-decoration: none;
+		transition: color 120ms ease;
+	}
+
+	.use-item:hover {
+		color: var(--fis-text);
+	}
+
+	.use-item__verb {
+		color: var(--fis-gold);
+		font-weight: 600;
+	}
+
+	/* ── Section grid (Explore / Learn / Build) ────── */
 
 	.section-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -247,6 +400,34 @@ const aboutPath = `${basePath}about/`;
 		opacity: 0.75;
 	}
 
+	/* ── Teaching ──────────────────────────────────── */
+
+	.teaching {
+		display: grid;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+		gap: 2rem;
+		align-items: start;
+		margin-bottom: 2rem;
+	}
+
+	.teaching__lead h2 {
+		margin: 0;
+		font-size: clamp(2rem, 4vw, 3.2rem);
+		line-height: 1.02;
+		max-width: 11ch;
+	}
+
+	.teaching__body {
+		padding-top: 0.35rem;
+	}
+
+	.teaching__body a {
+		color: var(--fis-gold);
+		text-decoration-color: var(--fis-gold-subtle);
+	}
+
+	/* ── Featured bands ────────────────────────────── */
+
 	.band__label {
 		margin: 0 0 0.6rem;
 		font-size: 0.8rem;
@@ -255,28 +436,9 @@ const aboutPath = `${basePath}about/`;
 		color: var(--fis-gold);
 	}
 
-	.story {
-		display: grid;
-		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-		gap: 2rem;
-		align-items: start;
-		margin-bottom: 2rem;
-	}
-
-	.story__lead h2 {
-		margin: 0;
-		font-size: clamp(2rem, 4vw, 3.2rem);
-		line-height: 1.02;
-		max-width: 11ch;
-	}
-
-	.story__body {
-		padding-top: 0.35rem;
-	}
-
 	.bands {
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 1rem;
 		margin-bottom: 4rem;
 	}
@@ -293,6 +455,8 @@ const aboutPath = `${basePath}about/`;
 	.band__link {
 		margin-top: 1rem;
 	}
+
+	/* ── About ─────────────────────────────────────── */
 
 	.about {
 		background: var(--fis-panel);
@@ -335,13 +499,19 @@ const aboutPath = `${basePath}about/`;
 		margin-top: 1rem;
 	}
 
+	/* ── Responsive ────────────────────────────────── */
+
 	@media (max-width: 900px) {
-		.story,
+		.ways-in__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.teaching,
 		.bands {
 			grid-template-columns: 1fr;
 		}
 
-		.story__lead h2 {
+		.teaching__lead h2 {
 			max-width: none;
 		}
 	}
@@ -361,6 +531,15 @@ const aboutPath = `${basePath}about/`;
 
 		.intro {
 			font-size: 1.05rem;
+		}
+
+		.ways-in__grid {
+			grid-template-columns: 1fr;
+		}
+
+		.use-strip__items {
+			flex-direction: column;
+			gap: 0.75rem;
 		}
 	}
 </style>
