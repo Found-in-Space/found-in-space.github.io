@@ -1,0 +1,472 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout
+	title="The astrophage infestation | Learn | Found in Space"
+	description="Trace the spread of an alien organism from Tau Ceti to the Sun through the real stars of the solar neighbourhood — a fictional journey through real space."
+>
+	<SiteHeader section="Learn" />
+
+	<main class="page">
+		<section class="intro">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn/`}>Learn</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>The astrophage infestation</span>
+			</nav>
+			<p class="eyebrow">Fiction meets real data</p>
+			<h1>The astrophage infestation</h1>
+			<p class="lede">
+				In Andy Weir's <em>Project Hail Mary</em>, an alien microorganism called
+				astrophage is consuming the energy output of nearby stars. Dimming them,
+				cooling their planets, and threatening all life in the solar neighbourhood.
+				The infection begins at Tau Ceti and spreads from star to star.
+			</p>
+			<p class="lede">
+				Every star in this story is real, but thankfully the Astrophages are a product
+				of Andy Weir's amazing imagination. However, let's look at how he imagined that the 
+				star jumping organism actually spread through our part of the galaxy.
+			</p>
+		</section>
+
+		<section class="body-section prose">
+			<h2>A threat written in starlight</h2>
+			<p>
+				The premise of <em>Project Hail Mary</em> is simple and terrifying:
+				astronomers notice that the Sun's luminosity is dropping. Not by much — a
+				fraction of a percent per year — but the trend is real and accelerating.
+				Something is feeding on it.
+			</p>
+			<p>
+				That something is astrophage. A microscopic organism that absorbs stellar
+				energy, breeds in the photosphere, and migrates between stars. The
+				infection did not start at the Sun. It started at Tau Ceti, roughly 12 light-years
+				away, and spread outward through a chain of nearby hosts. By the
+				time anyone on Earth noticed, the Sun was already one of many victims.
+			</p>
+			<p>
+				<em>A note on distances:</em> this site normally uses parsecs — the natural
+				unit when measuring stellar distances by parallax, which is exactly what
+				the Gaia and Hipparcos satellites did, and the unit used throughout our other lessons.
+				Here we use light-years, because that is the unit Andy Weir uses in the novel,
+				and the human scale of the journey matters to the story.
+			</p>
+			<p>
+				Scroll through the tour below to trace the infestation through real space.
+			</p>
+		</section>
+
+		<!-- ── Tour ──────────────────────────────────── -->
+
+		<div class="narrated-tour" data-astrophage-tour>
+			<div class="narrated-tour__chapters">
+				<section class="narrated-tour__chapter" data-chapter="sol-dimming">
+					<p class="narrated-tour__chapter-eyebrow">Sol · 0 light-years</p>
+					<h2 class="narrated-tour__chapter-title">The Sun is dimming</h2>
+					<p>
+						We start at home. An astronomer has detected an anomalous spectral
+						feature in solar observations — a signature that has no business
+						being there. It becomes known as the Petrova line. Further study
+						reveals the cause: the Sun is being robbed of energy by an unknown
+						life form, and its luminosity is falling as a result.
+					</p>
+					<p>
+						The effect is subtle at first. But on a timescale of decades it
+						will trigger catastrophic global cooling and the collapse of
+						agriculture. Earth is on a countdown, and the clock is already running.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="tau-ceti-sky">
+					<p class="narrated-tour__chapter-eyebrow">Looking toward Tau Ceti · 12 ly</p>
+					<h2 class="narrated-tour__chapter-title">Where it began</h2>
+					<p>
+						Turn toward Tau Ceti. It is a Sun-like star: spectral type G8,
+						slightly cooler and smaller than the Sun, about 12 light years away.
+						To the naked eye it is unremarkable: magnitude 3.5, visible from
+						the southern hemisphere.
+					</p>
+					<p>
+						But Tau Ceti is where the astrophage infestation started. It was
+						the first star to dim. By the time human instruments could detect
+						the change, the organism had already begun its migration to
+						neighbouring stars.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="tau-ceti-arrive">
+					<p class="narrated-tour__chapter-eyebrow">Arriving at Tau Ceti</p>
+					<h2 class="narrated-tour__chapter-title">Patient zero</h2>
+					<p>
+						Tau Ceti up close. A quiet, solitary star. No known close
+						stellar companions, a debris disc, and several candidate
+						exoplanets. In the novel's timeline, this is where astrophage
+						first established itself, feeding on the star's energy and
+						reproducing in vast quantities.
+					</p>
+					<p>
+						From here, migrating astrophage followed the simplest rule:
+						travel toward the nearest bright source of energy. The organism
+						does not choose — it absorbs stellar energy, converts it to mass,
+						and releases it again as a very specific frequency of light, using
+						that thrust to propel itself toward the next host.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="inner-spread">
+					<p class="narrated-tour__chapter-eyebrow">First spread · jumps of 5.5 and 10 light-years</p>
+					<h2 class="narrated-tour__chapter-title">The nearest victims</h2>
+					<p>
+						The first stars to fall after Tau Ceti were Epsilon Eridani and 40 Eridani.
+						The connecting lines show the migration routes — each one a crossing
+						of the void, powered by stored stellar energy converted back into
+						directed light at a precise, characteristic frequency.
+					</p>
+					<p>
+						<strong>Epsilon Eridani</strong> — the shortest hop from Tau Ceti, just 5.5
+						light-years. A young K-type star with a known debris disc and at least one
+						confirmed exoplanet. Young, active, and rich in energy — exactly what
+						astrophage needs. It sits about 10.5 light-years from the Sun.
+					</p>
+					<p>
+						<strong>40 Eridani</strong> — 10 light-years from Tau Ceti, about 16 from the
+						Sun. A triple system: a K-dwarf primary named Keid, a white dwarf companion,
+						and a red dwarf. If you've read the book, you'll know why this system
+						matters more than just as a waypoint on the infection map.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="sirius-wise">
+					<p class="narrated-tour__chapter-eyebrow">The relay · jumps of 7.8 and 4.7 light-years</p>
+					<h2 class="narrated-tour__chapter-title">Sirius and the invisible stepping stone</h2>
+					<p>
+						From Epsilon Eridani, astrophage crossed 7.8 light-years to reach
+						<strong>Sirius</strong> — the brightest star in our night sky, twice
+						the mass of the Sun, and pumping out twenty-five times its luminosity.
+						For an energy-feeding organism, it is the most irresistible target in
+						the neighbourhood. Sirius is 8.6 light-years from the Sun.
+					</p>
+					<p>
+						From Sirius, the next hop was a short one: just 4.7 light-years to
+						<strong>WISE 0855−0714</strong>, a cold, solitary brown dwarf sitting
+						7.4 light-years from the Sun. You will not see it in the star field:
+						it is far too faint to appear in either the Gaia catalogue (which this
+						site is built on) or the older Hipparcos survey that supplies our
+						brighter stars. Discovered only in 2014 by NASA's WISE infrared
+						satellite, it is one of the coldest known objects outside the Solar
+						System — around 250 K, colder than a winter night on Earth.
+					</p>
+					<p>
+						Yet in the novel, this invisible relic is the critical relay. Without
+						it, the chain from Sirius to the Sun cannot close. The astrophage
+						does not care about brightness — it needs proximity. WISE 0855−0714
+						is perfectly placed.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="final-spread">
+					<p class="narrated-tour__chapter-eyebrow">The last hops · jumps of 4–8 light-years</p>
+					<h2 class="narrated-tour__chapter-title">The Sun falls</h2>
+					<p>
+						From WISE 0855−0714, the infection fanned out to four stars at once.
+						The Sun was not special. It was simply nearby.
+					</p>
+					<p>
+						<strong>Sol</strong> — a jump of 7.4 light-years from WISE 0855. A
+						G-type dwarf, middle-aged, stable, and utterly ordinary. By the time
+						the dimming was noticed, astrophage had been feeding for years.
+					</p>
+					<p>
+						<strong>Wolf 359</strong> — the closest hop of this final burst, only
+						4.4 light-years from WISE 0855. One of the faintest stars known, a red
+						dwarf so dim it is invisible to the naked eye despite sitting just
+						7.9 light-years from the Sun. It became famous as the site of a
+						fictional battle in <em>Star Trek</em> — and now, in another fiction,
+						it falls to astrophage.
+					</p>
+					<p>
+						<strong>Lalande 21185</strong> — 7.0 light-years from WISE 0855,
+						8.3 from the Sun. Another red dwarf, the brightest red dwarf in the
+						northern sky. Quiet, cool, and ancient — possibly twice the age of
+						the Sun. It has at least one confirmed exoplanet.
+					</p>
+					<p>
+						<strong>Ross 128</strong> — the longest jump in this final fan, 7.6
+						light-years from WISE 0855, about 11 from the Sun. A red dwarf notable
+						for its confirmed Earth-sized planet orbiting in the temperate zone.
+						Ross 128 b receives about 1.4 times the flux that Earth gets from
+						the Sun. If anything in this story could harbour life, this is where
+						the odds are shortest.
+					</p>
+					<p>
+						Look at the shape of the web. Each hop follows the nearest viable
+						star. The geometry of our corner of the galaxy — the actual
+						three-dimensional arrangement of these real stars — is what
+						determines the pattern of the infestation.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-chapter="keid-lookback">
+					<p class="narrated-tour__chapter-eyebrow">40 Eridani · 16 light-years · looking home</p>
+					<h2 class="narrated-tour__chapter-title">Looking back at the Sun</h2>
+					<p>
+						We end in orbit around 40 Eridani — not just because it sits at the
+						edge of the infection map, but because of what happens here in the novel.
+						To say more would be to spoil one of the best surprises in recent
+						science fiction. Read the book.
+					</p>
+					<p>
+						From here, the Sun is just another star: unremarkable, anonymous,
+						lost among thousands of brighter points. Sixteen light-years is nothing
+						on a galactic scale — and yet it is enough to make home invisible.
+						The astrophage did not care about our civilisation or our history.
+						It followed the light. And the light led here, and there, and everywhere nearby.
+					</p>
+				</section>
+
+				<div class="narrated-tour__spacer" aria-hidden="true"></div>
+			</div>
+
+			<div class="narrated-tour__viewer-col">
+				<div class="narrated-tour__viewer-sticky">
+					<div class="narrated-tour__nav">
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="sol-dimming">Sol</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="tau-ceti-sky">Tau Ceti</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="tau-ceti-arrive">Arrive</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="inner-spread">Spread</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="sirius-wise">Sirius</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="final-spread">Sol falls</button>
+						<button type="button" class="narrated-tour__nav-button" data-chapter-fly="keid-lookback">40 Eri</button>
+					</div>
+					<div class="narrated-tour__viewer-shell" data-astrophage-shell></div>
+					<span class="narrated-tour__status" data-astrophage-status>Loading…</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- ── Exploration ideas ──────────────────── -->
+
+		<section class="explore-section">
+			<h2>Things to notice</h2>
+			<div class="explore-grid">
+				<article class="panel">
+					<p class="panel__eyebrow">Real geography</p>
+					<h3>The infection follows the stars</h3>
+					<p>
+						Every position in the tour comes from real stellar catalogues —
+						primarily Gaia, supplemented by Hipparcos for the brightest stars.
+						The astrophage has no navigation. It drifts toward the nearest
+						luminous host. The shape of the infestation is the shape of our
+						actual stellar neighbourhood.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">The invisible relay</p>
+					<h3>WISE 0855−0714</h3>
+					<p>
+						The critical stepping stone between Sirius and the Sun is a brown
+						dwarf that neither Gaia nor Hipparcos can see — it is simply too
+						cold and too faint for optical surveys. Only the WISE infrared
+						satellite found it, in 2014. It is marked here by coordinates
+						alone. The novel's chain of infection depends on an object that
+						barely registers as a star at all.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Scale</p>
+					<h3>Sixteen light-years is nothing</h3>
+					<p>
+						The entire infection network fits inside a sphere of about 16
+						light-years radius. The Milky Way is roughly 100,000 light-years
+						across. This crisis is galactically microscopic — and yet it
+						threatens every planet orbiting every star within reach.
+					</p>
+				</article>
+
+				<article class="panel">
+					<p class="panel__eyebrow">Fiction &amp; science</p>
+					<h3>What is real, what is not</h3>
+					<p>
+						The stars, their positions, distances, and spectral types are all
+						real. Astrophage is fiction — no known organism feeds on stellar
+						energy. But the spatial logic is genuine: this is how a
+						nearest-neighbour spread would actually move through our corner
+						of the galaxy.
+					</p>
+				</article>
+			</div>
+		</section>
+
+		<section class="closing-note">
+			<div class="panel panel--accent">
+				<p class="panel__eyebrow">The book</p>
+				<h3>Project Hail Mary by Andy Weir</h3>
+				<p>
+					This tour is inspired by <em>Project Hail Mary</em> (2021). The
+					novel follows a lone astronaut sent to Tau Ceti to find a way to
+					stop the astrophage and save the Sun. If you have not read it, the
+					less you know going in, the better.
+				</p>
+				<p>
+					<a href="https://www.goodreads.com/book/show/54493401-project-hail-mary" class="link--gold" target="_blank" rel="noopener noreferrer">View on Goodreads →</a>
+				</p>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<script>
+	import { mountAstrophageViewer } from '../../../scripts/astrophage-viewer.js';
+	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
+
+	const tourRoot = document.querySelector('[data-astrophage-tour]');
+	const mount = document.querySelector('[data-astrophage-shell]');
+	const statusEl = document.querySelector('[data-astrophage-status]');
+	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-chapter]') ?? [];
+	const navButtons = tourRoot?.querySelectorAll('[data-chapter-fly]') ?? [];
+
+	if (mount && tourRoot) {
+		mountAstrophageViewer(mount, {
+			onStatus(msg) {
+				if (statusEl) statusEl.textContent = msg;
+			},
+		}).then((result) => {
+			setupNarratedTour({
+				root: tourRoot,
+				chapters,
+				navButtons,
+				getChapterId(chapter) {
+					return chapter.dataset.chapter;
+				},
+				getNavButtonId(button) {
+					return button.dataset.chapterFly;
+				},
+				activate(id) {
+					result.goTo(id);
+				},
+				statusEl,
+				initialId: 'sol-dimming',
+			});
+		}).catch((err) => {
+			console.error('[website:astrophage]', err);
+			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+		});
+	}
+</script>
+
+<style>
+	.page {
+		position: relative;
+		min-height: 100vh;
+		padding-top: 3.5rem;
+	}
+
+	.intro {
+		max-width: 48rem;
+		padding: 2rem 0 0;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	h1 {
+		font-size: clamp(2.4rem, 6vw, 4.2rem);
+		line-height: 1.02;
+		max-width: 18ch;
+	}
+
+	h2 {
+		font-size: 1.55rem;
+		line-height: 1.1;
+		margin-bottom: 0.85rem;
+		color: var(--fis-text);
+	}
+
+	h3 {
+		font-size: 1.3rem;
+		line-height: 1.15;
+		margin-bottom: 0.65rem;
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
+
+	p + p {
+		margin-top: 1rem;
+	}
+
+	.body-section {
+		max-width: 48rem;
+		padding: 2.5rem 0 1rem;
+	}
+
+	.explore-section {
+		max-width: 48rem;
+		padding: 1rem 0 0;
+	}
+
+	.explore-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin-top: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.explore-grid h3 {
+		color: var(--fis-text);
+	}
+
+	.explore-grid p {
+		font-size: 0.96rem;
+		line-height: 1.7;
+	}
+
+	.closing-note {
+		max-width: 48rem;
+		margin-bottom: 2rem;
+	}
+
+	.closing-note h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.4rem;
+		color: var(--fis-text);
+	}
+
+	.closing-note p {
+		line-height: 1.75;
+	}
+
+	@media (max-width: 960px) {
+		.explore-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.page {
+			padding-top: 2.2rem;
+		}
+
+		h1 {
+			font-size: clamp(2.2rem, 12vw, 3.6rem);
+		}
+	}
+</style>
