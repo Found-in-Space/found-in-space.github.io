@@ -321,6 +321,17 @@
 	}
 }
 
+/* Landscape phones: wider than 720px but too short for wrapped nav + viewer */
+@media (max-height: 500px) and (min-width: 721px) {
+	.narrated-tour__nav {
+		display: none;
+	}
+
+	.narrated-tour__viewer-shell {
+		height: var(--fis-tour-phone-shell-height);
+	}
+}
+
 /* ── Tag ──────────────────────────────────────── */
 
 .tag {
