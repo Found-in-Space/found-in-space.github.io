@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import {
 	GALACTIC_CENTER_PC,
-	HRDiagramRenderer,
 	SOLAR_ORIGIN_PC,
 	createCameraRigController,
 	createFoundInSpaceDatasetOptions,
@@ -10,10 +9,11 @@ import {
 	createSelectionRefreshController,
 	createStarFieldLayer,
 	createViewer,
-	createVolumeHRLoader,
 	getDatasetSession,
 	resolveFoundInSpaceDatasetOverrides,
 } from '@found-in-space/skykit';
+import { HRDiagramRenderer } from './skykit/hr-diagram-renderer.js';
+import { createVolumeHRLoader } from './skykit/volume-hr-loader.js';
 
 const NO_KEYBOARD_EVENTS_TARGET = {
 	addEventListener() {},
@@ -174,6 +174,41 @@ function pointDistance(left, right) {
 	return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+function serializePoint(point) {
+	return `${point.x.toFixed(3)},${point.y.toFixed(3)},${point.z.toFixed(3)}`;
+}
+
+function describePreloadRequest(request) {
+	if (request.type === 'path') {
+		const [startPoint, endPoint] = request.points;
+		return {
+			type: 'path',
+			radiusPc: request.maxRadiusPc,
+			start: startPoint ? serializePoint(startPoint) : 'unknown',
+			end: endPoint ? serializePoint(endPoint) : 'unknown',
+		};
+	}
+
+	return {
+		type: 'volume',
+		radiusPc: request.maxRadiusPc,
+		center: request.observerPc ? serializePoint(request.observerPc) : 'unknown',
+	};
+}
+
+function createEmptyHrGeometry() {
+	const geometry = new THREE.BufferGeometry();
+	geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(0), 3));
+	geometry.setAttribute('teff_log8', new THREE.Uint8BufferAttribute(new Uint8Array(0), 1, true));
+	geometry.setAttribute('magAbs', new THREE.BufferAttribute(new Float32Array(0), 1));
+	geometry.setDrawRange(0, 0);
+	return geometry;
+}
+
+function normalizeVolumeRenderStrategy(strategy) {
+	return strategy === 'progressive' ? 'progressive' : 'strict';
+}
+
 export async function mountHrDiagramViewer(root) {
 	const mount = root.querySelector('[data-hr-diagram-viewer-shell]');
 	if (!mount) {
@@ -194,11 +229,18 @@ export async function mountHrDiagramViewer(root) {
 	let volumeReloadPending = false;
 	let reloadQueued = false;
 	let pendingVolumeForce = false;
+	let activeVolumeRenderStrategy = 'strict';
+	let volumeSceneEpoch = 0;
 	let lastObserverPc = { ...SOLAR_ORIGIN_PC };
 	let lastVolumeObserverPc = null;
+	let lastVolumeRadius = null;
 	let lastStarFieldGeometry = null;
 	let lastStarFieldCount = 0;
 	let lastVolumeGeometry = null;
+	const scenePreloadPromises = new Map();
+	const scheduledScenePreloadTimeouts = new Set();
+	const scheduledScenePreloadIdleCallbacks = new Set();
+	const emptyHrGeometry = createEmptyHrGeometry();
 
 	const topicId = root.dataset.topic || 'hr-diagram';
 	const sessionId =
@@ -236,6 +278,57 @@ export async function mountHrDiagramViewer(root) {
 		hrDiagram.setStarCount(0);
 	}
 
+	function getCurrentObserverPc(fallback = SOLAR_ORIGIN_PC) {
+		return viewer?.getSnapshotState?.()?.state?.observerPc ?? fallback;
+	}
+
+	function isMovementAutomationActive() {
+		return Boolean(cameraController?.getStats?.()?.movementAutomation);
+	}
+
+	function getVolumeReloadDistanceThreshold(radius = activeRadius) {
+		if (
+			activeMode === 1
+			&& activeVolumeRenderStrategy === 'progressive'
+			&& isMovementAutomationActive()
+		) {
+			return Math.max(6, Math.min(radius * 0.4, 12));
+		}
+		return Math.max(6, radius * 0.4);
+	}
+
+	function getProgressiveVolumeApplyDistanceThreshold(radius = activeRadius) {
+		return Math.max(8, Math.min(radius * 0.3, 18));
+	}
+
+	function applyVolumeGeometry(geometry) {
+		if (!hrDiagram || !geometry) return;
+		hrDiagram.setGeometry(geometry);
+		hrDiagram.setStarCount(0);
+	}
+
+	function canReuseVolumeGeometry(observerPc, radius = activeRadius) {
+		return Boolean(
+			lastVolumeGeometry
+			&& lastVolumeObserverPc
+			&& Number.isFinite(lastVolumeRadius)
+			&& Math.abs(lastVolumeRadius - radius) < 1e-6
+			&& pointDistance(lastVolumeObserverPc, observerPc) < Math.max(6, radius * 0.4)
+		);
+	}
+
+	function syncHrFromCachedVolume(observerPc, { allowEmpty = false } = {}) {
+		if (!hrDiagram) return false;
+		if (canReuseVolumeGeometry(observerPc, activeRadius)) {
+			applyVolumeGeometry(lastVolumeGeometry);
+			return true;
+		}
+		if (allowEmpty) {
+			applyVolumeGeometry(emptyHrGeometry);
+		}
+		return false;
+	}
+
 	async function refreshSelection() {
 		if (!viewer?.refreshSelection) return;
 		try {
@@ -252,31 +345,61 @@ export async function mountHrDiagramViewer(root) {
 			pendingVolumeForce = pendingVolumeForce || force;
 			return volumeLoadPromise;
 		}
-		const observerPc =
-			viewer?.getSnapshotState?.()?.state?.observerPc ?? SOLAR_ORIGIN_PC;
+		const observerPc = getCurrentObserverPc();
+		const loadRadius = activeRadius;
 		if (
 			!force
-			&& lastVolumeGeometry
-			&& pointDistance(lastVolumeObserverPc, observerPc) < Math.max(6, activeRadius * 0.4)
+			&& canReuseVolumeGeometry(observerPc, loadRadius)
 		) {
-			return null;
+			lastObserverPc = { ...observerPc };
+			applyVolumeGeometry(lastVolumeGeometry);
+			return {
+				geometry: lastVolumeGeometry,
+				cached: true,
+			};
 		}
 
+		const requestObserverPc = { ...observerPc };
+		const requestRadius = loadRadius;
+		const requestEpoch = volumeSceneEpoch;
 		lastObserverPc = { ...observerPc };
-		lastVolumeObserverPc = { ...observerPc };
 		volumeLoadPromise = volumeLoader.load({
-			observerPc,
-			maxRadiusPc: activeRadius,
+			observerPc: requestObserverPc,
+			maxRadiusPc: requestRadius,
 		});
 
 		try {
 			const result = await volumeLoadPromise;
 			if (!result) return null;
 
-			lastVolumeGeometry = result.geometry;
-			if (activeMode === 1) {
-				hrDiagram?.setGeometry(result.geometry);
-				hrDiagram?.setStarCount(0);
+			const currentObserverPc = getCurrentObserverPc(requestObserverPc);
+			const currentLoadRadius = activeRadius;
+			const requestStillCurrent =
+				requestEpoch === volumeSceneEpoch
+				&& activeMode === 1
+				&& Math.abs(currentLoadRadius - requestRadius) < 1e-6;
+			const exactMatch =
+				pointDistance(currentObserverPc, requestObserverPc) < Math.max(6, requestRadius * 0.4);
+			const progressiveMatch =
+				activeVolumeRenderStrategy === 'progressive'
+				&& isMovementAutomationActive()
+				&& pointDistance(currentObserverPc, requestObserverPc)
+					< getProgressiveVolumeApplyDistanceThreshold(requestRadius);
+			const shouldApply =
+				requestStillCurrent
+				&& (
+					exactMatch
+					|| progressiveMatch
+				);
+
+			if (requestStillCurrent) {
+				lastVolumeGeometry = result.geometry;
+				lastVolumeObserverPc = requestObserverPc;
+				lastVolumeRadius = requestRadius;
+			}
+
+			if (shouldApply) {
+				applyVolumeGeometry(result.geometry);
 			}
 
 			return result;
@@ -312,8 +435,10 @@ export async function mountHrDiagramViewer(root) {
 		hrDiagram = new HRDiagramRenderer(hrCanvasElement, {
 			mode: activeMode,
 			marginPx: isPhone ? MOBILE_HR_MARGIN_PX : DESKTOP_HR_MARGIN_PX,
+			volumeRadiusPc: activeRadius,
 		});
 		hrDiagram.setAppMagLimit(activeMagLimit);
+		hrDiagram.setVolumeRadiusPc(activeRadius);
 		if (highlightPreset) {
 			hrDiagram.setHighlightRegion({
 				teffMin: highlightPreset.teffMin,
@@ -351,7 +476,7 @@ export async function mountHrDiagramViewer(root) {
 							const dy = obs.y - lastObserverPc.y;
 							const dz = obs.z - lastObserverPc.z;
 							const moved = Math.sqrt(dx * dx + dy * dy + dz * dz);
-							if (moved > Math.max(6, activeRadius * 0.4)) {
+							if (moved > getVolumeReloadDistanceThreshold(activeRadius)) {
 								queueVolumeReload();
 							}
 						}
@@ -434,6 +559,7 @@ export async function mountHrDiagramViewer(root) {
 	function updateRadiusUi() {
 		if (radiusInput) radiusInput.value = String(activeRadius);
 		if (radiusValue) radiusValue.textContent = `${activeRadius} pc`;
+		hrDiagram?.setVolumeRadiusPc(activeRadius);
 	}
 
 	function lookAtPc(targetPc, options = {}) {
@@ -449,17 +575,191 @@ export async function mountHrDiagramViewer(root) {
 		return target;
 	}
 
+	function buildSceneVolumePreloadRequests(scene = {}, { anchorObserverPc = null } = {}) {
+		if (!volumeLoader) {
+			return [];
+		}
+
+		const sceneMode = Number.isFinite(scene.mode) ? Number(scene.mode) : activeMode;
+		if (sceneMode !== 1) {
+			return [];
+		}
+
+		const requests = [];
+		const preloadPathPoints = [];
+		const normalizedAnchorPc = normalizePoint(anchorObserverPc, null) ?? getCurrentObserverPc();
+		const orbitCenterPc = normalizePoint(scene.orbitCenter, null);
+		const nextObserverPc = normalizePoint(scene.observerPc, null);
+		const nextTargetPc = normalizePoint(scene.targetPc, null);
+		const finalRadiusPc = Number.isFinite(scene.radius) ? Number(scene.radius) : activeRadius;
+		const travelRadiusPc = Number.isFinite(scene.travelRadiusPc) ? Number(scene.travelRadiusPc) : finalRadiusPc;
+
+		if (scene.preloadVolumeTunnel === true) {
+			const preloadTargetPc =
+				normalizePoint(scene.preloadVolumeTunnelTargetPc, null)
+				?? orbitCenterPc
+				?? nextObserverPc
+				?? nextTargetPc;
+			if (normalizedAnchorPc && preloadTargetPc) {
+				preloadPathPoints.push(normalizedAnchorPc, preloadTargetPc);
+			}
+		}
+
+		if (Array.isArray(scene.preloadVolumePathPc)) {
+			for (const point of scene.preloadVolumePathPc) {
+				const normalizedPoint = normalizePoint(point, null);
+				if (normalizedPoint) {
+					preloadPathPoints.push(normalizedPoint);
+				}
+			}
+		}
+
+		if (preloadPathPoints.length >= 2 && volumeLoader.preloadPath) {
+			requests.push({
+				type: 'path',
+				points: preloadPathPoints,
+				maxRadiusPc:
+					Number.isFinite(scene.preloadVolumeTunnelRadiusPc)
+						? Number(scene.preloadVolumeTunnelRadiusPc)
+						: travelRadiusPc,
+			});
+		}
+
+		const preloadVolumePc =
+			normalizePoint(scene.preloadVolumeBubblePc, null)
+			?? (scene.preloadVolumeBubble === true ? (orbitCenterPc ?? nextObserverPc ?? nextTargetPc) : null);
+		if (preloadVolumePc && volumeLoader.preloadVolume) {
+			requests.push({
+				type: 'volume',
+				observerPc: preloadVolumePc,
+				maxRadiusPc:
+					Number.isFinite(scene.preloadVolumeBubbleRadiusPc)
+						? Number(scene.preloadVolumeBubbleRadiusPc)
+						: finalRadiusPc,
+			});
+		}
+
+		return requests.filter((request) => Number.isFinite(request.maxRadiusPc) && request.maxRadiusPc > 0);
+	}
+
+	function preloadScene(scene = {}, { anchorObserverPc = null } = {}) {
+		const requests = buildSceneVolumePreloadRequests(scene, { anchorObserverPc });
+		if (requests.length === 0) {
+			return Promise.resolve(null);
+		}
+
+		return Promise.all(requests.map((request) => {
+			const requestKey = request.type === 'path'
+				? `path:${request.maxRadiusPc}:${request.points.map(serializePoint).join('>')}`
+				: `volume:${request.maxRadiusPc}:${serializePoint(request.observerPc)}`;
+			if (scenePreloadPromises.has(requestKey)) {
+				console.info('[website:hr-diagram-viewer] preload already running', describePreloadRequest(request));
+				return scenePreloadPromises.get(requestKey);
+			}
+
+			console.info('[website:hr-diagram-viewer] preload started', describePreloadRequest(request));
+			const preloadPromise = (
+				request.type === 'path'
+					? volumeLoader.preloadPath(request)
+					: volumeLoader.preloadVolume(request)
+			)
+				.catch((error) => {
+					scenePreloadPromises.delete(requestKey);
+					console.error('[website:hr-diagram-viewer] preload failed', {
+						...describePreloadRequest(request),
+						error,
+					});
+					throw error;
+				})
+				.then((result) => {
+					scenePreloadPromises.delete(requestKey);
+					console.info('[website:hr-diagram-viewer] preload finished', {
+						...describePreloadRequest(request),
+						nodeCount: result?.nodeCount ?? 0,
+						decodedStarCount: result?.decodedStarCount ?? 0,
+					});
+					return result;
+				});
+
+			scenePreloadPromises.set(requestKey, preloadPromise);
+			return preloadPromise;
+		}));
+	}
+
+	function scheduleScenePreload(
+		scene = {},
+		{
+			anchorObserverPc = null,
+			delayMs = 0,
+			timeoutMs = 2_000,
+			useIdleCallback = true,
+		} = {},
+	) {
+		const startPreload = () => {
+			preloadScene(scene, { anchorObserverPc }).catch((error) => {
+				console.error('[website:hr-diagram-viewer] scene preload failed', error);
+			});
+		};
+
+		const queueIdlePreload = () => {
+			if (
+				useIdleCallback
+				&& typeof window.requestIdleCallback === 'function'
+			) {
+				const idleHandle = window.requestIdleCallback(() => {
+					scheduledScenePreloadIdleCallbacks.delete(idleHandle);
+					startPreload();
+				}, { timeout: timeoutMs });
+				scheduledScenePreloadIdleCallbacks.add(idleHandle);
+				return;
+			}
+			startPreload();
+		};
+
+		if (Number.isFinite(delayMs) && delayMs > 0) {
+			const timeoutHandle = window.setTimeout(() => {
+				scheduledScenePreloadTimeouts.delete(timeoutHandle);
+				queueIdlePreload();
+			}, delayMs);
+			scheduledScenePreloadTimeouts.add(timeoutHandle);
+			return;
+		}
+
+		queueIdlePreload();
+	}
+
 	async function applyScene(scene = {}) {
+		const previousMode = activeMode;
 		const nextObserverPc = normalizePoint(scene.observerPc, null);
 		const nextTargetPc = normalizePoint(scene.targetPc, null);
 		const orbitCenterPc = normalizePoint(scene.orbitCenter, null);
 		const nextMode = Number.isFinite(scene.mode) ? Number(scene.mode) : null;
 		const nextMagLimit = Number.isFinite(scene.magLimit) ? Number(scene.magLimit) : null;
 		const nextRadius = Number.isFinite(scene.radius) ? Number(scene.radius) : null;
+		const travelTimeSecs = Number.isFinite(scene.travelTimeSecs) ? Number(scene.travelTimeSecs) : null;
+		const resolvedMode = nextMode !== null ? nextMode : activeMode;
 		const shouldOrbit = Boolean(orbitCenterPc);
-		const shouldFly = !shouldOrbit && nextObserverPc && Number.isFinite(scene.flySpeed);
+		const shouldFly = !shouldOrbit && nextObserverPc && (
+			Number.isFinite(scene.flySpeed)
+			|| travelTimeSecs !== null
+		);
+		const travelRadiusPc = Number.isFinite(scene.travelRadiusPc) ? Number(scene.travelRadiusPc) : nextRadius;
+		const appliedSceneRadius = (shouldFly || shouldOrbit) ? travelRadiusPc : nextRadius;
+		const nextVolumeRenderStrategy =
+			resolvedMode === 1
+				? normalizeVolumeRenderStrategy(scene.volumeRenderStrategy)
+				: activeVolumeRenderStrategy;
 
 		function afterMotion() {
+			if (
+				activeMode === 1
+				&& nextRadius !== null
+				&& Math.abs(activeRadius - nextRadius) > 1e-6
+			) {
+				activeRadius = nextRadius;
+				updateRadiusUi();
+			}
+
 			refreshSelection().catch((error) => {
 				console.error('[website:hr-diagram-viewer] motion refresh failed', error);
 			});
@@ -482,9 +782,16 @@ export async function mountHrDiagramViewer(root) {
 			updateMagUi();
 		}
 
-		if (nextRadius !== null) {
-			activeRadius = nextRadius;
+		if (appliedSceneRadius !== null) {
+			activeRadius = appliedSceneRadius;
 			updateRadiusUi();
+		}
+
+		if (resolvedMode === 1) {
+			activeVolumeRenderStrategy = nextVolumeRenderStrategy;
+			volumeSceneEpoch += 1;
+			volumeReloadPending = false;
+			pendingVolumeForce = false;
 		}
 
 		const stateUpdate = {};
@@ -503,6 +810,11 @@ export async function mountHrDiagramViewer(root) {
 			viewer.setState(stateUpdate);
 		}
 
+		if (activeMode === 1 && activeVolumeRenderStrategy === 'strict' && previousMode !== 1) {
+			const volumeObserverPc = nextObserverPc ?? getCurrentObserverPc();
+			syncHrFromCachedVolume(volumeObserverPc, { allowEmpty: true });
+		}
+
 		cameraController?.cancelAutomation?.();
 
 		if (shouldOrbit && orbitCenterPc) {
@@ -518,6 +830,7 @@ export async function mountHrDiagramViewer(root) {
 				orbitRadius: Number.isFinite(scene.orbitRadius) ? scene.orbitRadius : 8,
 				angularSpeed: Number.isFinite(scene.angularSpeed) ? scene.angularSpeed : 0.16,
 				approachSpeed: Number.isFinite(scene.flySpeed) ? scene.flySpeed : 120,
+				...(travelTimeSecs !== null ? { durationSecs: travelTimeSecs } : {}),
 				deceleration: Number.isFinite(scene.deceleration) ? scene.deceleration : 2.5,
 				onInserted: afterMotion,
 			});
@@ -530,7 +843,8 @@ export async function mountHrDiagramViewer(root) {
 				});
 			}
 			cameraController?.flyTo?.(nextObserverPc, {
-				speed: scene.flySpeed,
+				...(Number.isFinite(scene.flySpeed) ? { speed: scene.flySpeed } : {}),
+				...(travelTimeSecs !== null ? { durationSecs: travelTimeSecs } : {}),
 				deceleration: Number.isFinite(scene.deceleration) ? scene.deceleration : 2.2,
 				arrivalThreshold: Number.isFinite(scene.arrivalThreshold) ? scene.arrivalThreshold : 0.05,
 				onArrive: afterMotion,
@@ -570,6 +884,17 @@ export async function mountHrDiagramViewer(root) {
 
 	async function destroy() {
 		volumeLoader?.cancel();
+		for (const timeoutHandle of scheduledScenePreloadTimeouts) {
+			window.clearTimeout(timeoutHandle);
+		}
+		scheduledScenePreloadTimeouts.clear();
+		if (typeof window.cancelIdleCallback === 'function') {
+			for (const idleHandle of scheduledScenePreloadIdleCallbacks) {
+				window.cancelIdleCallback(idleHandle);
+			}
+		}
+		scheduledScenePreloadIdleCallbacks.clear();
+		emptyHrGeometry.dispose();
 		window.removeEventListener('resize', onResize);
 		window.removeEventListener('beforeunload', destroy);
 		await viewer?.dispose?.();
@@ -620,6 +945,8 @@ export async function mountHrDiagramViewer(root) {
 		destroy,
 		getState,
 		lookAtPc,
+		preloadScene,
+		scheduleScenePreload,
 		viewer,
 	};
 }

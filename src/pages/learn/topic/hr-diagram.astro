@@ -195,12 +195,17 @@ const nextTopics = [
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="omega-cen">
-					<p class="narrated-tour__chapter-eyebrow">Step 8 · Globular cluster · Omega Centauri</p>
+					<p class="narrated-tour__chapter-eyebrow">Step 8 · Globular cluster · Omega Centauri · 100 pc sample</p>
 					<h2 class="narrated-tour__chapter-title">A globular cluster is an ancient stellar population</h2>
 					<p>
 						Finally we jump to Omega Centauri, the same globular cluster from the star-clusters
 						lesson. This is a completely different stellar environment: far older, denser, and
 						more dominated by low-mass survivors.
+					</p>
+					<p>
+						For this final stop we widen the sample to 100 parsecs. Omega Centauri is much
+						more extended than the nearby open clusters on this scale, so a larger bubble gives
+						us a more representative view of the cluster rather than just a tiny local patch.
 					</p>
 					<p>
 						The hot, massive end of the main sequence is gone because those stars died billions
@@ -382,6 +387,9 @@ const nextTopics = [
 	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-step]') ?? [];
 	const navButtons = tourRoot?.querySelectorAll('[data-step-fly]') ?? [];
 	const OFFSET_SAMPLE_PC = { x: 80, y: 60, z: 0 };
+	// The field and open-cluster chapters use a consistent 25 pc bubble.
+	const LESSON_VOLUME_RADIUS_PC = DEFAULT_HR_VOLUME_RADIUS;
+	const OMEGA_CEN_VOLUME_RADIUS_PC = 100;
 
 	const SCENES = {
 		'all-stars': {
@@ -406,15 +414,16 @@ const nextTopics = [
 			observerPc: SOLAR_ORIGIN_PC,
 			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
 			mode: 1,
-			radius: DEFAULT_HR_VOLUME_RADIUS,
+			radius: LESSON_VOLUME_RADIUS_PC,
+			volumeRenderStrategy: 'strict',
 		},
 		'away-volume': {
 			observerPc: OFFSET_SAMPLE_PC,
 			targetPc: SOLAR_ORIGIN_PC,
 			mode: 1,
-			radius: DEFAULT_HR_VOLUME_RADIUS,
-			flySpeed: 120,
-			deceleration: 2.2,
+			radius: LESSON_VOLUME_RADIUS_PC,
+			travelTimeSecs: 4,
+			volumeRenderStrategy: 'progressive',
 			dwellMs: 4_000,
 			recenterSpeed: 0.05,
 		},
@@ -422,11 +431,11 @@ const nextTopics = [
 			targetPc: PLEIADES_CENTER_PC,
 			orbitCenter: PLEIADES_CENTER_PC,
 			mode: 1,
-			radius: 18,
+			radius: LESSON_VOLUME_RADIUS_PC,
 			orbitRadius: 10,
 			angularSpeed: 0.18,
-			flySpeed: 150,
-			deceleration: 2.4,
+			travelTimeSecs: 5,
+			volumeRenderStrategy: 'progressive',
 			dwellMs: 5_000,
 			recenterSpeed: 0.06,
 		},
@@ -434,11 +443,11 @@ const nextTopics = [
 			targetPc: HYADES_CENTER_PC,
 			orbitCenter: HYADES_CENTER_PC,
 			mode: 1,
-			radius: 15,
+			radius: LESSON_VOLUME_RADIUS_PC,
 			orbitRadius: 8,
 			angularSpeed: 0.22,
-			flySpeed: 110,
-			deceleration: 2.4,
+			travelTimeSecs: 5,
+			volumeRenderStrategy: 'progressive',
 			dwellMs: 5_000,
 			recenterSpeed: 0.06,
 		},
@@ -446,11 +455,19 @@ const nextTopics = [
 			targetPc: OMEGA_CEN_CENTER_PC,
 			orbitCenter: OMEGA_CEN_CENTER_PC,
 			mode: 1,
-			radius: 100,
+			radius: OMEGA_CEN_VOLUME_RADIUS_PC,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
 			orbitRadius: 60,
 			angularSpeed: 0.08,
-			flySpeed: 600,
-			deceleration: 2.8,
+			travelTimeSecs: 5,
+			preloadVolumeTunnel: true,
+			preloadVolumeTunnelRadiusPc: LESSON_VOLUME_RADIUS_PC*1.5,
+			preloadVolumeBubble: true,
+			preloadVolumeBubbleRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
+			backgroundPreloadOnMount: true,
+			backgroundPreloadAnchorPc: HYADES_CENTER_PC,
+			backgroundPreloadTimeoutMs: 2_500,
+			volumeRenderStrategy: 'progressive',
 			dwellMs: 6_000,
 			recenterSpeed: 0.04,
 		},
@@ -481,6 +498,17 @@ const nextTopics = [
 				desktopStatus: 'Scroll to travel from the Sun to clusters and compare the HR diagram.',
 				phoneStatus: '',
 			});
+
+			for (const scene of Object.values(SCENES)) {
+				if (!scene?.backgroundPreloadOnMount) {
+					continue;
+				}
+				viewer.scheduleScenePreload(scene, {
+					anchorObserverPc: scene.backgroundPreloadAnchorPc ?? SOLAR_ORIGIN_PC,
+					delayMs: scene.backgroundPreloadDelayMs ?? 0,
+					timeoutMs: scene.backgroundPreloadTimeoutMs ?? 2_000,
+				});
+			}
 		}).catch((err) => {
 			console.error('[website:hr-diagram-tour]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
