@@ -29,33 +29,60 @@ const nextTopics = [
 			<p class="eyebrow">Learn</p>
 			<h1>The Hertzsprung-Russell diagram</h1>
 			<p class="lede">
-				The HR diagram is not a map of where stars are. It is a map of what stars
-				<em>are</em>: hot or cool, bright or faint, youthful, swollen, or nearly dead.
-				In this guided path we keep the Sun fixed and change the way we sample the Gaia stars
-				around us, so the structure of the diagram emerges step by step.
+				The Hertzsprung-Russell diagram plots two things for every star: how bright it
+				truly is, and what colour it is. Colour and surface temperature are the same
+				thing — a blue-white star is far hotter than a red one. Put those two numbers
+				together and you get a remarkably clear picture of what a star is, and how far
+				through its life it has come.
 			</p>
 		</section>
 
 		<section class="body-section prose">
-			<h2>What this lesson is comparing</h2>
+			<h2>How stars end up where they do</h2>
 			<p>
-				Every step below uses the same underlying Gaia catalogue, but samples it in a different
-				way. First we take a magnitude-limited all-sky view from the Sun. Then we keep the same
-				magnitude limit but only plot the stars in front of us, so the direction of the camera
-				starts to matter. Finally we switch to a volume-limited census of nearby space, where
-				faint dwarfs are no longer excluded just because they are hard to see.
+				A star spends most of its life doing one thing: fusing hydrogen into helium
+				in its core. That steady nuclear burning produces the energy that holds the
+				star up against its own gravity. As long as hydrogen lasts, the star sits in a
+				well-defined band on the HR diagram called the <strong>main sequence</strong>.
+				Where a star sits on that band depends almost entirely on its mass: massive
+				stars burn hotter and far brighter, placing them at the top left; lightweight
+				stars burn cool and dim, sitting at the bottom right.
 			</p>
 			<p>
-				The axes are both backwards. Temperature decreases from left to right, so hot blue-white
-				stars are on the left and cool red stars are on the right. Absolute magnitude decreases
-				upward, so the intrinsically brightest stars sit at the top of the plot.
+				Mass also decides how long a star lives. A star ten times more massive than
+				the Sun burns through its hydrogen roughly a thousand times faster and may
+				leave the main sequence in just a few tens of millions of years. A star like
+				the Sun takes about ten billion years. A star half the Sun's mass could keep
+				burning for longer than the current age of the universe.
 			</p>
 			<p>
-				Scroll through the lesson below to let the script change the sampling mode and camera
-				direction for you. The star view and the HR diagram stay side by side, so you can see
-				how the sky in front of us translates into the population on the diagram. We begin in
-				the solar neighbourhood, then leave the Sun behind to expose the catalogue's selection
-				effects, and finally fly into real star clusters with very different stellar histories.
+				When a star exhausts the hydrogen in its core it cannot simply keep burning as
+				before. The core contracts and heats up while the outer layers swell outward,
+				cooling as they expand. The star brightens dramatically but turns red: it has
+				become a <strong>red giant</strong>. On the HR diagram this shift appears as a
+				branch of evolved stars rising up from the cooler, brighter side of the
+				diagram. The point where stars peel away from the main sequence to begin this
+				journey is called the <strong>main-sequence turn-off</strong>, and its
+				position acts as a clock: the older the population, the lower down the
+				turn-off sits, because only the least massive stars are still burning hydrogen.
+			</p>
+			<p>
+				The axes of the diagram run in a slightly unusual direction. Temperature
+				decreases from left to right, so hot blue-white stars are on the left and
+				cool red stars are on the right. The vertical axis shows
+				<strong>absolute magnitude</strong> — a measure of a star's true, intrinsic
+				brightness, defined as how bright the star would look if every star were
+				placed at the same standard distance from us. This is different from
+				<strong>apparent magnitude</strong>, which is simply how bright a star looks
+				from Earth: a nearby faint star can outshine a distant brilliant one just
+				because it is closer. Stars get fainter with distance, so to convert an
+				apparent magnitude into an absolute one you need to know the distance —
+				which is precisely what Gaia measures. When the early steps refer to a
+				magnitude cutoff of 6.5, that is an apparent-magnitude limit: stars
+				bright enough to be seen from Earth regardless of how luminous they truly are.
+				Scroll through the steps below to watch the diagram's structure emerge as we
+				change how we sample the stars around us, and then fly out to clusters of
+				very different ages.
 			</p>
 		</section>
 
@@ -63,96 +90,105 @@ const nextTopics = [
 			<div class="narrated-tour__chapters">
 				<section class="narrated-tour__chapter" data-step="all-stars">
 					<p class="narrated-tour__chapter-eyebrow">Step 1 · Sun · all-sky sample</p>
-					<h2 class="narrated-tour__chapter-title">The all-stars view reveals the big structure</h2>
+					<h2 class="narrated-tour__chapter-title">The main sequence and the giant branch appear</h2>
 					<p>
-						We begin at the Sun, but the first sample ignores viewing direction completely.
-						It plots every star in the Gaia set that is bright enough to clear the apparent
-						magnitude limit, no matter where it lies on the sky.
+						We begin at the Sun. This first sample plots every Gaia star brighter than
+						roughly the faintest stars a person can pick out with the naked eye under a very
+						dark sky, with no restriction on viewing direction.
 					</p>
 					<p>
-						That is enough to reveal the two most obvious landmarks. The broad diagonal band
-						is the <strong>main sequence</strong>, where stars spend most of their lives
-						fusing hydrogen. The plume rising up on the cool side is the
-						<strong>red giant branch</strong>, made of stars that have exhausted their core
-						hydrogen and expanded into luminous, cooler giants.
+						Two landmarks dominate the diagram immediately. The broad diagonal band running
+						from hot and bright at the top left down to cool and faint at the bottom right is
+						the <strong>main sequence</strong> — every star here is steadily fusing hydrogen
+						in its core, just as the Sun is doing right now. The Sun itself sits comfortably
+						in the middle: not the biggest, not the smallest, just ordinary.
 					</p>
 					<p>
-						The Sun sits roughly in the middle of the main sequence: ordinary, stable, and
-						unexceptional. What this first view does <em>not</em> show fairly is how common
-						faint dwarfs really are, because a magnitude-limited survey naturally favours the
-						stars that shine brightest.
+						The second feature is the plume rising upward on the cool (right) side: the
+						<strong>red giant branch</strong>. These are stars that have run out of core
+						hydrogen and have swollen outward into luminous, cooler giants. This diagram only
+						show stars brighter than magnitude 6.5. This is an arbitrary limit we have used for this 
+						diagram just so it matches roughly the stars we can see in the night sky.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="inner-plane">
 					<p class="narrated-tour__chapter-eyebrow">Step 2 · View only · inner galactic plane</p>
-					<h2 class="narrated-tour__chapter-title">Looking into the inner plane shifts the mix</h2>
+					<h2 class="narrated-tour__chapter-title">Looking toward Carina changes the subset</h2>
 					<p>
-						Now we keep the Sun fixed and keep the same magnitude limit, but only plot the
-						stars that lie <em>in front of the camera</em>. The HR diagram becomes a directional
-						slice through the stellar population rather than an all-sky average.
+						Now we switch to "looked at" mode. Nothing magical happens to the data: we keep
+						the same 6.5-magnitude limit from Step 1, but throw away every star outside the
+						part of the sky we are facing. The new HR diagram is literally a subset of the
+						all-sky one.
 					</p>
 					<p>
-						Pointing into the inner galactic plane gives us a denser, younger-looking sample.
-						This is where the Milky Way's disc is richest in star-forming material and where
-						young, luminous stars are easiest to find. The bright upper main sequence becomes
-						more prominent because those massive stars light up the disc even when they are
-						rare.
+						We aim toward Acrux and the rich Carina direction of the southern Milky Way
+						because this sightline runs along the crowded galactic disc, where gas, dust,
+						young clusters, and active star-forming regions are concentrated. That makes it
+						a good first contrast with the all-sky sample. The shape remains roughly the same,
+						just with fewer stars.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="out-of-plane">
 					<p class="narrated-tour__chapter-eyebrow">Step 3 · View only · high galactic latitude</p>
-					<h2 class="narrated-tour__chapter-title">Out of the plane, evolved stars stand out more</h2>
+					<h2 class="narrated-tour__chapter-title">Away from the disc, the mix gets older</h2>
 					<p>
-						Rotate the view away from the galactic plane and the population changes again.
-						There are simply fewer young, massive stars far above or below the thin disc where
-						star formation is concentrated.
+						Now we keep the same "looked at" rule but swing the camera away from the galactic
+						plane, toward a quieter high-latitude direction marked by Arcturus. Arcturus is a
+						bright nearby orange giant, but the important change here is not the star itself.
+						It is the line of sight.
 					</p>
 					<p>
-						The sample now leans toward older, more evolved stars. The giant branch remains,
-						but the bright hot end of the main sequence thins out. We are not changing stellar
-						physics here. We are changing <em>which part of the galaxy</em> contributes stars
-						to the diagram.
+						There are simply fewer young, massive stars far above or below the thin disc where
+						star formation is concentrated. The sample now leans toward older, more evolved
+						stars. The giant branch remains, but the bright hot end of the main sequence thins
+						out. Stellar physics has not changed. We have only changed which small subset of
+						the sky is allowed to contribute stars. What we see is that when we look out of the
+						galactic plane, we see an absence of very massive, very young stars, and instead see
+						an ageing population tending towards the red giants.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="local-volume">
 					<p class="narrated-tour__chapter-eyebrow">Step 4 · Volume mode · local census</p>
-					<h2 class="narrated-tour__chapter-title">A local volume flips the bias</h2>
+					<h2 class="narrated-tour__chapter-title">White dwarfs and red dwarfs fill the diagram</h2>
 					<p>
-						Finally we abandon the magnitude cutoff and instead include every star within a
-						fixed sphere around the Sun. This is a much fairer census of our immediate
-						neighbourhood.
+						Now the sampling rule changes completely. We drop the brightness cutoff and instead
+						include every star inside a fixed sphere around the Sun — we stop asking which
+						stars are bright enough to see and start asking which stars are actually nearby.
 					</p>
 					<p>
-						The spectacular super-bright stars mostly disappear, not because they ceased to
-						exist, but because there are none that close to us. In their place the lower main
-						sequence fills up with enormous numbers of faint dwarfs. That is the real local
-						population asserting itself: the Milky Way is dominated by small, cool stars.
+						The spectacular super-bright stars mostly disappear because there simply are none
+						that close to us. In their place the lower main sequence fills with huge numbers
+						of faint red and orange dwarfs. This is the real local population: the Milky Way
+						is dominated by small, cool stars.
 					</p>
 					<p>
-						This local benchmark matters, because the next few chapters leave the Sun. Once we
-						move away from the telescope that collected the data, we start to see which
-						features in the diagram are robust stellar demographics and which ones depend on
-						what Gaia was actually able to detect from home.
+						Look also at the lower left corner. The scattered cluster of hot but very faint
+						points are <strong>white dwarfs</strong> — the dense, Earth-sized remnants left
+						behind after a Sun-like star exhausts all its fuel and sheds its outer layers.
+						They are extremely faint, so a nearby volume census is the only way to see them
+						in any numbers. This local benchmark matters, because the next steps leave the
+						Sun and we will start to lose these faint objects as Gaia's reach is no longer
+						enough to find them.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="away-volume">
-					<p class="narrated-tour__chapter-eyebrow">Step 5 · Volume mode · ~100 pc from the Sun</p>
+					<p class="narrated-tour__chapter-eyebrow">Step 5 · Volume mode · 200 pc from the Sun</p>
 					<h2 class="narrated-tour__chapter-title">The white dwarfs thin out for observational reasons</h2>
 					<p>
-						Now we fly only about 100 parsecs away. That is not far enough for the underlying
-						stellar population to change dramatically. We are still in the same broad region of
-						the galactic disc.
+						Now we carry that same local bubble 200 parsecs away from the Sun. That is still
+						nearby on a galactic scale. We are in the same broad region of the disc, so the
+						underlying stellar population should not change dramatically.
 					</p>
 					<p>
 						And yet the white-dwarf sequence already starts to weaken. The key point is that
-						this is <em>not</em> because white dwarfs suddenly become rare 100 parsecs from the
+						this is <em>not</em> because white dwarfs suddenly become rare 200 parsecs from the
 						Sun. It is because Gaia observed from the Solar System. Many faint white dwarfs
-						that would belong in a complete local census around this new position were already
-						too dim for Gaia to measure from the Sun in the first place.
+						and red dwarfs that would belong in a complete local census around this new
+						position were already too dim for Gaia to measure from home in the first place.
 					</p>
 					<p>
 						This is the lesson's first major warning label: when we move the observer through
@@ -163,56 +199,76 @@ const nextTopics = [
 
 				<section class="narrated-tour__chapter" data-step="pleiades">
 					<p class="narrated-tour__chapter-eyebrow">Step 6 · Young open cluster · Pleiades</p>
-					<h2 class="narrated-tour__chapter-title">A young cluster collapses the diagram onto the main sequence</h2>
+					<h2 class="narrated-tour__chapter-title">A young cluster has a clean, unbroken main sequence</h2>
 					<p>
-						Next we fly into the Pleiades, one of the nearest young open clusters. Here the
-						population is no longer a field mixture of many ages. Most of the stars were born
-						together, from the same cloud, at almost the same time.
+						Next we fly to the Pleiades — the Seven Sisters — one of the easiest star clusters
+						to spot in the night sky: a tight knot of blue-white stars visible to the naked
+						eye. All its stars formed together from the same cloud of gas about 100 million
+						years ago.
 					</p>
 					<p>
-						That is why the HR diagram tightens into a much cleaner sequence. The cluster is
-						young enough that its bright blue stars are still alive, and there has not yet
-						been time to build up a large evolved population. Instead of a broad field diagram,
-						we get something much closer to a single age track written across the main
-						sequence.
+						100 million years sounds long, but for stars it is barely a start. Even the
+						most massive Pleiades stars have not yet exhausted their core hydrogen, so almost
+						the entire cluster still sits on the main sequence. The bright blue end at the
+						top is intact, the giant branch is almost empty, and there is no obvious turn-off
+						point. Instead of the messy mixed-age field we saw near the Sun, we get a
+						tight, clean sequence that shows how stars of different masses look at the same
+						young age.
 					</p>
 				</section>
 
-				<section class="narrated-tour__chapter" data-step="hyades">
-					<p class="narrated-tour__chapter-eyebrow">Step 7 · Older open cluster · Hyades</p>
-					<h2 class="narrated-tour__chapter-title">An older cluster shows the turn-off marching downward</h2>
+				<section class="narrated-tour__chapter" data-step="ngc-752">
+					<p class="narrated-tour__chapter-eyebrow">Step 7 · Older open cluster · NGC 752</p>
+					<h2 class="narrated-tour__chapter-title">The main-sequence turn-off shifts downward with age</h2>
 					<p>
-						The Hyades are still an open cluster, but they are much older than the Pleiades.
-						That extra time matters. The most massive stars have already exhausted their core
-						hydrogen and left the upper main sequence.
+						NGC 752 is almost the opposite of the Pleiades. It is a loose open cluster in
+						Andromeda whose stars have had well over a billion years to evolve — long enough
+						that Caroline Herschel could discover it in 1783, and long enough that its HR
+						diagram looks very different from a young cluster.
 					</p>
 					<p>
-						Compared with the Pleiades, the turn-off point has moved downward to lower masses,
-						and evolved giants become more obvious. This is why clusters are such powerful
-						stellar clocks: in a population of one age, the place where stars peel away from
-						the main sequence tells you how long the cluster has been evolving.
+						In the Pleiades, massive hot stars still dominate the upper main sequence because
+						not enough time has passed for them to exhaust their hydrogen. In NGC 752, those
+						same high-mass stars have already run out of fuel, swollen into red giants, and
+						departed. The point where stars peel away from the main sequence —
+						the <strong>main-sequence turn-off</strong> — has migrated downward to lower
+						masses. A faint red giant branch now stands clearly above the remaining
+						lower main sequence.
+					</p>
+					<p>
+						This is why clusters are such powerful stellar clocks: because all the stars
+						formed at the same time, the position of the turn-off tells you directly how long
+						the cluster has been evolving.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="omega-cen">
 					<p class="narrated-tour__chapter-eyebrow">Step 8 · Globular cluster · Omega Centauri · 100 pc sample</p>
-					<h2 class="narrated-tour__chapter-title">A globular cluster is an ancient stellar population</h2>
+					<h2 class="narrated-tour__chapter-title">An ancient population — and a few puzzling impostors</h2>
 					<p>
-						Finally we jump to Omega Centauri, the same globular cluster from the star-clusters
-						lesson. This is a completely different stellar environment: far older, denser, and
-						more dominated by low-mass survivors.
+						Finally we jump to Omega Centauri, the largest and brightest globular cluster in
+						our sky — so unusual that it may be the stripped core of a small dwarf galaxy.
+						Formed billions of years before the Sun, it is a completely different stellar
+						environment: far older, denser, and dominated entirely by low-mass survivors.
+						We widen the sample to 100 parsecs so we capture a representative slice of this
+						enormous cluster rather than just its core.
 					</p>
 					<p>
-						For this final stop we widen the sample to 100 parsecs. Omega Centauri is much
-						more extended than the nearby open clusters on this scale, so a larger bubble gives
-						us a more representative view of the cluster rather than just a tiny local patch.
+						The hot, massive end of the main sequence is gone because those stars exhausted
+						their hydrogen long ago and have since faded into remnants. What remains is a
+						very low turn-off, a prominent giant branch, and — at the faint end — a sparse
+						scattering of the white dwarf remnants left over from stellar deaths spread
+						across billions of years.
 					</p>
 					<p>
-						The hot, massive end of the main sequence is gone because those stars died billions
-						of years ago. What remains is an elderly population: faint low-mass stars, a strong
-						giant branch, and the evolved remnants of a system that formed long before the
-						Sun. Even without perfect completeness, the contrast with the local field and the
-						open clusters is stark.
+						Look carefully for a handful of points sitting <em>above</em> the turn-off and
+						bluer than the giant branch. These are <strong>blue stragglers</strong>: stars
+						that appear younger than the rest of the cluster. They should not exist — by now
+						every star massive enough to sit there ought to have evolved away. The leading
+						explanation is that they were rejuvenated by stealing mass from a companion star,
+						or by two stars merging outright. Dense globular clusters like Omega Centauri are
+						exactly the environment where such collisions and close encounters happen, making
+						blue stragglers a signature feature of an ancient, crowded stellar population.
 					</p>
 				</section>
 
@@ -226,9 +282,9 @@ const nextTopics = [
 						<button type="button" class="narrated-tour__nav-button" data-step-fly="inner-plane">Inner disc</button>
 						<button type="button" class="narrated-tour__nav-button" data-step-fly="out-of-plane">High lat</button>
 						<button type="button" class="narrated-tour__nav-button" data-step-fly="local-volume">Local</button>
-						<button type="button" class="narrated-tour__nav-button" data-step-fly="away-volume">+100 pc</button>
+						<button type="button" class="narrated-tour__nav-button" data-step-fly="away-volume">+200 pc</button>
 						<button type="button" class="narrated-tour__nav-button" data-step-fly="pleiades">Pleiades</button>
-						<button type="button" class="narrated-tour__nav-button" data-step-fly="hyades">Hyades</button>
+						<button type="button" class="narrated-tour__nav-button" data-step-fly="ngc-752">NGC 752</button>
 						<button type="button" class="narrated-tour__nav-button" data-step-fly="omega-cen">ω Cen</button>
 					</div>
 
@@ -271,25 +327,27 @@ const nextTopics = [
 					<p>
 						When you fly away from the Sun, you are not creating a brand-new Gaia survey from
 						that location. You are reusing a catalogue observed from Earth, so faint stars can
-						drop out for purely observational reasons.
+						drop out for purely observational reasons even when the underlying stellar mix has
+						changed very little.
 					</p>
 				</article>
 
 				<article class="panel">
 					<p class="panel__eyebrow">Youth</p>
-					<h3>The Pleiades stay close to a clean main sequence</h3>
+					<h3>The Pleiades keep most of their stars near a young track</h3>
 					<p>
-						A young cluster has had little time to evolve away from the main sequence. Its HR
-						diagram is much tighter than the mixed-age field near the Sun.
+						A young open cluster has had little time to evolve away from the main sequence.
+						Its HR diagram is much tighter than the mixed-age field near the Sun.
 					</p>
 				</article>
 
 				<article class="panel">
 					<p class="panel__eyebrow">Age</p>
-					<h3>The Hyades show the turn-off shifting downward</h3>
+					<h3>NGC 752 shows the turn-off shifting downward</h3>
 					<p>
-						Compared with the Pleiades, the Hyades have already lost their hottest main-sequence
-						stars. That missing upper end is the signature of a more evolved cluster.
+						Compared with the younger Pleiades population, NGC 752 has already lost its
+						hottest main-sequence stars. That missing upper end is the signature of a much
+						more evolved cluster.
 					</p>
 				</article>
 
@@ -298,7 +356,8 @@ const nextTopics = [
 					<h3>Omega Centauri is a very old population in a very different setting</h3>
 					<p>
 						A globular cluster pushes the lesson to its oldest end-state: dense, ancient, and
-						depleted of massive stars. Its diagram should feel nothing like the local field.
+						depleted of massive stars. Its diagram should feel nothing like the local field or
+						the young star-forming region.
 					</p>
 				</article>
 			</div>
@@ -369,16 +428,16 @@ const nextTopics = [
 	import {
 		DEFAULT_HR_MAG_LIMIT,
 		DEFAULT_HR_VOLUME_RADIUS,
-		GALACTIC_NORTH_TARGET_PC,
 		INNER_GALACTIC_PLANE_TARGET_PC,
 		mountHrDiagramViewer,
 	} from '../../../scripts/hr-diagram-viewer.js';
+	import { createJourneyGraph } from '../../../scripts/journey-builder.js';
 	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
 	import {
-		HYADES_CENTER_PC,
 		OMEGA_CEN_CENTER_PC,
 		PLEIADES_CENTER_PC,
 		SOLAR_ORIGIN_PC,
+		buildOrbitalInsertRoute,
 	} from '@found-in-space/skykit';
 
 	const tourRoot = document.querySelector('[data-hr-tour]');
@@ -386,10 +445,153 @@ const nextTopics = [
 	const statusEl = document.querySelector('[data-hr-tour-status]');
 	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-step]') ?? [];
 	const navButtons = tourRoot?.querySelectorAll('[data-step-fly]') ?? [];
-	const OFFSET_SAMPLE_PC = { x: 80, y: 60, z: 0 };
-	// The field and open-cluster chapters use a consistent 25 pc bubble.
+	const OFFSET_SAMPLE_PC = { x: 200, y: 0, z: 0 };
 	const LESSON_VOLUME_RADIUS_PC = DEFAULT_HR_VOLUME_RADIUS;
 	const OMEGA_CEN_VOLUME_RADIUS_PC = 100;
+	const PLEIADES_ORBIT_RADIUS_PC = 10;
+	const PLEIADES_ANGULAR_SPEED = 0.22;
+	const PLEIADES_STANDARD_TRAVEL_TIME_SECS = 5;
+	const NGC_752_ORBIT_RADIUS_PC = 10;
+	const NGC_752_ANGULAR_SPEED = 0.22;
+	const NGC_752_STANDARD_TRAVEL_TIME_SECS = 5;
+	const OMEGA_CEN_ORBIT_RADIUS_PC = 60;
+	const OMEGA_CEN_ANGULAR_SPEED = 0.08;
+	const OMEGA_CEN_TRAVEL_TIME_SECS = 15;
+	const OMEGA_CEN_DECELERATION = 2.5;
+	const OMEGA_CEN_ORBIT_NORMAL = [0, 1, 0];
+	const PRELOAD_STARTUP_DELAY_MS = 600;
+	const PRELOAD_STAGGER_MS = 150;
+	const PRELOAD_TIMEOUT_MS = 2_500;
+
+	const NGC_752_CENTER_PC = { x: 303.7, y: 167.0, z: 269.3 };
+
+	const ARCTURUS_PC = { x: -8.8, y: -5.9, z: 3.7 };
+	const ACRUX_PC = { x: -44.4, y: -5.2, z: -88.0 };
+
+	function getLastPoint(points = [], fallback = null) {
+		return Array.isArray(points) && points.length > 0 ? points[points.length - 1] : fallback;
+	}
+
+	function reversePath(points = []) {
+		return [...points].reverse();
+	}
+
+	function buildOrbitArrivalAction(centerPc, radius, angularSpeed) {
+		return {
+			type: 'orbit',
+			centerPc,
+			radius,
+			angularSpeed,
+		};
+	}
+
+	function buildCanonicalOrbitalRoute(startObserverPc, {
+		centerPc,
+		orbitRadius,
+		angularSpeed,
+		durationSecs,
+		deceleration = 2.5,
+		orbitNormal = null,
+	} = {}) {
+		return buildOrbitalInsertRoute(startObserverPc, {
+			centerPc,
+			orbitRadius,
+			angularSpeed,
+			durationSecs,
+			deceleration,
+			...(Array.isArray(orbitNormal) ? { orbitNormal } : {}),
+			sampleStepSecs: 1 / 24,
+		});
+	}
+
+	function createTransition(fromSceneId, toSceneId, transition = {}) {
+		return {
+			fromSceneId,
+			toSceneId,
+			...transition,
+		};
+	}
+
+	function createPolylineTransition(fromSceneId, toSceneId, {
+		pathPoints,
+		arrivalAction = null,
+		preloadAnchorObserverPc = null,
+		...transition
+	} = {}) {
+		return createTransition(fromSceneId, toSceneId, {
+			travelPathPc: pathPoints,
+			travelPathArrivalAction: arrivalAction,
+			preloadAnchorObserverPc,
+			prependStartObserverToTravelPath: true,
+			...transition,
+		});
+	}
+
+	function reverseRadiusProfile(profile = []) {
+		return [...profile]
+			.map((point) => ({
+				...point,
+				progress: 1 - point.progress,
+			}))
+			.reverse();
+	}
+
+	const AWAY_VOLUME_FORWARD_PATH_PC = [SOLAR_ORIGIN_PC, OFFSET_SAMPLE_PC];
+	const AWAY_VOLUME_REVERSE_PATH_PC = reversePath(AWAY_VOLUME_FORWARD_PATH_PC);
+
+	const PLEIADES_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(OFFSET_SAMPLE_PC, {
+		centerPc: PLEIADES_CENTER_PC,
+		orbitRadius: PLEIADES_ORBIT_RADIUS_PC,
+		angularSpeed: PLEIADES_ANGULAR_SPEED,
+		durationSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
+	});
+	const PLEIADES_FORWARD_PATH_PC = PLEIADES_ROUTE_TEMPLATE?.points ?? [];
+	const PLEIADES_ROUTE_ANCHOR_PC = getLastPoint(PLEIADES_FORWARD_PATH_PC, {
+		x: PLEIADES_CENTER_PC.x + PLEIADES_ORBIT_RADIUS_PC,
+		y: PLEIADES_CENTER_PC.y,
+		z: PLEIADES_CENTER_PC.z,
+	});
+	const PLEIADES_REVERSE_PATH_PC = reversePath(PLEIADES_FORWARD_PATH_PC);
+
+	const HYADES_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(PLEIADES_ROUTE_ANCHOR_PC, {
+		centerPc: NGC_752_CENTER_PC,
+		orbitRadius: NGC_752_ORBIT_RADIUS_PC,
+		angularSpeed: NGC_752_ANGULAR_SPEED,
+		durationSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
+	});
+	const HYADES_FORWARD_PATH_PC = HYADES_ROUTE_TEMPLATE?.points ?? [];
+	const HYADES_ROUTE_ANCHOR_PC = getLastPoint(HYADES_FORWARD_PATH_PC, {
+		x: NGC_752_CENTER_PC.x + NGC_752_ORBIT_RADIUS_PC,
+		y: NGC_752_CENTER_PC.y,
+		z: NGC_752_CENTER_PC.z,
+	});
+	const HYADES_REVERSE_PATH_PC = reversePath(HYADES_FORWARD_PATH_PC);
+
+	const OMEGA_CEN_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(HYADES_ROUTE_ANCHOR_PC, {
+		centerPc: OMEGA_CEN_CENTER_PC,
+		orbitRadius: OMEGA_CEN_ORBIT_RADIUS_PC,
+		angularSpeed: OMEGA_CEN_ANGULAR_SPEED,
+		durationSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
+		deceleration: OMEGA_CEN_DECELERATION,
+		orbitNormal: OMEGA_CEN_ORBIT_NORMAL,
+	});
+	const OMEGA_CEN_FORWARD_PATH_PC = OMEGA_CEN_ROUTE_TEMPLATE?.points ?? [];
+	const OMEGA_CEN_ROUTE_ANCHOR_PC = getLastPoint(OMEGA_CEN_FORWARD_PATH_PC, {
+		x: OMEGA_CEN_CENTER_PC.x + OMEGA_CEN_ORBIT_RADIUS_PC,
+		y: OMEGA_CEN_CENTER_PC.y,
+		z: OMEGA_CEN_CENTER_PC.z,
+	});
+	const OMEGA_CEN_REVERSE_PATH_PC = reversePath(OMEGA_CEN_FORWARD_PATH_PC);
+
+	const OMEGA_CEN_TRAVEL_RADIUS_PROFILE = [
+		{ progress: 0, radiusPc: LESSON_VOLUME_RADIUS_PC },
+		{ progress: 0.55, radiusPc: LESSON_VOLUME_RADIUS_PC },
+		{ progress: 0.72, radiusPc: 40 },
+		{ progress: 0.84, radiusPc: 60 },
+		{ progress: 0.93, radiusPc: 80 },
+		{ progress: 1, radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC },
+	];
+	const OMEGA_CEN_RETURN_RADIUS_PROFILE = reverseRadiusProfile(OMEGA_CEN_TRAVEL_RADIUS_PROFILE);
 
 	const SCENES = {
 		'all-stars': {
@@ -400,19 +602,19 @@ const nextTopics = [
 		},
 		'inner-plane': {
 			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
+			targetPc: ACRUX_PC,
 			mode: 2,
 			magLimit: DEFAULT_HR_MAG_LIMIT,
 		},
 		'out-of-plane': {
 			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: GALACTIC_NORTH_TARGET_PC,
+			targetPc: ARCTURUS_PC,
 			mode: 2,
 			magLimit: DEFAULT_HR_MAG_LIMIT,
 		},
 		'local-volume': {
 			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
+			targetPc: ARCTURUS_PC,
 			mode: 1,
 			radius: LESSON_VOLUME_RADIUS_PC,
 			volumeRenderStrategy: 'strict',
@@ -427,26 +629,26 @@ const nextTopics = [
 			dwellMs: 4_000,
 			recenterSpeed: 0.05,
 		},
-		pleiades: {
+		'pleiades': {
 			targetPc: PLEIADES_CENTER_PC,
 			orbitCenter: PLEIADES_CENTER_PC,
 			mode: 1,
 			radius: LESSON_VOLUME_RADIUS_PC,
-			orbitRadius: 10,
-			angularSpeed: 0.18,
-			travelTimeSecs: 5,
+			orbitRadius: PLEIADES_ORBIT_RADIUS_PC,
+			angularSpeed: PLEIADES_ANGULAR_SPEED,
+			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
 			volumeRenderStrategy: 'progressive',
 			dwellMs: 5_000,
 			recenterSpeed: 0.06,
 		},
-		hyades: {
-			targetPc: HYADES_CENTER_PC,
-			orbitCenter: HYADES_CENTER_PC,
+		'ngc-752': {
+			targetPc: NGC_752_CENTER_PC,
+			orbitCenter: NGC_752_CENTER_PC,
 			mode: 1,
 			radius: LESSON_VOLUME_RADIUS_PC,
-			orbitRadius: 8,
-			angularSpeed: 0.22,
-			travelTimeSecs: 5,
+			orbitRadius: NGC_752_ORBIT_RADIUS_PC,
+			angularSpeed: NGC_752_ANGULAR_SPEED,
+			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
 			volumeRenderStrategy: 'progressive',
 			dwellMs: 5_000,
 			recenterSpeed: 0.06,
@@ -456,25 +658,135 @@ const nextTopics = [
 			orbitCenter: OMEGA_CEN_CENTER_PC,
 			mode: 1,
 			radius: OMEGA_CEN_VOLUME_RADIUS_PC,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			orbitRadius: 60,
-			angularSpeed: 0.08,
-			travelTimeSecs: 5,
-			preloadVolumeTunnel: true,
-			preloadVolumeTunnelRadiusPc: LESSON_VOLUME_RADIUS_PC*1.5,
-			preloadVolumeBubble: true,
-			preloadVolumeBubbleRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
-			backgroundPreloadOnMount: true,
-			backgroundPreloadAnchorPc: HYADES_CENTER_PC,
-			backgroundPreloadTimeoutMs: 2_500,
+			orbitRadius: OMEGA_CEN_ORBIT_RADIUS_PC,
+			angularSpeed: OMEGA_CEN_ANGULAR_SPEED,
+			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
+			deceleration: OMEGA_CEN_DECELERATION,
+			orbitNormal: OMEGA_CEN_ORBIT_NORMAL,
 			volumeRenderStrategy: 'progressive',
 			dwellMs: 6_000,
 			recenterSpeed: 0.04,
 		},
 	};
 
+	const TRANSITIONS = [
+		createTransition('all-stars', 'inner-plane'),
+		createTransition('inner-plane', 'all-stars'),
+		createTransition('inner-plane', 'out-of-plane'),
+		createTransition('out-of-plane', 'inner-plane'),
+		createTransition('out-of-plane', 'local-volume'),
+		createTransition('local-volume', 'out-of-plane'),
+		createPolylineTransition('local-volume', 'away-volume', {
+			pathPoints: AWAY_VOLUME_FORWARD_PATH_PC,
+			travelTimeSecs: 4,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: SOLAR_ORIGIN_PC,
+			dwellMs: 4_000,
+			recenterSpeed: 0.05,
+		}),
+		createPolylineTransition('away-volume', 'local-volume', {
+			pathPoints: AWAY_VOLUME_REVERSE_PATH_PC,
+			travelTimeSecs: 4,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: OFFSET_SAMPLE_PC,
+			dwellMs: 4_000,
+			recenterSpeed: 0.05,
+		}),
+		createPolylineTransition('away-volume', 'pleiades', {
+			pathPoints: PLEIADES_FORWARD_PATH_PC,
+			arrivalAction:
+				PLEIADES_ROUTE_TEMPLATE?.arrivalAction
+				?? buildOrbitArrivalAction(
+					PLEIADES_CENTER_PC,
+					PLEIADES_ORBIT_RADIUS_PC,
+					PLEIADES_ANGULAR_SPEED,
+				),
+			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: OFFSET_SAMPLE_PC,
+			dwellMs: 5_000,
+			recenterSpeed: 0.06,
+		}),
+		createPolylineTransition('pleiades', 'away-volume', {
+			pathPoints: PLEIADES_REVERSE_PATH_PC,
+			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: PLEIADES_ROUTE_ANCHOR_PC,
+			dwellMs: 4_000,
+			recenterSpeed: 0.05,
+		}),
+		createPolylineTransition('pleiades', 'ngc-752', {
+			pathPoints: HYADES_FORWARD_PATH_PC,
+			arrivalAction:
+				HYADES_ROUTE_TEMPLATE?.arrivalAction
+				?? buildOrbitArrivalAction(
+					NGC_752_CENTER_PC,
+					NGC_752_ORBIT_RADIUS_PC,
+					NGC_752_ANGULAR_SPEED,
+				),
+			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: PLEIADES_ROUTE_ANCHOR_PC,
+			dwellMs: 5_000,
+			recenterSpeed: 0.06,
+		}),
+		createPolylineTransition('ngc-752', 'pleiades', {
+			pathPoints: HYADES_REVERSE_PATH_PC,
+			arrivalAction: buildOrbitArrivalAction(
+				PLEIADES_CENTER_PC,
+				PLEIADES_ORBIT_RADIUS_PC,
+				PLEIADES_ANGULAR_SPEED,
+			),
+			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			preloadAnchorObserverPc: HYADES_ROUTE_ANCHOR_PC,
+			dwellMs: 5_000,
+			recenterSpeed: 0.06,
+		}),
+		createPolylineTransition('ngc-752', 'omega-cen', {
+			pathPoints: OMEGA_CEN_FORWARD_PATH_PC,
+			arrivalAction:
+				OMEGA_CEN_ROUTE_TEMPLATE?.arrivalAction
+				?? buildOrbitArrivalAction(
+					OMEGA_CEN_CENTER_PC,
+					OMEGA_CEN_ORBIT_RADIUS_PC,
+					OMEGA_CEN_ANGULAR_SPEED,
+				),
+			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
+			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
+			travelRadiusProfile: OMEGA_CEN_TRAVEL_RADIUS_PROFILE,
+			preloadAnchorObserverPc: HYADES_ROUTE_ANCHOR_PC,
+			dwellMs: 6_000,
+			recenterSpeed: 0.04,
+			deceleration: OMEGA_CEN_DECELERATION,
+		}),
+		createPolylineTransition('omega-cen', 'ngc-752', {
+			pathPoints: OMEGA_CEN_REVERSE_PATH_PC,
+			arrivalAction: buildOrbitArrivalAction(
+				NGC_752_CENTER_PC,
+				NGC_752_ORBIT_RADIUS_PC,
+				NGC_752_ANGULAR_SPEED,
+			),
+			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
+			travelRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
+			travelRadiusProfile: OMEGA_CEN_RETURN_RADIUS_PROFILE,
+			preloadAnchorObserverPc: OMEGA_CEN_ROUTE_ANCHOR_PC,
+			dwellMs: 5_000,
+			recenterSpeed: 0.06,
+			deceleration: OMEGA_CEN_DECELERATION,
+		}),
+	];
+
+	const journey = createJourneyGraph({
+		initialSceneId: 'all-stars',
+		scenes: SCENES,
+		transitions: TRANSITIONS,
+	});
+
 	if (tourRoot && viewerRoot) {
 		mountHrDiagramViewer(viewerRoot).then((viewer) => {
+			let currentSceneId = journey.initialSceneId;
+
 			setupNarratedTour({
 				root: tourRoot,
 				chapters,
@@ -486,29 +798,25 @@ const nextTopics = [
 					return button.dataset.stepFly;
 				},
 				activate(id) {
-					const scene = SCENES[id];
+					const scene = journey.resolveSceneSpec(id, { fromSceneId: currentSceneId });
 					if (scene) {
+						currentSceneId = id;
 						viewer.applyScene(scene).catch((err) => {
 							console.error('[website:hr-diagram-tour]', err);
 						});
 					}
 				},
 				statusEl,
-				initialId: 'all-stars',
+				initialId: journey.initialSceneId,
 				desktopStatus: 'Scroll to travel from the Sun to clusters and compare the HR diagram.',
 				phoneStatus: '',
 			});
 
-			for (const scene of Object.values(SCENES)) {
-				if (!scene?.backgroundPreloadOnMount) {
-					continue;
-				}
-				viewer.scheduleScenePreload(scene, {
-					anchorObserverPc: scene.backgroundPreloadAnchorPc ?? SOLAR_ORIGIN_PC,
-					delayMs: scene.backgroundPreloadDelayMs ?? 0,
-					timeoutMs: scene.backgroundPreloadTimeoutMs ?? 2_000,
-				});
-			}
+			viewer.scheduleScenePreloadBatch(journey.listResolvedTransitionSpecs(), {
+				delayMs: PRELOAD_STARTUP_DELAY_MS,
+				staggerMs: PRELOAD_STAGGER_MS,
+				timeoutMs: PRELOAD_TIMEOUT_MS,
+			});
 		}).catch((err) => {
 			console.error('[website:hr-diagram-tour]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
