@@ -1,0 +1,247 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout
+	title="3I/ATLAS at parsec scale | Learn | Found in Space"
+	description="Plot the inbound and outbound interstellar rays of 3I/ATLAS to see how an interstellar comet crosses the solar neighbourhood."
+>
+	<SiteHeader section="Learn" />
+
+	<main class="page atlas-page">
+		<section class="hero atlas-intro">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn/`}>Learn</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>3I/ATLAS at parsec scale</span>
+			</nav>
+			<p class="eyebrow">Interstellar visitor</p>
+			<h1>3I/ATLAS at parsec scale</h1>
+			<p class="lede">
+				Treat the comet as two straight interstellar rays: a blue inbound branch arriving at the
+				Sun, and a gold outbound branch leaving in a slightly different direction. At this
+				scale, the entire solar-system passage collapses into one small kink in the line. Here
+				the rays are extended to 250 parsecs so the geometry reads as a genuine interstellar
+				track through the local galaxy.
+			</p>
+		</section>
+
+		<section class="prose atlas-body">
+			<h2>Two asymptotes, one solar-system pass</h2>
+			<p>
+				This first view deliberately ignores the AU-scale details. The perihelion distance in
+				the current orbit solution is only 1.35648 au, which is effectively zero on a plot
+				measured in parsecs. That makes the right first lesson a geometric one: where
+				3I/ATLAS came from, where it is going, and how slightly those two directions differ.
+			</p>
+			<p>
+				The two branches are not mirrors. The outbound line has been nudged by the comet's
+				planetary encounter geometry, with Jupiter providing the dominant perturbation around
+				March 16, 2026. The bend is tiny, but on a clean 3D plot it is real and visible.
+			</p>
+		</section>
+
+		<div class="narrated-tour" data-three-i-atlas-tour>
+			<div class="narrated-tour__chapters">
+				<section class="narrated-tour__chapter" data-view="inbound">
+					<p class="narrated-tour__chapter-eyebrow">Inbound branch · looking sunward</p>
+					<h2 class="narrated-tour__chapter-title">Approaching from interstellar space</h2>
+					<p>
+						Start several parsecs out on the inbound axis and look toward the Sun. The blue
+						ray marks the comet's incoming asymptote: at this scale, 3I/ATLAS is almost
+						perfectly a straight line aimed at the inner solar system.
+					</p>
+					<p>
+						The Sun marks the point where the parsec-scale simplification breaks down. In
+						reality the comet misses the Sun by over an astronomical unit, but that gap is so
+						small compared with a parsec that it vanishes on this plot.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-view="outbound">
+					<p class="narrated-tour__chapter-eyebrow">Outbound branch · looking back home</p>
+					<h2 class="narrated-tour__chapter-title">The exit direction is not the same</h2>
+					<p>
+						Jump to the outbound side and look back at the Sun. The gold ray shows where the
+						comet is heading after it leaves the planetary system. It is close to the inbound
+						direction, but not identical.
+					</p>
+					<p>
+						That mismatch is the whole point of plotting two lines instead of one. It encodes
+						the deflection caused by the inner-solar-system encounter, dominated by Jupiter
+						rather than by a simple mirror reflection at the Sun.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-view="three-d">
+					<p class="narrated-tour__chapter-eyebrow">Orbiting view · full geometry</p>
+					<h2 class="narrated-tour__chapter-title">Seen in 3D, the bend appears</h2>
+					<p>
+						Pull back and orbit the system. The two rays meet at the Sun and form a shallow
+						angle in three dimensions. This is the parsec-scale picture the proposal is really
+						about: an interstellar object crossing our neighbourhood, not a comet sketch in
+						the planetary plane.
+					</p>
+					<p>
+						The next step from here would be to walk backward along the inbound ray and ask
+						which nearby stars the comet passed closest to before it reached the Sun. That is
+						a separate problem, but this viewer gives us the right starting geometry.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-view="free-roam">
+					<p class="narrated-tour__chapter-eyebrow">Final state · manual exploration</p>
+					<h2 class="narrated-tour__chapter-title">Take over and explore the full 250 pc rays</h2>
+					<p>
+						The guided tour ends here. Once this view settles, the camera unlocks and you can
+						explore manually to inspect the 250 parsec inbound and outbound lines from whatever
+						angle feels most useful.
+					</p>
+					<p>
+						On desktop, drag to look around and use the movement keys to roam through the
+						scene. This is the right place to start asking the next question: what lies close
+						to the inbound path if we trace the comet backward through the local stars?
+					</p>
+				</section>
+
+				<div class="narrated-tour__spacer" aria-hidden="true"></div>
+			</div>
+
+			<div class="narrated-tour__viewer-col">
+				<div class="narrated-tour__viewer-sticky">
+					<div class="narrated-tour__nav">
+						<button type="button" class="narrated-tour__nav-button" data-view-fly="inbound">Inbound</button>
+						<button type="button" class="narrated-tour__nav-button" data-view-fly="outbound">Outbound</button>
+						<button type="button" class="narrated-tour__nav-button" data-view-fly="three-d">3D view</button>
+						<button type="button" class="narrated-tour__nav-button" data-view-fly="free-roam">Free roam</button>
+					</div>
+					<div class="narrated-tour__viewer-shell" data-three-i-atlas-shell></div>
+					<span class="narrated-tour__status" data-three-i-atlas-status>Loading...</span>
+				</div>
+			</div>
+		</div>
+
+		<section class="section-grid atlas-notes">
+			<article class="panel">
+				<p class="panel__eyebrow">Why this works</p>
+				<h3>Parsec scale erases the miss distance</h3>
+				<p>
+					A perihelion of 1.35648 au is about 6.6 × 10<sup>-6</sup> parsecs. On a diagram that
+					spans many parsecs, the comet's solar-system flyby is visually indistinguishable from
+					a line that passes through the Sun.
+				</p>
+			</article>
+
+			<article class="panel">
+				<p class="panel__eyebrow">What comes next</p>
+				<h3>Trace the inbound branch backward</h3>
+				<p>
+					Once the geometry is in place, the fun next question is historical: which nearby
+					stars sit closest to the inbound line, and are any of those approaches close enough
+					to be dynamically interesting?
+				</p>
+			</article>
+
+			<article class="panel panel--accent panel--wide atlas-follow-up">
+				<p class="panel__eyebrow">Future layer</p>
+				<h3>Add the AU-scale inner solar system separately</h3>
+				<p>
+					The cleanest next step is not to force a single viewer to do everything. Keep this
+					parsec-scale tour for the interstellar geometry, then add a second layer or inset for
+					the heliocentric orbit and the Jupiter encounter itself.
+				</p>
+			</article>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<script>
+	import { mountThreeIAtlasViewer } from '../../../scripts/three-i-atlas-viewer.js';
+	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
+
+	const tourRoot = document.querySelector('[data-three-i-atlas-tour]');
+	const mount = document.querySelector('[data-three-i-atlas-shell]');
+	const statusEl = document.querySelector('[data-three-i-atlas-status]');
+	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-view]') ?? [];
+	const navButtons = tourRoot?.querySelectorAll('[data-view-fly]') ?? [];
+
+	if (mount && tourRoot) {
+		mountThreeIAtlasViewer(mount, {
+			onStatus(msg) {
+				if (statusEl) statusEl.textContent = msg;
+			},
+		}).then((result) => {
+			setupNarratedTour({
+				root: tourRoot,
+				chapters,
+				navButtons,
+				getChapterId(chapter) {
+					return chapter.dataset.view;
+				},
+				getNavButtonId(button) {
+					return button.dataset.viewFly;
+				},
+				activate(id) {
+					result.goTo(id);
+				},
+				statusEl,
+				initialId: 'inbound',
+				desktopStatus: 'Scroll the story or use the pills to change viewpoint. In the final chapter, drag to look and use the keyboard to roam.',
+				phoneStatus: 'Scroll the story to change viewpoint.',
+			});
+		}).catch((err) => {
+			console.error('[website:three-i-atlas]', err);
+			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+		});
+	}
+</script>
+
+<style>
+	.atlas-intro,
+	.atlas-body,
+	.atlas-notes {
+		max-width: 48rem;
+	}
+
+	.atlas-page h1 {
+		margin: 0;
+		max-width: 12ch;
+		font-size: clamp(2.4rem, 6vw, 4.2rem);
+		line-height: 1.02;
+		font-weight: 600;
+		letter-spacing: -0.03em;
+	}
+
+	.atlas-body {
+		padding-bottom: 1rem;
+	}
+
+	.atlas-notes {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.atlas-notes h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.28rem;
+		line-height: 1.15;
+		color: var(--fis-text);
+	}
+
+	.atlas-notes p {
+		margin: 0;
+		line-height: 1.72;
+		color: var(--fis-text-soft);
+	}
+
+	@media (max-width: 900px) {
+		.atlas-notes {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
