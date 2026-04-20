@@ -15,7 +15,7 @@ const nextTopics = [
 
 <Layout
 	title="The Hertzsprung-Russell diagram | Learn | Found in Space"
-	description="Follow a guided HR diagram lesson built from real Gaia data. Compare all-sky, directional, and volume-limited samples from the Sun to see how stellar populations change."
+	description="Follow a guided HR diagram lesson built from real Gaia data. Compare all-sky, directional, and nearby views from the Sun to see how stellar populations change."
 >
 	<SiteHeader section="Learn" />
 
@@ -77,22 +77,22 @@ const nextTopics = [
 				from Earth: a nearby faint star can outshine a distant brilliant one just
 				because it is closer. Stars get fainter with distance, so to convert an
 				apparent magnitude into an absolute one you need to know the distance —
-				which is precisely what Gaia measures. When the early steps refer to a
-				magnitude cutoff of 6.5, that is an apparent-magnitude limit: stars
-				bright enough to be seen from Earth regardless of how luminous they truly are.
-				Scroll through the steps below to watch the diagram's structure emerge as we
-				change how we sample the stars around us, and then fly out to clusters of
-				very different ages.
+				which is precisely what Gaia measures. Below, we start with a magnitude
+				cutoff of 6.5, which is an apparent-magnitude limit: stars bright enough to
+				be seen from Earth regardless of how luminous they truly are. As the tour
+				moves on, you will see the diagram's structure emerge as we change how we
+				look at the stars around us, and then fly out to clusters of very different
+				ages.
 			</p>
 		</section>
 
 		<div class="narrated-tour hr-tour" data-hr-tour>
 			<div class="narrated-tour__chapters">
 				<section class="narrated-tour__chapter" data-step="all-stars">
-					<p class="narrated-tour__chapter-eyebrow">Step 1 · Sun · all-sky sample</p>
+					<p class="narrated-tour__chapter-eyebrow">Step 1 · Sun · all-sky view</p>
 					<h2 class="narrated-tour__chapter-title">The main sequence and the giant branch appear</h2>
 					<p>
-						We begin at the Sun. This first sample plots every Gaia star brighter than
+						We begin at the Sun. This first view plots every Gaia star brighter than
 						roughly the faintest stars a person can pick out with the naked eye under a very
 						dark sky, with no restriction on viewing direction.
 					</p>
@@ -106,44 +106,44 @@ const nextTopics = [
 					<p>
 						The second feature is the plume rising upward on the cool (right) side: the
 						<strong>red giant branch</strong>. These are stars that have run out of core
-						hydrogen and have swollen outward into luminous, cooler giants. This diagram only
-						show stars brighter than magnitude 6.5. This is an arbitrary limit we have used for this 
-						diagram just so it matches roughly the stars we can see in the night sky.
+						hydrogen and have swollen outward into luminous, cooler giants. This diagram
+						only shows stars brighter than magnitude 6.5. We use that arbitrary limit so
+						the data roughly match the stars we can see in the night sky.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="inner-plane">
 					<p class="narrated-tour__chapter-eyebrow">Step 2 · View only · inner galactic plane</p>
-					<h2 class="narrated-tour__chapter-title">Looking toward Carina changes the subset</h2>
+					<h2 class="narrated-tour__chapter-title">Looking toward Carina changes the data</h2>
 					<p>
-						Now we switch to "looked at" mode. Nothing magical happens to the data: we keep
-						the same 6.5-magnitude limit from Step 1, but throw away every star outside the
-						part of the sky we are facing. The new HR diagram is literally a subset of the
+						Now we look in one direction only. Nothing magical happens to the data: we keep
+						the same 6.5-magnitude limit from Step 1, but ignore every star outside the part
+						of the sky we are facing. The new HR diagram is just a smaller slice of the
 						all-sky one.
 					</p>
 					<p>
 						We aim toward Acrux and the rich Carina direction of the southern Milky Way
-						because this sightline runs along the crowded galactic disc, where gas, dust,
+						because this direction runs along the crowded galactic disc, where gas, dust,
 						young clusters, and active star-forming regions are concentrated. That makes it
-						a good first contrast with the all-sky sample. The shape remains roughly the same,
+						a good first contrast with the all-sky view. The shape remains roughly the same,
 						just with fewer stars.
 					</p>
 				</section>
 
-				<section class="narrated-tour__chapter" data-step="out-of-plane">
+					<section class="narrated-tour__chapter" data-step="out-of-plane">
 					<p class="narrated-tour__chapter-eyebrow">Step 3 · View only · high galactic latitude</p>
 					<h2 class="narrated-tour__chapter-title">Away from the disc, the mix gets older</h2>
 					<p>
-						Now we keep the same "looked at" rule but swing the camera away from the galactic
-						plane, toward a quieter high-latitude direction marked by Arcturus. Arcturus is a
-						bright nearby orange giant, but the important change here is not the star itself.
-						It is the line of sight.
+						Now we keep looking in one direction, but swing away from the galactic plane
+						toward a quieter high-latitude patch marked by Arcturus. Arcturus is a bright
+						nearby orange giant, but the important change here is not the star itself. It is
+						the direction we are looking.
 					</p>
 					<p>
 						There are simply fewer young, massive stars far above or below the thin disc where
-						star formation is concentrated. The sample now leans toward older, more evolved
+						star formation is concentrated. The data set now leans toward older, more evolved
 						stars. The giant branch remains, but the bright hot end of the main sequence thins
-						out. Stellar physics has not changed. We have only changed which small subset of
+						out. Stellar physics has not changed. We have only changed which small part of
 						the sky is allowed to contribute stars. What we see is that when we look out of the
 						galactic plane, we see an absence of very massive, very young stars, and instead see
 						an ageing population tending towards the red giants.
@@ -168,7 +168,7 @@ const nextTopics = [
 						Look also at the lower left corner. The scattered cluster of hot but very faint
 						points are <strong>white dwarfs</strong> — the dense, Earth-sized remnants left
 						behind after a Sun-like star exhausts all its fuel and sheds its outer layers.
-						They are extremely faint, so a nearby volume census is the only way to see them
+						They are extremely faint, so a nearby count is the only way to see them
 						in any numbers. This local benchmark matters, because the next steps leave the
 						Sun and we will start to lose these faint objects as Gaia's reach is no longer
 						enough to find them.
@@ -177,23 +177,23 @@ const nextTopics = [
 
 				<section class="narrated-tour__chapter" data-step="away-volume">
 					<p class="narrated-tour__chapter-eyebrow">Step 5 · Volume mode · 200 pc from the Sun</p>
-					<h2 class="narrated-tour__chapter-title">The white dwarfs thin out for observational reasons</h2>
+					<h2 class="narrated-tour__chapter-title">This nearby data set starts to miss faint stars</h2>
 					<p>
 						Now we carry that same local bubble 200 parsecs away from the Sun. That is still
-						nearby on a galactic scale. We are in the same broad region of the disc, so the
-						underlying stellar population should not change dramatically.
+						nearby on a galactic scale, and the underlying stellar population should not
+						change dramatically.
 					</p>
 					<p>
 						And yet the white-dwarf sequence already starts to weaken. The key point is that
 						this is <em>not</em> because white dwarfs suddenly become rare 200 parsecs from the
-						Sun. It is because Gaia observed from the Solar System. Many faint white dwarfs
-						and red dwarfs that would belong in a complete local census around this new
-						position were already too dim for Gaia to measure from home in the first place.
+						Sun. It is because Gaia observed from the Solar System, so faint stars around this
+						new position can fall below the telescope limit even when they are really there.
+						Many white dwarfs and red dwarfs that would belong in a complete local census are
+						simply too dim for Gaia to measure from home.
 					</p>
 					<p>
-						This is the lesson's first major warning label: when we move the observer through
-						the dataset, we are moving through a catalogue whose selection function is still
-						anchored at Earth.
+						This is the lesson's first major warning label: when a feature changes, ask whether
+						the stars changed or the data did.
 					</p>
 				</section>
 
@@ -243,14 +243,14 @@ const nextTopics = [
 				</section>
 
 				<section class="narrated-tour__chapter" data-step="omega-cen">
-					<p class="narrated-tour__chapter-eyebrow">Step 8 · Globular cluster · Omega Centauri · 100 pc sample</p>
+					<p class="narrated-tour__chapter-eyebrow">Step 8 · Globular cluster · Omega Centauri · 100 pc view</p>
 					<h2 class="narrated-tour__chapter-title">An ancient population — and a few puzzling impostors</h2>
 					<p>
 						Finally we jump to Omega Centauri, the largest and brightest globular cluster in
 						our sky — so unusual that it may be the stripped core of a small dwarf galaxy.
 						Formed billions of years before the Sun, it is a completely different stellar
 						environment: far older, denser, and dominated entirely by low-mass survivors.
-						We widen the sample to 100 parsecs so we capture a representative slice of this
+						We widen the view to 100 parsecs so we capture a representative slice of this
 						enormous cluster rather than just its core.
 					</p>
 					<p>
@@ -318,7 +318,7 @@ const nextTopics = [
 			<h2>What to compare across the full lesson</h2>
 			<p>
 				The same plot is doing two jobs at once: revealing stellar evolution and revealing the
-				selection effects baked into the catalogue.
+				built-in limits of the data.
 			</p>
 			<div class="explore-grid">
 				<article class="panel">
@@ -326,8 +326,8 @@ const nextTopics = [
 					<h3>Moving the observer does not move the telescope</h3>
 					<p>
 						When you fly away from the Sun, you are not creating a brand-new Gaia survey from
-						that location. You are reusing a catalogue observed from Earth, so faint stars can
-						drop out for purely observational reasons even when the underlying stellar mix has
+						that location. You are reusing data collected from Earth, so faint stars can
+						drop out because of how the data were collected even when the underlying stellar mix has
 						changed very little.
 					</p>
 				</article>
@@ -373,8 +373,9 @@ const nextTopics = [
 			<h3>The ~2 700 K wall</h3>
 			<p>
 				The main sequence appears to hit a hard vertical wall at around 2 700 K. This is real,
-				but it is a pipeline artefact, not a physical boundary. Most faint red stars in the Gaia
-				catalogue lack a spectroscopic temperature estimate. For those stars the pipeline falls
+				but it comes from the way the data are processed, not from a physical boundary. Most
+				faint red stars here do not have a spectroscopic temperature estimate. For those stars the
+				pipeline falls
 				back to converting the Gaia BP&ndash;RP colour index to an effective temperature using the
 				<a
 					href="https://github.com/Found-in-Space/pipeline/blob/main/src/foundinspace/pipeline/common/photometry.py"
