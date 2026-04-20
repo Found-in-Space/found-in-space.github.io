@@ -19,12 +19,21 @@ import {
 const RAW_INBOUND_MOTION = Object.freeze({ x: -0.400096, y: 0.856262, z: 0.326710 });
 const RAW_OUTBOUND_MOTION = Object.freeze({ x: -0.085865, y: 0.936930, z: 0.338805 });
 
-const RAY_LENGTH_PC = 250;
-const VIEW_DISTANCE_PC = 42;
-const VIEW_OFFSET_PC = 5.5;
-const ORBIT_RADIUS_PC = 115;
-const FREE_ROAM_DISTANCE_PC = 90;
-const FREE_ROAM_OFFSET_PC = 18;
+const RAY_LENGTH_PC = 1_000;
+const INBOUND_SPEED_PC_PER_KYR = 0.059312;
+const OUTBOUND_SPEED_PC_PER_KYR = 0.059328;
+const TIME_MARKER_STEP_KYR = 100;
+const TIME_MARKER_SIZE_PC = 0.9;
+const LABEL_DISTANCE_PC = 120;
+const LABEL_OFFSET_PC = 3.2;
+const SUN_LABEL_OFFSET_PC = 1.4;
+const SUN_LABEL_HEIGHT_PC = 0.8;
+const LINE_LABEL_HEIGHT_PC = 1.2;
+const VIEW_DISTANCE_PC = 140;
+const VIEW_OFFSET_PC = 16;
+const ORBIT_RADIUS_PC = 320;
+const FREE_ROAM_DISTANCE_PC = 260;
+const FREE_ROAM_OFFSET_PC = 60;
 
 function scalePoint(point, scalar) {
 	return {
@@ -189,6 +198,22 @@ function createDiscTexture(color) {
 	return texture;
 }
 
+function createCircularPointTexture() {
+	const canvas = document.createElement('canvas');
+	canvas.width = 64;
+	canvas.height = 64;
+	const ctx = canvas.getContext('2d');
+	const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 28);
+	gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+	gradient.addColorStop(0.45, 'rgba(255, 255, 255, 1)');
+	gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, 64, 64);
+	const texture = new THREE.CanvasTexture(canvas);
+	texture.needsUpdate = true;
+	return texture;
+}
+
 function createLabelTexture(text, color) {
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
@@ -209,6 +234,18 @@ function createLabelTexture(text, color) {
 	const texture = new THREE.CanvasTexture(canvas);
 	texture.needsUpdate = true;
 	return { texture, width: canvas.width, height: canvas.height };
+}
+
+function createMarkerMaterial({ color, texture, opacity }) {
+	return new THREE.SpriteMaterial({
+		map: texture,
+		color,
+		transparent: true,
+		opacity,
+		depthTest: false,
+		depthWrite: false,
+		sizeAttenuation: true,
+	});
 }
 
 function createSprite(texture, scalePc, positionPc) {
@@ -242,20 +279,51 @@ function createLabelSprite(text, color, positionPc, heightPc) {
 	return sprite;
 }
 
+function createTimeMarkerSprites({
+	directionPc,
+	spacingPc,
+	lengthPc,
+	color,
+	texture,
+	sizePc,
+	opacity,
+	renderOrder,
+}) {
+	const group = new THREE.Group();
+	const material = createMarkerMaterial({ color, texture, opacity });
+	const markerScale = sizePc * SCALE;
+	const count = Math.floor(lengthPc / spacingPc);
+
+	for (let index = 0; index < count; index += 1) {
+		const distancePc = spacingPc * (index + 1);
+		const pointPc = scalePoint(directionPc, distancePc);
+		const sprite = new THREE.Sprite(material);
+		sprite.position.copy(pcToSceneVector(pointPc));
+		sprite.scale.set(markerScale, markerScale, 1);
+		sprite.renderOrder = renderOrder;
+		group.add(sprite);
+	}
+
+	return { group, material };
+}
+
 function buildAnnotations() {
 	const colors = {
 		inbound: readThemeColor('--fis-blue'),
 		outbound: readThemeColor('--fis-gold'),
 		text: readThemeColor('--fis-text'),
 	};
+	const pointTexture = createCircularPointTexture();
 
 	const group = new THREE.Group();
 	group.name = 'three-i-atlas-annotations';
 
 	const inboundEndPc = scalePoint(INBOUND_DIRECTION_PC, RAY_LENGTH_PC);
 	const outboundEndPc = scalePoint(OUTBOUND_DIRECTION_PC, RAY_LENGTH_PC);
-	const labelOffsetPc = scalePoint(BEND_NORMAL_PC, 0.55);
-	const sunLabelOffsetPc = scalePoint(BEND_NORMAL_PC, 0.4);
+	const inboundLabelPc = scalePoint(INBOUND_DIRECTION_PC, LABEL_DISTANCE_PC);
+	const outboundLabelPc = scalePoint(OUTBOUND_DIRECTION_PC, LABEL_DISTANCE_PC);
+	const labelOffsetPc = scalePoint(BEND_NORMAL_PC, LABEL_OFFSET_PC);
+	const sunLabelOffsetPc = scalePoint(BEND_NORMAL_PC, SUN_LABEL_OFFSET_PC);
 
 	const inboundLine = new THREE.Line(
 		new THREE.BufferGeometry().setFromPoints([
@@ -272,6 +340,18 @@ function buildAnnotations() {
 	inboundLine.renderOrder = 840;
 	group.add(inboundLine);
 
+	const inboundTimeMarkers = createTimeMarkerSprites({
+		directionPc: INBOUND_DIRECTION_PC,
+		spacingPc: INBOUND_SPEED_PC_PER_KYR * TIME_MARKER_STEP_KYR,
+		lengthPc: RAY_LENGTH_PC,
+		color: colors.inbound,
+		sizePc: TIME_MARKER_SIZE_PC,
+		opacity: 0.72,
+		texture: pointTexture,
+		renderOrder: 842,
+	});
+	group.add(inboundTimeMarkers.group);
+
 	const outboundLine = new THREE.Line(
 		new THREE.BufferGeometry().setFromPoints([
 			pcToSceneVector(SOLAR_ORIGIN_PC),
@@ -287,45 +367,51 @@ function buildAnnotations() {
 	outboundLine.renderOrder = 841;
 	group.add(outboundLine);
 
+	const outboundTimeMarkers = createTimeMarkerSprites({
+		directionPc: OUTBOUND_DIRECTION_PC,
+		spacingPc: OUTBOUND_SPEED_PC_PER_KYR * TIME_MARKER_STEP_KYR,
+		lengthPc: RAY_LENGTH_PC,
+		color: colors.outbound,
+		sizePc: TIME_MARKER_SIZE_PC,
+		opacity: 0.72,
+		texture: pointTexture,
+		renderOrder: 843,
+	});
+	group.add(outboundTimeMarkers.group);
+
 	const sunMarker = createSprite(createDiscTexture(colors.text), 0.32, SOLAR_ORIGIN_PC);
 	group.add(sunMarker);
-
-	const inboundMarker = createSprite(createDiscTexture(colors.inbound), 0.18, inboundEndPc);
-	group.add(inboundMarker);
-
-	const outboundMarker = createSprite(createDiscTexture(colors.outbound), 0.18, outboundEndPc);
-	group.add(outboundMarker);
 
 	const sunLabel = createLabelSprite(
 		'Sun',
 		colors.text,
 		addPoints(SOLAR_ORIGIN_PC, sunLabelOffsetPc),
-		0.28,
+		SUN_LABEL_HEIGHT_PC,
 	);
 	group.add(sunLabel);
 
 	const inboundLabel = createLabelSprite(
 		'Inbound',
 		colors.inbound,
-		addPoints(inboundEndPc, labelOffsetPc),
-		0.28,
+		addPoints(inboundLabelPc, labelOffsetPc),
+		LINE_LABEL_HEIGHT_PC,
 	);
 	group.add(inboundLabel);
 
 	const outboundLabel = createLabelSprite(
 		'Outbound',
 		colors.outbound,
-		addPoints(outboundEndPc, labelOffsetPc),
-		0.28,
+		addPoints(outboundLabelPc, labelOffsetPc),
+		LINE_LABEL_HEIGHT_PC,
 	);
 	group.add(outboundLabel);
 
 	return {
 		group,
 		inboundLine,
+		inboundTimeMarkers,
 		outboundLine,
-		inboundMarker,
-		outboundMarker,
+		outboundTimeMarkers,
 		sunMarker,
 		sunLabel,
 		inboundLabel,
@@ -338,8 +424,8 @@ function applyChapterEmphasis(chapterId, annotations) {
 
 	annotations.inboundLine.material.opacity = emphasis.inboundOpacity;
 	annotations.outboundLine.material.opacity = emphasis.outboundOpacity;
-	annotations.inboundMarker.material.opacity = emphasis.inboundOpacity;
-	annotations.outboundMarker.material.opacity = emphasis.outboundOpacity;
+	annotations.inboundTimeMarkers.material.opacity = emphasis.inboundOpacity * 0.72;
+	annotations.outboundTimeMarkers.material.opacity = emphasis.outboundOpacity * 0.72;
 	annotations.inboundLabel.visible = emphasis.showInboundLabel;
 	annotations.outboundLabel.visible = emphasis.showOutboundLabel;
 	annotations.sunMarker.material.opacity = 1;
@@ -372,7 +458,7 @@ export async function mountThreeIAtlasViewer(mount, options = {}) {
 			cameraController,
 			createSelectionRefreshController({
 				id: 'website-three-i-atlas-refresh',
-				observerDistancePc: 6,
+				observerDistancePc: 16,
 				minIntervalMs: 250,
 				watchSize: false,
 			}),
