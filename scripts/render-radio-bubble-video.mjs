@@ -9,19 +9,39 @@ import { chromium } from 'playwright';
 const WIDTH = 3840;
 const HEIGHT = 2160;
 const FPS = 24;
-const SECONDS = 6;
-const FRAME_COUNT = FPS * SECONDS;
 const HOST = '127.0.0.1';
 const PORT = 4325;
-const PAGE_URL = `http://${HOST}:${PORT}/video/radio-bubble-test/`;
 const SERVER_READY_TIMEOUT_MS = 90_000;
 const PAGE_READY_TIMEOUT_MS = 180_000;
+const CONFIGS = Object.freeze({
+	test: {
+		id: 'radio-bubble-test',
+		routePath: '/video/radio-bubble-test/',
+		seconds: 6,
+		outputName: 'radio-bubble-test',
+	},
+	full: {
+		id: 'radio-bubble-full',
+		routePath: '/video/radio-bubble-full/',
+		seconds: 60,
+		outputName: 'radio-bubble-full',
+	},
+});
+
+const mode = process.argv[2] ?? 'test';
+const config = CONFIGS[mode];
+if (!config) {
+	const modes = Object.keys(CONFIGS).join(', ');
+	throw new Error(`Unknown radio bubble video mode "${mode}". Expected one of: ${modes}`);
+}
+const FRAME_COUNT = FPS * config.seconds;
+const PAGE_URL = `http://${HOST}:${PORT}${config.routePath}`;
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
-const outputRoot = path.join(projectRoot, 'video-output', 'radio-bubble-test');
+const outputRoot = path.join(projectRoot, 'video-output', config.outputName);
 const framesRoot = path.join(outputRoot, 'frames');
-const videoPath = path.join(outputRoot, 'radio-bubble-test.mp4');
+const videoPath = path.join(outputRoot, `${config.outputName}.mp4`);
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -178,7 +198,7 @@ async function waitForExportPage(page) {
 async function captureFrames(page) {
 	const startStats = await page.evaluate(() => window.__radioBubbleVideoExport.startClip());
 	console.log(
-		`[video:radio-bubble] start stars=${startStats.actualStarCount}/${startStats.expectedStarCount} nodes=${startStats.nodeCount} committed=${startStats.committedNodeCount}`,
+		`[video:${config.id}] start stars=${startStats.actualStarCount}/${startStats.expectedStarCount} nodes=${startStats.nodeCount} committed=${startStats.committedNodeCount}`,
 	);
 
 	for (let frameIndex = 1; frameIndex <= FRAME_COUNT; frameIndex += 1) {
@@ -197,7 +217,7 @@ async function captureFrames(page) {
 			caret: 'hide',
 		});
 		console.log(
-			`[video:radio-bubble] frame=${String(frameIndex).padStart(3, '0')}/${FRAME_COUNT} time=${timeSecs.toFixed(3)}s stars=${stats.actualStarCount}/${stats.expectedStarCount} nodes=${stats.nodeCount} committed=${stats.committedNodeCount}`,
+			`[video:${config.id}] frame=${String(frameIndex).padStart(4, '0')}/${FRAME_COUNT} time=${timeSecs.toFixed(3)}s stars=${stats.actualStarCount}/${stats.expectedStarCount} nodes=${stats.nodeCount} committed=${stats.committedNodeCount}`,
 		);
 	}
 }
@@ -218,7 +238,7 @@ async function encodeVideo() {
 		videoPath,
 	]);
 	const info = await stat(videoPath);
-	console.log(`[video:radio-bubble] wrote ${rel(videoPath)} (${info.size.toLocaleString()} bytes)`);
+	console.log(`[video:${config.id}] wrote ${rel(videoPath)} (${info.size.toLocaleString()} bytes)`);
 }
 
 async function main() {
@@ -228,7 +248,7 @@ async function main() {
 	let browser = null;
 	try {
 		await waitForServer(server);
-		console.log(`[video:radio-bubble] Astro ready at ${PAGE_URL}`);
+		console.log(`[video:${config.id}] Astro ready at ${PAGE_URL}`);
 
 		try {
 			browser = await chromium.launch({
@@ -260,14 +280,14 @@ async function main() {
 
 		const status = await waitForExportPage(page);
 		console.log(
-			`[video:radio-bubble] page ready stars=${status.starStats.starCount} nodes=${status.starStats.nodeCount} commits=${status.commitCount}`,
+			`[video:${config.id}] page ready stars=${status.starStats.starCount} nodes=${status.starStats.nodeCount} commits=${status.commitCount}`,
 		);
 		await captureFrames(page);
 		await browser.close();
 		browser = null;
 
 		await encodeVideo();
-		console.log(`[video:radio-bubble] captured ${FRAME_COUNT} PNG frames at ${WIDTH}x${HEIGHT}`);
+		console.log(`[video:${config.id}] captured ${FRAME_COUNT} PNG frames at ${WIDTH}x${HEIGHT}`);
 	} finally {
 		if (browser) {
 			await browser.close().catch(() => null);

@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "video:install-browsers": "playwright install chromium",
-    "video:radio-bubble:test": "node scripts/render-radio-bubble-video.mjs"
+    "video:radio-bubble:test": "node scripts/render-radio-bubble-video.mjs test",
+    "video:radio-bubble:full": "node scripts/render-radio-bubble-video.mjs full"
   },
   "dependencies": {
     "@found-in-space/skykit": "github:Found-in-Space/skykit#6ff219",

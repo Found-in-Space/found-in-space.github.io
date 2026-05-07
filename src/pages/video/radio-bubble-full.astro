@@ -1,0 +1,548 @@
+---
+const title = 'Radio Bubble Full Video Export';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+	</head>
+	<body>
+		<main class="video-stage" aria-label={title}>
+			<div class="skyview" data-video-skyview></div>
+			<div class="copy-overlay" data-video-overlay>
+				<p class="copy-overlay__eyebrow" data-video-overlay-eyebrow></p>
+				<p class="copy-overlay__title" data-video-overlay-title></p>
+				<p class="copy-overlay__body" data-video-overlay-body></p>
+			</div>
+		</main>
+
+		<script>
+			import {
+				HYADES_CENTER_PC,
+				ORION_NEBULA_PC,
+			} from '@found-in-space/skykit';
+			import { mountRadioBubbleViewer } from '../../scripts/radio-bubble-viewer.js';
+
+			const FRAME_TIMEOUT_MS = 45_000;
+			const INITIAL_TIMEOUT_MS = 90_000;
+			const SOLAR_ORIGIN_PC = Object.freeze({ x: 0, y: 0, z: 0 });
+			const HYADES_FRAMING_TARGET_PC = Object.freeze({
+				x: HYADES_CENTER_PC.x * 0.64,
+				y: HYADES_CENTER_PC.y * 0.64,
+				z: HYADES_CENTER_PC.z * 0.64,
+			});
+			const CUES = Object.freeze([
+				{
+					startSecs: 0,
+					endSecs: 8,
+					eyebrow: 'Inside the bubble',
+					title: 'Earth sits inside a shell of old signals.',
+					body: 'Every radio broadcast and radar pulse expands outward at light speed, centred on the Sun.',
+				},
+				{
+					startSecs: 8,
+					endSecs: 18,
+					eyebrow: 'The wavefront',
+					title: 'After 131 years, it reaches about 40 parsecs.',
+					body: 'The blue mesh marks the leading edge. Stars inside have been washed over by our electromagnetic history.',
+				},
+				{
+					startSecs: 18,
+					endSecs: 30,
+					eyebrow: 'Pulling back',
+					title: 'The impressive sphere quickly becomes small.',
+					body: 'A thousand nearby systems sounds like a lot, until the local neighbourhood begins to fill the frame.',
+				},
+				{
+					startSecs: 30,
+					endSecs: 42,
+					eyebrow: 'Galactic scale',
+					title: 'Against the Milky Way, the bubble is almost nothing.',
+					body: "If the galaxy were a football pitch, humanity's radio footprint would be smaller than a grain of sand.",
+				},
+				{
+					startSecs: 42,
+					endSecs: 52,
+					eyebrow: 'The Hyades',
+					title: 'The nearest open cluster is still just beyond reach.',
+					body: 'The Hyades sit about 48 parsecs away. Our earliest signals are still roughly 8 parsecs short.',
+				},
+				{
+					startSecs: 52,
+					endSecs: 60,
+					eyebrow: 'Back home',
+					title: 'The volume that knows we are here is tiny.',
+					body: 'From inside, the shell becomes invisible again. Most of the galaxy has no electromagnetic evidence of us at all.',
+				},
+			]);
+
+			const mount = document.querySelector('[data-video-skyview]');
+			const overlay = document.querySelector('[data-video-overlay]');
+			const overlayEyebrow = document.querySelector('[data-video-overlay-eyebrow]');
+			const overlayTitle = document.querySelector('[data-video-overlay-title]');
+			const overlayBody = document.querySelector('[data-video-overlay-body]');
+
+			let mounted = null;
+			let manualTimeMs = 0;
+
+			const starReadiness = {
+				commitCount: 0,
+				lastCommit: null,
+				lastSignature: null,
+				pendingSignature: null,
+				waiters: new Set(),
+			};
+
+			const exportApi = {
+				ready: null,
+				readyState: 'loading',
+				error: null,
+				getStatus,
+				startClip,
+				captureFrame,
+			};
+			window.__radioBubbleVideoExport = exportApi;
+
+			function clamp01(value) {
+				return Math.min(1, Math.max(0, Number(value) || 0));
+			}
+
+			function smoothstep(value) {
+				const t = clamp01(value);
+				return t * t * (3 - 2 * t);
+			}
+
+			function lerp(left, right, t) {
+				return left + (right - left) * t;
+			}
+
+			function lerpPoint(left, right, t) {
+				return {
+					x: lerp(left.x, right.x, t),
+					y: lerp(left.y, right.y, t),
+					z: lerp(left.z, right.z, t),
+				};
+			}
+
+			function orbitPoint(center, radiusPc, angleRad, heightPc = 0) {
+				return {
+					x: center.x + Math.cos(angleRad) * radiusPc,
+					y: center.y + heightPc,
+					z: center.z + Math.sin(angleRad) * radiusPc,
+				};
+			}
+
+			function insideCamera(sceneTimeSecs) {
+				const angle = -0.95 + sceneTimeSecs * 0.08;
+				return {
+					observerPc: orbitPoint(SOLAR_ORIGIN_PC, 8, angle, 1.6),
+					targetPc: ORION_NEBULA_PC,
+				};
+			}
+
+			function outsideCamera(sceneTimeSecs) {
+				const angle = 0.34 + (sceneTimeSecs - 24) * 0.045;
+				return {
+					observerPc: orbitPoint(SOLAR_ORIGIN_PC, 175, angle, 28),
+					targetPc: SOLAR_ORIGIN_PC,
+				};
+			}
+
+			function hyadesCamera(sceneTimeSecs) {
+				const angle = -0.65 + (sceneTimeSecs - 48) * 0.08;
+				return {
+					observerPc: orbitPoint(HYADES_CENTER_PC, 28, angle, 8),
+					targetPc: HYADES_FRAMING_TARGET_PC,
+				};
+			}
+
+			function cameraAt(sceneTimeSecs) {
+				const t = Number(sceneTimeSecs) || 0;
+				if (t < 10) {
+					return insideCamera(t);
+				}
+				if (t < 24) {
+					const u = smoothstep((t - 10) / 14);
+					const start = insideCamera(10);
+					const end = outsideCamera(24);
+					return {
+						observerPc: lerpPoint(start.observerPc, end.observerPc, u),
+						targetPc: lerpPoint(start.targetPc, SOLAR_ORIGIN_PC, u),
+					};
+				}
+				if (t < 38) {
+					return outsideCamera(t);
+				}
+				if (t < 48) {
+					const u = smoothstep((t - 38) / 10);
+					const start = outsideCamera(38);
+					const end = hyadesCamera(48);
+					return {
+						observerPc: lerpPoint(start.observerPc, end.observerPc, u),
+						targetPc: lerpPoint(SOLAR_ORIGIN_PC, HYADES_FRAMING_TARGET_PC, u),
+					};
+				}
+				if (t < 54) {
+					return hyadesCamera(t);
+				}
+				const u = smoothstep((t - 54) / 6);
+				const start = hyadesCamera(54);
+				const end = insideCamera(60);
+				return {
+					observerPc: lerpPoint(start.observerPc, end.observerPc, u),
+					targetPc: lerpPoint(HYADES_FRAMING_TARGET_PC, ORION_NEBULA_PC, u),
+				};
+			}
+
+			function getStarStats() {
+				const stats = mounted?.starLayer?.getStats?.() ?? {};
+				return {
+					nodeCount: Number(stats.nodeCount ?? 0),
+					starCount: Number(stats.starCount ?? 0),
+					loadGeneration: Number(stats.loadGeneration ?? 0),
+				};
+			}
+
+			function notifyCommitWaiters() {
+				for (const waiter of starReadiness.waiters) {
+					waiter();
+				}
+			}
+
+			function onStarFieldCommit(commit) {
+				const stats = commit?.stats ?? {};
+				starReadiness.commitCount += 1;
+				starReadiness.lastCommit = {
+					starCount: Number(commit?.starCount ?? stats.starCount ?? 0),
+					nodeCount: Number(commit?.nodeCount ?? stats.nodeCount ?? 0),
+					loadGeneration: Number(commit?.loadGeneration ?? stats.loadGeneration ?? 0),
+					timeMs: performance.now(),
+				};
+				starReadiness.lastSignature = starReadiness.pendingSignature ?? starReadiness.lastSignature;
+				notifyCommitWaiters();
+			}
+
+			function selectionSignature(selection) {
+				const nodes = Array.isArray(selection?.nodes) ? selection.nodes : [];
+				return nodes
+					.map((node) => node?.nodeKey ?? `${node?.payloadOffset ?? 'none'}:${node?.payloadLength ?? 0}`)
+					.join('|');
+			}
+
+			function getPayloadNodes(selection) {
+				return (Array.isArray(selection?.nodes) ? selection.nodes : [])
+					.filter((node) => node && node.payloadLength > 0);
+			}
+
+			async function computeExpectedStarCount(nodes) {
+				if (!Array.isArray(nodes) || nodes.length === 0) {
+					return 0;
+				}
+
+				const renderService = mounted.datasetSession.getRenderService();
+				const entries = await renderService.fetchNodePayloadBatch(nodes);
+				let expectedStarCount = 0;
+				for (const entry of entries) {
+					const decoded = renderService.decodePayload(entry.buffer, entry.node);
+					expectedStarCount += Number(decoded?.count ?? 0);
+				}
+				return expectedStarCount;
+			}
+
+			function currentCommitMatches(signature, expectedStarCount) {
+				const stats = getStarStats();
+				if (stats.starCount !== expectedStarCount) {
+					return false;
+				}
+				if (starReadiness.lastSignature === signature) {
+					return true;
+				}
+				if (starReadiness.lastSignature == null && starReadiness.pendingSignature === signature) {
+					starReadiness.lastSignature = signature;
+					return true;
+				}
+				return false;
+			}
+
+			function createReadinessError(details) {
+				const stats = getStarStats();
+				const sceneTime = Number.isFinite(details.sceneTimeSecs)
+					? details.sceneTimeSecs.toFixed(3)
+					: 'unknown';
+				return new Error(
+					`Radio bubble frame readiness timeout: frame=${details.frameIndex} expected=${details.expectedStarCount} actual=${stats.starCount} nodeCount=${details.nodeCount} committedNodeCount=${stats.nodeCount} sceneTime=${sceneTime}s`,
+				);
+			}
+
+			function waitForCommittedStars(details) {
+				const {
+					signature,
+					expectedStarCount,
+					timeoutMs = FRAME_TIMEOUT_MS,
+				} = details;
+
+				if (currentCommitMatches(signature, expectedStarCount)) {
+					return Promise.resolve(getStarStats());
+				}
+
+				return new Promise((resolve, reject) => {
+					let done = false;
+					let timeoutId = null;
+
+					function finish(callback, value) {
+						if (done) return;
+						done = true;
+						clearTimeout(timeoutId);
+						starReadiness.waiters.delete(check);
+						callback(value);
+					}
+
+					function check() {
+						if (currentCommitMatches(signature, expectedStarCount)) {
+							finish(resolve, getStarStats());
+						}
+					}
+
+					timeoutId = window.setTimeout(() => {
+						finish(reject, createReadinessError(details));
+					}, timeoutMs);
+					starReadiness.waiters.add(check);
+					check();
+				});
+			}
+
+			function updateOverlay(sceneTimeSecs) {
+				const cue = CUES.find((entry) => sceneTimeSecs >= entry.startSecs && sceneTimeSecs < entry.endSecs)
+					?? CUES[CUES.length - 1];
+				const localTime = sceneTimeSecs - cue.startSecs;
+				const fadeIn = Math.min(1, Math.max(0, localTime / 0.85));
+				const fadeOut = Math.min(1, Math.max(0, (cue.endSecs - sceneTimeSecs) / 0.85));
+				const opacity = Math.min(fadeIn, fadeOut);
+
+				if (overlayEyebrow) overlayEyebrow.textContent = cue.eyebrow;
+				if (overlayTitle) overlayTitle.textContent = cue.title;
+				if (overlayBody) overlayBody.textContent = cue.body;
+				if (overlay) overlay.style.opacity = String(opacity);
+			}
+
+			function applyCamera(sceneTimeSecs) {
+				const { viewer, cameraController } = mounted;
+				const nextCamera = cameraAt(sceneTimeSecs);
+				cameraController.cancelAutomation();
+				cameraController.rig.setPosition(nextCamera.observerPc);
+				cameraController.rig.orientToward(nextCamera.targetPc);
+				viewer.setState({
+					observerPc: { ...nextCamera.observerPc },
+					targetPc: { ...nextCamera.targetPc },
+				});
+			}
+
+			function enterManualTimeline() {
+				const runtime = mounted.viewer.runtime;
+				mounted.viewer.stop();
+				runtime.running = true;
+				runtime.previousFrameTimeMs = null;
+				runtime.startedAtTimeMs = 0;
+				runtime.frameNumber = 0;
+				manualTimeMs = 0;
+			}
+
+			function renderTimelineStep(deltaSecs = 0) {
+				const runtime = mounted.viewer.runtime;
+				manualTimeMs += Math.max(0, Number(deltaSecs) || 0) * 1000;
+				runtime.frame(manualTimeMs);
+			}
+
+			async function settleStars({ frameIndex, sceneTimeSecs, timeoutMs = FRAME_TIMEOUT_MS }) {
+				const selection = await mounted.viewer.refreshSelection();
+				const payloadNodes = getPayloadNodes(selection);
+				const signature = selectionSignature(selection);
+				const expectedStarCount = await computeExpectedStarCount(payloadNodes);
+				starReadiness.pendingSignature = signature;
+				renderTimelineStep(0);
+				const stats = await waitForCommittedStars({
+					frameIndex,
+					sceneTimeSecs,
+					signature,
+					expectedStarCount,
+					nodeCount: payloadNodes.length,
+					timeoutMs,
+				});
+				mounted.viewer.runtime.renderOnce();
+				return {
+					frameIndex,
+					sceneTimeSecs,
+					expectedStarCount,
+					actualStarCount: stats.starCount,
+					nodeCount: payloadNodes.length,
+					committedNodeCount: stats.nodeCount,
+					loadGeneration: stats.loadGeneration,
+					selectionMeta: selection.meta ?? {},
+				};
+			}
+
+			function getStatus() {
+				return {
+					readyState: exportApi.readyState,
+					error: exportApi.error,
+					starStats: getStarStats(),
+					commitCount: starReadiness.commitCount,
+					lastCommit: starReadiness.lastCommit,
+				};
+			}
+
+			async function startClip() {
+				await exportApi.ready;
+				enterManualTimeline();
+				applyCamera(0);
+				updateOverlay(0);
+				renderTimelineStep(0);
+				return settleStars({
+					frameIndex: 0,
+					sceneTimeSecs: 0,
+					timeoutMs: INITIAL_TIMEOUT_MS,
+				});
+			}
+
+			async function captureFrame({ frameIndex, timeSecs, deltaSecs }) {
+				await exportApi.ready;
+				const sceneTimeSecs = Number(timeSecs) || 0;
+				applyCamera(sceneTimeSecs);
+				updateOverlay(sceneTimeSecs);
+				renderTimelineStep(deltaSecs);
+				return settleStars({
+					frameIndex,
+					sceneTimeSecs,
+				});
+			}
+
+			async function initialize() {
+				if (!mount) {
+					throw new Error('Missing radio bubble video mount element.');
+				}
+
+				mounted = await mountRadioBubbleViewer(mount, {
+					pixelRatio: 1,
+					observeResize: false,
+					autoStart: false,
+					enableSelectionRefreshController: false,
+					onStarFieldCommit,
+				});
+				enterManualTimeline();
+				applyCamera(0);
+				updateOverlay(0);
+				renderTimelineStep(0);
+				const initialStats = await settleStars({
+					frameIndex: 0,
+					sceneTimeSecs: 0,
+					timeoutMs: INITIAL_TIMEOUT_MS,
+				});
+				if (initialStats.actualStarCount <= 0) {
+					throw new Error('Initial radio bubble export readiness produced empty star geometry.');
+				}
+				console.info('[radio-bubble-video] full ready', initialStats);
+				exportApi.readyState = 'ready';
+				return initialStats;
+			}
+
+			exportApi.ready = initialize().catch((error) => {
+				exportApi.readyState = 'error';
+				exportApi.error = error instanceof Error ? error.message : String(error);
+				console.error('[radio-bubble-video]', error);
+				throw error;
+			});
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	html,
+	body {
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		background: #02040b;
+		overflow: hidden;
+	}
+
+	body {
+		font-family:
+			Inter,
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			"Segoe UI",
+			sans-serif;
+	}
+
+	.video-stage {
+		position: fixed;
+		inset: 0;
+		width: 100vw;
+		height: 100vh;
+		overflow: hidden;
+		background: #02040b;
+	}
+
+	.skyview {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		background: #02040b;
+	}
+
+	.skyview canvas {
+		width: 100% !important;
+		height: 100% !important;
+		display: block;
+	}
+
+	.copy-overlay {
+		position: absolute;
+		left: 132px;
+		bottom: 126px;
+		z-index: 2;
+		max-width: 1460px;
+		color: #f7fbff;
+		text-shadow: 0 6px 32px rgba(0, 0, 0, 0.78);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.copy-overlay__eyebrow,
+	.copy-overlay__title,
+	.copy-overlay__body {
+		margin: 0;
+		letter-spacing: 0;
+	}
+
+	.copy-overlay__eyebrow {
+		margin-bottom: 22px;
+		color: #8fd5ff;
+		font-size: 28px;
+		line-height: 1.1;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	.copy-overlay__title {
+		max-width: 22ch;
+		font-size: 72px;
+		line-height: 1.04;
+		font-weight: 750;
+	}
+
+	.copy-overlay__body {
+		max-width: 47ch;
+		margin-top: 30px;
+		color: rgba(236, 244, 255, 0.88);
+		font-size: 36px;
+		line-height: 1.36;
+		font-weight: 450;
+	}
+</style>
