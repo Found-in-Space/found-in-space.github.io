@@ -85,7 +85,12 @@ function createDatasetSession() {
  * @param {object}      options
  * @param {(id: string|null) => void}  [options.onViewpointChange]
  * @param {(msg: string) => void}      [options.onStatus]
- * @returns {Promise<{ viewer: object, goTo: (id: string) => void, radiusPc: number, radiusLy: number }>}
+ * @param {(commit: object) => void}   [options.onStarFieldCommit]
+ * @param {number}                     [options.pixelRatio]
+ * @param {boolean}                    [options.observeResize]
+ * @param {boolean}                    [options.enableSelectionRefreshController]
+ * @param {boolean}                    [options.autoStart]
+ * @returns {Promise<{ viewer: object, goTo: (id: string) => void, radiusPc: number, radiusLy: number, datasetSession: object, starLayer: object, cameraController: object }>}
  */
 export async function mountRadioBubbleViewer(mount, options = {}) {
 	const onViewpointChange = typeof options.onViewpointChange === 'function'
@@ -94,6 +99,9 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	const onStatus = typeof options.onStatus === 'function'
 		? options.onStatus
 		: () => {};
+	const onStarFieldCommit = typeof options.onStarFieldCommit === 'function'
+		? options.onStarFieldCommit
+		: null;
 
 	const datasetSession = createDatasetSession();
 
@@ -110,27 +118,35 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		keyboardTarget: NO_KEYBOARD_EVENTS_TARGET,
 	});
 
-	const viewer = await createViewer(mount, {
+	const starLayer = createStarFieldLayer({
+		id: 'website-radio-bubble-stars',
+		positionTransform: SCENE_TRANSFORM,
+		materialFactory: () => createDefaultStarFieldMaterialProfile(),
+		onCommit(payload) {
+			const stats = starLayer.getStats();
+			onStarFieldCommit?.({
+				...payload,
+				nodeCount: stats.nodeCount,
+				stats,
+			});
+		},
+	});
+	const controllers = [cameraController];
+	if (options.enableSelectionRefreshController !== false) {
+		controllers.push(createSelectionRefreshController({
+			id: 'website-radio-bubble-refresh',
+			observerDistancePc: 12,
+			minIntervalMs: 250,
+			watchSize: false,
+		}));
+	}
+	const viewerOptions = {
 		datasetSession,
 		interestField: createObserverShellField({
 			id: 'website-radio-bubble-field',
 		}),
-		controllers: [
-			cameraController,
-			createSelectionRefreshController({
-				id: 'website-radio-bubble-refresh',
-				observerDistancePc: 12,
-				minIntervalMs: 250,
-				watchSize: false,
-			}),
-		],
-		layers: [
-			createStarFieldLayer({
-				id: 'website-radio-bubble-stars',
-				positionTransform: SCENE_TRANSFORM,
-				materialFactory: () => createDefaultStarFieldMaterialProfile(),
-			}),
-		],
+		controllers,
+		layers: [starLayer],
 		state: {
 			...DEFAULT_STAR_FIELD_STATE,
 			observerPc: { ...SOLAR_ORIGIN_PC },
@@ -138,6 +154,19 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 			fieldStrategy: 'observer-shell',
 		},
 		clearColor: 0x02040b,
+	};
+	if (Number.isFinite(options.pixelRatio)) {
+		viewerOptions.pixelRatio = options.pixelRatio;
+	}
+	if (typeof options.observeResize === 'boolean') {
+		viewerOptions.observeResize = options.observeResize;
+	}
+	if (typeof options.autoStart === 'boolean') {
+		viewerOptions.autoStart = options.autoStart;
+	}
+
+	const viewer = await createViewer(mount, {
+		...viewerOptions,
 	});
 
 	const { group: bubbleGroup, radiusPc, radiusLy } = createRadioBubbleMeshes();
@@ -173,5 +202,14 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		});
 	});
 
-	return { viewer, goTo, viewpoints: VIEWPOINTS, radiusPc, radiusLy };
+	return {
+		viewer,
+		goTo,
+		viewpoints: VIEWPOINTS,
+		radiusPc,
+		radiusLy,
+		datasetSession,
+		starLayer,
+		cameraController,
+	};
 }
