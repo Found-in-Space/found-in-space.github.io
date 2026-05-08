@@ -188,6 +188,11 @@ const title = 'Journey Editor';
 				display: block;
 			}
 
+			:global(.journey-tile-canvas) {
+				touch-action: none;
+				user-select: none;
+			}
+
 			.tile-toolbar {
 				position: absolute;
 				top: 8px;
@@ -838,6 +843,7 @@ const title = 'Journey Editor';
 			const tileRenderers = new Map();
 			const perspectiveStates = new Map();
 			const canvasMarkers = new WeakMap();
+			const canvasProjectionTransforms = new WeakMap();
 			const raycaster = new THREE.Raycaster();
 			const pointer = new THREE.Vector2();
 
@@ -848,11 +854,13 @@ const title = 'Journey Editor';
 			let selectedWidget = null;
 			let selectedLocationRange = null;
 			let selectedLocationGroupId = null;
+			let selectedLocationGroupPhase = null;
 			let hoveredWidget = null;
 			let skyKit = null;
 			let skyRefreshTimer = null;
 			let playing = false;
 			let lastAnimationTime = performance.now();
+			let activeProjectionDrag = null;
 
 			const editorState = loadEditorState();
 
@@ -860,12 +868,65 @@ const title = 'Journey Editor';
 				try {
 					const saved = window.localStorage.getItem(JOURNEY_DRAFT_STORAGE_KEY);
 					if (saved) {
-						return normalizeJourney(JSON.parse(saved));
+						return prepareJourney(JSON.parse(saved));
 					}
 				} catch (error) {
 					console.warn('[journey-editor] could not load saved journey draft', error);
 				}
-				return normalizeJourney(structuredClone(defaultJourney));
+				return prepareJourney(structuredClone(defaultJourney));
+			}
+
+			function prepareJourney(nextJourney) {
+				return migrateLegacyEaseGroupsToUniqueIds(normalizeJourney(nextJourney));
+			}
+
+			function nextUnusedEaseGroupId(usedIds) {
+				let index = 1;
+				while (usedIds.has(`ease-${index}`)) index += 1;
+				const id = `ease-${index}`;
+				usedIds.add(id);
+				return id;
+			}
+
+			function migrateLegacyEaseGroupsToUniqueIds(nextJourney) {
+				const usedIds = new Set(
+					nextJourney.locationWaypoints
+						.map((waypoint) => waypoint.motionGroup?.id)
+						.filter(Boolean),
+				);
+				const byGroup = new Map();
+				for (const waypoint of nextJourney.locationWaypoints) {
+					const group = waypoint.motionGroup;
+					if (!group?.id || group.kind !== 'ease') continue;
+					if (group.phase === 'start' || group.phase === 'end') continue;
+					const entries = byGroup.get(group.id) ?? [];
+					entries.push(waypoint);
+					byGroup.set(group.id, entries);
+				}
+				for (const [groupId, groupWaypoints] of byGroup) {
+					const sortedGroupWaypoints = [...groupWaypoints].sort((left, right) => left.timeSecs - right.timeSecs);
+					const phasesById = new Map();
+					for (const waypoint of sortedGroupWaypoints) {
+						const phase = inferLegacyLocationMotionGroupPhase(waypoint, sortedGroupWaypoints);
+						if (phase) phasesById.set(waypoint.id, phase);
+					}
+					if (!new Set(phasesById.values()).has('start') || !new Set(phasesById.values()).has('end')) {
+						continue;
+					}
+					const endGroupId = nextUnusedEaseGroupId(usedIds);
+					for (const waypoint of nextJourney.locationWaypoints) {
+						if (waypoint.motionGroup?.id !== groupId || waypoint.motionGroup?.kind !== 'ease') continue;
+						const phase = phasesById.get(waypoint.id);
+						if (phase === 'start') {
+							waypoint.motionGroup = { ...waypoint.motionGroup, phase: 'start' };
+						} else if (phase === 'end') {
+							waypoint.motionGroup = { ...waypoint.motionGroup, id: endGroupId, phase: 'end' };
+						} else {
+							delete waypoint.motionGroup;
+						}
+					}
+				}
+				return nextJourney;
 			}
 
 			function saveJourneyDraft() {
@@ -1015,7 +1076,9 @@ const title = 'Journey Editor';
 
 			function isWidgetInSelectedLocationGroup(widget) {
 				if (widget?.type !== 'location' || !selectedLocationGroupId) return false;
-				return findWidget('location', widget.id)?.motionGroup?.id === selectedLocationGroupId;
+				const group = resolvedLocationMotionGroup(findWidget('location', widget.id));
+				return group?.id === selectedLocationGroupId
+					&& (!selectedLocationGroupPhase || group.phase === selectedLocationGroupPhase);
 			}
 
 			function isWidgetHighlighted(widget) {
@@ -1032,8 +1095,14 @@ const title = 'Journey Editor';
 				refreshViews();
 			}
 
-			function selectLocationGroup(groupId) {
+			function clearLocationGroupSelection() {
+				selectedLocationGroupId = null;
+				selectedLocationGroupPhase = null;
+			}
+
+			function selectLocationGroup(groupId, phase = null) {
 				selectedLocationGroupId = groupId;
+				selectedLocationGroupPhase = phase === 'start' || phase === 'end' ? phase : null;
 				selectedLocationRange = null;
 				renderTimeline();
 				renderInspector();
@@ -1069,10 +1138,10 @@ const title = 'Journey Editor';
 				if (type === 'location' && options.extendRange === true) {
 					const anchorId = selectedLocationRange?.anchorId ?? (selectedWidget?.type === 'location' ? selectedWidget.id : id);
 					selectedLocationRange = anchorId === id ? null : { anchorId, focusId: id };
-					selectedLocationGroupId = null;
+					clearLocationGroupSelection();
 				} else {
 					selectedLocationRange = null;
-					selectedLocationGroupId = null;
+					clearLocationGroupSelection();
 				}
 				selectedWidget = { type, id };
 				renderTimeline();
@@ -1204,12 +1273,43 @@ const title = 'Journey Editor';
 				return null;
 			}
 
+			function resolvedLocationMotionGroup(waypoint) {
+				const group = waypoint?.motionGroup;
+				if (!group?.id || group.kind !== 'ease') return null;
+				if (group.phase === 'start' || group.phase === 'end') return group;
+				const groupWaypoints = sortedLocationWaypoints()
+					.filter((entry) => entry.motionGroup?.id === group.id && entry.motionGroup?.kind === 'ease');
+				const phase = inferLegacyLocationMotionGroupPhase(waypoint, groupWaypoints);
+				return phase ? { ...group, phase } : null;
+			}
+
+			function inferLegacyLocationMotionGroupPhase(waypoint, groupWaypoints) {
+				const waypoints = [...groupWaypoints].sort((left, right) => left.timeSecs - right.timeSecs);
+				if (waypoints.length < 2) return null;
+				const first = waypoints[0];
+				const last = waypoints[waypoints.length - 1];
+				if (waypoint.id === first.id) return 'start';
+				if (waypoint.id === last.id) return 'end';
+				const midpoint = (first.timeSecs + last.timeSecs) / 2;
+				if (waypoint.motionGroup?.role === 'helper') {
+					return waypoint.timeSecs <= midpoint ? 'start' : 'end';
+				}
+				const helpers = waypoints.filter((entry) => entry.motionGroup?.role === 'helper');
+				const startHelpers = helpers.filter((entry) => entry.timeSecs <= midpoint);
+				const endHelpers = helpers.filter((entry) => entry.timeSecs >= midpoint);
+				const startHelperEnd = startHelpers.length > 0 ? Math.max(...startHelpers.map((entry) => entry.timeSecs)) : first.timeSecs;
+				const endHelperStart = endHelpers.length > 0 ? Math.min(...endHelpers.map((entry) => entry.timeSecs)) : last.timeSecs;
+				if (waypoint.timeSecs <= startHelperEnd + 1e-6) return 'start';
+				if (waypoint.timeSecs >= endHelperStart - 1e-6) return 'end';
+				return null;
+			}
+
 			function markerLabel(widget) {
 				const entry = findWidget(widget.type, widget.id);
 				if (!entry) return '';
 				if (widget.type === 'location') {
-					const group = entry.motionGroup;
-					return group ? `${entry.timeSecs.toFixed(2)}s ${group.id} ${group.role}` : `${entry.timeSecs.toFixed(2)}s location`;
+					const group = resolvedLocationMotionGroup(entry);
+					return group ? `${entry.timeSecs.toFixed(2)}s ${group.id} ${group.phase} ${group.role}` : `${entry.timeSecs.toFixed(2)}s location`;
 				}
 				if (widget.type === 'camera') return `${entry.timeSecs.toFixed(2)}s ${entry.kind === 'target' ? 'target' : 'direction'}`;
 				return entry.label ?? 'Guide';
@@ -1313,9 +1413,11 @@ const title = 'Journey Editor';
 				const maxB = bounds[`max${axes[1].toUpperCase()}`];
 				const sx = (width - pad * 2) / (maxA - minA);
 				const sy = (height - pad * 2) / (maxB - minB);
-				const scale = Math.min(sx, sy) * editorState.zoom;
-				const centerA = evaluated.observerPc[axes[0]];
-				const centerB = evaluated.observerPc[axes[1]];
+				const baseScale = Math.min(sx, sy) * editorState.zoom;
+				const dragTransform = activeProjectionDrag?.canvas === canvas ? activeProjectionDrag.transform : null;
+				const scale = dragTransform?.scale ?? baseScale;
+				const centerA = dragTransform?.centerA ?? evaluated.observerPc[axes[0]];
+				const centerB = dragTransform?.centerB ?? evaluated.observerPc[axes[1]];
 				const markers = [];
 
 				function project(point) {
@@ -1390,7 +1492,7 @@ const title = 'Journey Editor';
 					const identity = { type: 'location', id: waypoint.id };
 					const point = project(waypoint.positionPc);
 					const active = isWidgetHighlighted(identity);
-					const role = waypoint.motionGroup?.role;
+					const role = resolvedLocationMotionGroup(waypoint)?.role;
 					context.fillStyle = active ? '#ffb454' : (role === 'helper' ? '#5be7c4' : '#f2f6ff');
 					context.strokeStyle = role ? '#5be7c4' : '#02050b';
 					context.lineWidth = active || role ? 2.5 : 2;
@@ -1465,6 +1567,7 @@ const title = 'Journey Editor';
 
 				drawAxisCompass(context, width, height, axes, pixelScale);
 				canvasMarkers.set(canvas, markers);
+				canvasProjectionTransforms.set(canvas, { axes, width, height, scale, centerA, centerB });
 			}
 
 			function setupProjectionTile(tile, mode) {
@@ -1573,6 +1676,7 @@ const title = 'Journey Editor';
 					if (offset.lengthSq() > 0) {
 						state.direction.copy(offset.normalize());
 					}
+					renderPerspectiveState(state);
 				});
 				canvas.addEventListener('wheel', (event) => {
 					event.preventDefault();
@@ -1635,6 +1739,25 @@ const title = 'Journey Editor';
 				return mesh;
 			}
 
+			function setFixedScreenMarker(mesh, radiusPx) {
+				mesh.userData.fixedScreenRadiusPx = radiusPx;
+				return mesh;
+			}
+
+			function applyFixedScreenMarkers(state) {
+				const height = Math.max(1, state.canvas.clientHeight);
+				const fov = THREE.MathUtils.degToRad(state.camera.fov);
+				for (const mesh of state.markerMeshes) {
+					const radiusPx = mesh.userData.fixedScreenRadiusPx;
+					if (!radiusPx) continue;
+					const distance = Math.max(0.001, state.camera.position.distanceTo(mesh.position));
+					const visibleHeight = 2 * Math.tan(fov / 2) * distance;
+					const radiusWorld = visibleHeight * (radiusPx / height);
+					mesh.scale.setScalar(radiusWorld);
+					mesh.updateMatrixWorld(true);
+				}
+			}
+
 			function updatePerspectiveScene(state) {
 				disposeObject3d(state.root);
 				state.root.clear();
@@ -1675,9 +1798,12 @@ const title = 'Journey Editor';
 				for (const waypoint of sortedLocationWaypoints()) {
 					const identity = { type: 'location', id: waypoint.id };
 					const active = isWidgetHighlighted(identity);
-					const role = waypoint.motionGroup?.role;
+					const role = resolvedLocationMotionGroup(waypoint)?.role;
 					const color = active ? 0xffb454 : (role === 'helper' ? 0x5be7c4 : 0xf2f6ff);
-					const mesh = createPerspectiveSphere(waypoint.positionPc, active ? 1.4 : (role === 'helper' ? 0.75 : 1.0), color, 1);
+					const mesh = setFixedScreenMarker(
+						createPerspectiveSphere(waypoint.positionPc, 1, color, 1),
+						active ? 10 : (role === 'helper' ? 6 : 8),
+					);
 					mesh.userData.widget = identity;
 					state.root.add(mesh);
 					state.markerMeshes.push(mesh);
@@ -1688,13 +1814,14 @@ const title = 'Journey Editor';
 					const active = sameWidget(selectedWidget, identity) || sameWidget(hoveredWidget, identity);
 					const mesh = waypoint.kind === 'target'
 						? new THREE.Mesh(
-								new THREE.TorusGeometry(active ? 1.35 : 1.0, 0.08, 8, 28),
+								new THREE.TorusGeometry(1, 0.08, 8, 28),
 								new THREE.MeshBasicMaterial({ color: active ? 0xffb454 : 0xffb454 }),
 							)
 						: new THREE.Mesh(
-								new THREE.OctahedronGeometry(active ? 1.25 : 0.9),
+								new THREE.OctahedronGeometry(1),
 								new THREE.MeshBasicMaterial({ color: active ? 0xffb454 : 0x5ddcff }),
 							);
+					setFixedScreenMarker(mesh, active ? 11 : (waypoint.kind === 'target' ? 9 : 8));
 					mesh.position.copy(vectorFromPoint(cameraMarkerPosition(waypoint)));
 					if (waypoint.kind === 'target') {
 						mesh.lookAt(vectorFromPoint(evaluated.observerPc));
@@ -1770,6 +1897,7 @@ const title = 'Journey Editor';
 				state.renderer.setViewport(0, 0, bufferSize.x, bufferSize.y);
 				state.renderer.setScissorTest(false);
 				state.renderer.clear(true, true, true);
+				applyFixedScreenMarkers(state);
 				state.renderer.render(state.scene, state.camera);
 				renderPerspectiveAxisGizmo(state, width, height);
 			}
@@ -1930,40 +2058,157 @@ const title = 'Journey Editor';
 			}
 
 			function attachCanvasMarkerEvents(canvas, tile) {
-				canvas.addEventListener('pointermove', (event) => {
+				function updateHover(event) {
 					const markers = canvasMarkers.get(canvas) ?? [];
-					const rect = canvas.getBoundingClientRect();
-					const scaleX = canvas.width / Math.max(1, rect.width);
-					const scaleY = canvas.height / Math.max(1, rect.height);
-					const x = (event.clientX - rect.left) * scaleX;
-					const y = (event.clientY - rect.top) * scaleY;
-					let best = null;
-					let bestDistance = Infinity;
-					for (const marker of markers) {
-						const distance = Math.hypot(marker.x - x, marker.y - y);
-						if (distance <= marker.radius && distance < bestDistance) {
-							best = marker;
-							bestDistance = distance;
-						}
-					}
+					const best = hitCanvasMarker(canvas, markers, event.clientX, event.clientY);
 					if (best) {
 						const widget = { type: best.type, id: best.id };
 						setHoveredWidget(widget);
 						showTileTooltip(tile, markerLabel(widget));
+						canvas.style.cursor = projectionDragTarget(widget) ? 'grab' : 'pointer';
 					} else {
 						setHoveredWidget(null);
 						hideTileTooltip(tile);
+						canvas.style.cursor = 'default';
 					}
+				}
+
+				canvas.addEventListener('pointermove', (event) => {
+					if (activeProjectionDrag?.canvas === canvas) return;
+					updateHover(event);
 				});
 				canvas.addEventListener('pointerleave', () => {
+					if (activeProjectionDrag?.canvas === canvas) return;
 					setHoveredWidget(null);
 					hideTileTooltip(tile);
+					canvas.style.cursor = 'default';
+				});
+				canvas.addEventListener('pointerdown', (event) => {
+					if (event.button !== 0 || event.shiftKey) return;
+					const markers = canvasMarkers.get(canvas) ?? [];
+					const best = hitCanvasMarker(canvas, markers, event.clientX, event.clientY);
+					if (!best) return;
+					const widget = { type: best.type, id: best.id };
+					const dragTarget = projectionDragTarget(widget);
+					if (!dragTarget) return;
+					beginProjectionDrag(event, canvas, tile, widget, dragTarget);
 				});
 				canvas.addEventListener('click', (event) => {
 					if (hoveredWidget) {
 						selectWidget(hoveredWidget.type, hoveredWidget.id, { extendRange: event.shiftKey });
 					}
 				});
+			}
+
+			function hitCanvasMarker(canvas, markers, clientX, clientY) {
+				const point = canvasPointFromClient(canvas, clientX, clientY);
+				let best = null;
+				let bestDistance = Infinity;
+				for (const marker of markers) {
+					const distance = Math.hypot(marker.x - point.x, marker.y - point.y);
+					if (distance <= marker.radius && distance < bestDistance) {
+						best = marker;
+						bestDistance = distance;
+					}
+				}
+				return best;
+			}
+
+			function canvasPointFromClient(canvas, clientX, clientY) {
+				const rect = canvas.getBoundingClientRect();
+				const scaleX = canvas.width / Math.max(1, rect.width);
+				const scaleY = canvas.height / Math.max(1, rect.height);
+				return {
+					x: (clientX - rect.left) * scaleX,
+					y: (clientY - rect.top) * scaleY,
+				};
+			}
+
+			function projectionDragTarget(widget) {
+				const waypoint = findWidget(widget.type, widget.id);
+				if (widget.type === 'location' && waypoint?.positionPc) {
+					return { waypoint, point: waypoint.positionPc, kind: 'location' };
+				}
+				if (widget.type === 'camera' && waypoint?.kind === 'target' && waypoint.targetPc) {
+					return { waypoint, point: waypoint.targetPc, kind: 'camera-target' };
+				}
+				return null;
+			}
+
+			function beginProjectionDrag(event, canvas, tile, widget, dragTarget) {
+				const transform = canvasProjectionTransforms.get(canvas);
+				if (!transform?.scale) return;
+				event.preventDefault();
+				event.stopPropagation();
+				canvas.setPointerCapture?.(event.pointerId);
+				selectWidget(widget.type, widget.id);
+				canvas.style.cursor = 'grabbing';
+				const startCanvas = canvasPointFromClient(canvas, event.clientX, event.clientY);
+				const startPoint = { ...dragTarget.point };
+				const startClient = { x: event.clientX, y: event.clientY };
+				let moved = false;
+				let lastClient = null;
+				let frameRequest = 0;
+				activeProjectionDrag = { canvas, transform };
+
+				function applyDrag(client) {
+					const distance = Math.hypot(client.x - startClient.x, client.y - startClient.y);
+					if (distance < 2 && !moved) return;
+					moved = true;
+					const point = canvasPointFromClient(canvas, client.x, client.y);
+					const [axisA, axisB] = transform.axes;
+					dragTarget.point[axisA] = startPoint[axisA] + (point.x - startCanvas.x) / transform.scale;
+					dragTarget.point[axisB] = startPoint[axisB] - (point.y - startCanvas.y) / transform.scale;
+					if (dragTarget.kind === 'camera-target') {
+						delete dragTarget.waypoint.targetGuide;
+					}
+					if (dragTarget.kind === 'location' && dragTarget.waypoint.motionGroup?.role === 'helper') {
+						dragTarget.waypoint.motionGroup = {
+							...dragTarget.waypoint.motionGroup,
+							role: 'real',
+						};
+					}
+					selectedWidget = widget;
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					rebuildEvaluator();
+					renderInspector();
+					refreshViews();
+				}
+
+				function queueDrag(moveEvent) {
+					lastClient = { x: moveEvent.clientX, y: moveEvent.clientY };
+					if (frameRequest) return;
+					frameRequest = window.requestAnimationFrame(() => {
+						frameRequest = 0;
+						if (lastClient) applyDrag(lastClient);
+					});
+				}
+
+				function done(upEvent) {
+					document.removeEventListener('pointermove', queueDrag);
+					document.removeEventListener('pointerup', done);
+					document.removeEventListener('pointercancel', done);
+					if (frameRequest) {
+						window.cancelAnimationFrame(frameRequest);
+						frameRequest = 0;
+					}
+					if (lastClient) applyDrag(lastClient);
+					activeProjectionDrag = null;
+					try {
+						canvas.releasePointerCapture?.(event.pointerId);
+					} catch {
+						// Pointer capture may already be gone if the browser cancelled the drag.
+					}
+					canvas.style.cursor = 'default';
+					hideTileTooltip(tile);
+					commitJourneyEdit({ normalize: true, inspector: true });
+					updateHover(upEvent);
+				}
+
+				document.addEventListener('pointermove', queueDrag);
+				document.addEventListener('pointerup', done, { once: true });
+				document.addEventListener('pointercancel', done, { once: true });
 			}
 
 			function renderTimeline() {
@@ -1997,9 +2242,13 @@ const title = 'Journey Editor';
 				button.dataset.widgetId = waypoint.id;
 				if (type === 'camera') {
 					button.dataset.cameraKind = waypoint.kind;
-				} else if (type === 'location' && waypoint.motionGroup) {
-					button.dataset.motionRole = waypoint.motionGroup.role;
-					button.dataset.motionGroup = waypoint.motionGroup.id;
+				} else if (type === 'location') {
+					const group = resolvedLocationMotionGroup(waypoint);
+					if (group) {
+						button.dataset.motionRole = group.role;
+						button.dataset.motionGroup = group.id;
+						button.dataset.motionPhase = group.phase;
+					}
 				}
 				button.textContent = label;
 				button.style.left = `${timelinePercent(waypoint.timeSecs) * 100}%`;
@@ -2026,12 +2275,12 @@ const title = 'Journey Editor';
 				const track = button.closest('.lane-track');
 				if (!track) return;
 				const trackRect = track.getBoundingClientRect();
-				const duration = timelineDurationSecs();
-				selectedWidget = { type, id: waypoint.id };
-				selectedLocationRange = null;
-				selectedLocationGroupId = null;
-				renderInspector();
-				renderTimeline();
+					const duration = timelineDurationSecs();
+					selectedWidget = { type, id: waypoint.id };
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					renderInspector();
+					renderTimeline();
 				function move(moveEvent) {
 					const percent = clamp((moveEvent.clientX - trackRect.left) / Math.max(1, trackRect.width), 0, 1);
 					waypoint.timeSecs = snapTime(percent * duration);
@@ -2247,7 +2496,7 @@ const title = 'Journey Editor';
 					const result = equalizeLocationRangeSpeeds(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
 					journey.locationWaypoints = result.locationWaypoints;
 					selectedLocationRange = { anchorId: rangeInfo.anchorId, focusId: rangeInfo.focusId };
-					selectedLocationGroupId = null;
+					clearLocationGroupSelection();
 					selectedWidget = { type: 'location', id: rangeInfo.focusId };
 					commitJourneyEdit({ normalize: true, inspector: true });
 				});
@@ -2259,7 +2508,8 @@ const title = 'Journey Editor';
 					const result = easeLocationRangeStartEnd(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
 					journey.locationWaypoints = result.locationWaypoints;
 					selectedLocationRange = { anchorId: rangeInfo.anchorId, focusId: rangeInfo.focusId };
-					selectedLocationGroupId = result.groupId ?? null;
+					selectedLocationGroupId = result.startGroupId ?? null;
+					selectedLocationGroupPhase = 'start';
 					selectedWidget = { type: 'location', id: rangeInfo.focusId };
 					commitJourneyEdit({ normalize: true, inspector: true });
 				});
@@ -2278,29 +2528,38 @@ const title = 'Journey Editor';
 				);
 			}
 
-			function locationGroupWaypoints(groupId) {
-				return sortedLocationWaypoints().filter((waypoint) => waypoint.motionGroup?.id === groupId && waypoint.motionGroup?.kind === 'ease');
+			function locationGroupWaypoints(groupId, phase = null) {
+				return sortedLocationWaypoints().filter((waypoint) => {
+					const group = resolvedLocationMotionGroup(waypoint);
+					return group?.id === groupId
+						&& group.kind === 'ease'
+						&& (!phase || group.phase === phase);
+				});
 			}
 
-			function locationGroupBounds(groupId) {
-				const waypoints = locationGroupWaypoints(groupId);
-				const anchors = waypoints.filter((waypoint) => waypoint.motionGroup?.role === 'anchor');
+			function locationGroupBounds(groupId, phase = null) {
+				const waypoints = locationGroupWaypoints(groupId, phase);
+				const anchors = waypoints.filter((waypoint) => resolvedLocationMotionGroup(waypoint)?.role === 'anchor');
 				const endpoints = anchors.length >= 2 ? anchors : waypoints;
 				if (endpoints.length < 2) return null;
 				return {
 					start: endpoints[0],
 					end: endpoints[endpoints.length - 1],
 					waypoints,
-					helperCount: waypoints.filter((waypoint) => waypoint.motionGroup?.role === 'helper').length,
+					helperCount: waypoints.filter((waypoint) => resolvedLocationMotionGroup(waypoint)?.role === 'helper').length,
 				};
 			}
 
 			function renderLocationMotionGroupSection(waypoint) {
-				const group = waypoint.motionGroup;
+				const group = resolvedLocationMotionGroup(waypoint);
 				if (!group?.id) return null;
-				const bounds = locationGroupBounds(group.id);
+				const bounds = locationGroupBounds(group.id, group.phase);
 				if (!bounds) return null;
-				const maxEaseSecs = Math.max(TIMELINE_STEP_SECS, (bounds.end.timeSecs - bounds.start.timeSecs) / 2);
+				const maxEaseSecs = Math.max(
+					TIMELINE_STEP_SECS,
+					numberValue(group.easeSecs, editorState.easeSecs),
+					bounds.end.timeSecs - bounds.start.timeSecs,
+				);
 				const groupEaseSecs = clamp(numberValue(group.easeSecs, editorState.easeSecs), TIMELINE_STEP_SECS, maxEaseSecs);
 				const easeInput = numberInput(groupEaseSecs, (value, commit) => {
 					editorState.easeSecs = clamp(value, TIMELINE_STEP_SECS, maxEaseSecs);
@@ -2310,10 +2569,11 @@ const title = 'Journey Editor';
 				const selectButton = document.createElement('button');
 				selectButton.type = 'button';
 				selectButton.textContent = 'Select group';
-				selectButton.addEventListener('click', () => selectLocationGroup(group.id));
+				selectButton.addEventListener('click', () => selectLocationGroup(group.id, group.phase));
 				const rebuildButton = document.createElement('button');
 				rebuildButton.type = 'button';
-				rebuildButton.textContent = 'Rebuild ease';
+				rebuildButton.textContent = 'Rebuild full ease';
+				rebuildButton.disabled = locationGroupWaypoints(group.id).filter((entry) => resolvedLocationMotionGroup(entry)?.role === 'anchor').length < 2;
 				rebuildButton.addEventListener('click', () => {
 					const result = rebuildEaseLocationGroup(journey.locationWaypoints, group.id, {
 						timeStepSecs: TIMELINE_STEP_SECS,
@@ -2323,6 +2583,7 @@ const title = 'Journey Editor';
 					journey.locationWaypoints = result.locationWaypoints;
 					selectedLocationRange = null;
 					selectedLocationGroupId = group.id;
+					selectedLocationGroupPhase = group.phase ?? null;
 					selectedWidget = { type: 'location', id: result.focusId ?? bounds.end.id };
 					commitJourneyEdit({ normalize: true, inspector: true });
 				});
@@ -2331,10 +2592,10 @@ const title = 'Journey Editor';
 				deleteButton.className = 'is-danger';
 				deleteButton.textContent = 'Delete helpers';
 				deleteButton.addEventListener('click', () => {
-					const result = deleteEaseLocationGroupHelpers(journey.locationWaypoints, group.id);
+					const result = deleteEaseLocationGroupHelpers(journey.locationWaypoints, group.id, { phase: group.phase });
 					journey.locationWaypoints = result.locationWaypoints;
 					selectedLocationRange = null;
-					selectedLocationGroupId = null;
+					clearLocationGroupSelection();
 					selectedWidget = result.clearedIds[0] ? { type: 'location', id: result.clearedIds[0] } : null;
 					commitJourneyEdit({ normalize: true, inspector: true });
 				});
@@ -2342,10 +2603,11 @@ const title = 'Journey Editor';
 				actionRow.className = 'button-row';
 				actionRow.append(selectButton, rebuildButton, deleteButton);
 				return inspectorSection(
-					`Ease group ${group.id}`,
+					`Ease group ${group.id} ${group.phase}`,
 					keyValueGrid([
 						['time', `${formatRangeValue(bounds.start.timeSecs, 's')} - ${formatRangeValue(bounds.end.timeSecs, 's')}`],
 						['waypoints', String(bounds.waypoints.length)],
+						['phase', group.phase],
 						['role', group.role],
 						['helpers', String(bounds.helperCount)],
 					]),
@@ -2509,12 +2771,12 @@ const title = 'Journey Editor';
 					journey.cameraLookWaypoints = journey.cameraLookWaypoints.filter((entry) => entry.id !== selectedWidget.id);
 				} else if (selectedWidget.type === 'guide') {
 					journey.guides = journey.guides.filter((entry) => entry.id !== selectedWidget.id);
+					}
+					selectedWidget = null;
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					commitJourneyEdit({ normalize: true, inspector: true });
 				}
-				selectedWidget = null;
-				selectedLocationRange = null;
-				selectedLocationGroupId = null;
-				commitJourneyEdit({ normalize: true, inspector: true });
-			}
 
 			function addLocationAtCurrentTime() {
 				const timeSecs = currentTimelineTimeSecs();
@@ -2524,12 +2786,12 @@ const title = 'Journey Editor';
 					timeSecs,
 					positionPc: { ...snapshot.observerPc },
 				};
-				journey.locationWaypoints.push(waypoint);
-				selectedWidget = { type: 'location', id: waypoint.id };
-				selectedLocationRange = null;
-				selectedLocationGroupId = null;
-				commitJourneyEdit({ normalize: true, inspector: true });
-			}
+					journey.locationWaypoints.push(waypoint);
+					selectedWidget = { type: 'location', id: waypoint.id };
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					commitJourneyEdit({ normalize: true, inspector: true });
+				}
 
 			function addCameraAtCurrentTime() {
 				const timeSecs = currentTimelineTimeSecs();
@@ -2541,12 +2803,12 @@ const title = 'Journey Editor';
 					forward: { ...snapshot.cameraForwardPc },
 					up: { ...snapshot.cameraUpPc },
 				};
-				journey.cameraLookWaypoints.push(waypoint);
-				selectedWidget = { type: 'camera', id: waypoint.id };
-				selectedLocationRange = null;
-				selectedLocationGroupId = null;
-				commitJourneyEdit({ normalize: true, inspector: true });
-			}
+					journey.cameraLookWaypoints.push(waypoint);
+					selectedWidget = { type: 'camera', id: waypoint.id };
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					commitJourneyEdit({ normalize: true, inspector: true });
+				}
 
 			function addGuideAtCurrentPosition() {
 				const guide = {
@@ -2559,12 +2821,12 @@ const title = 'Journey Editor';
 					color: '#ffd166',
 					opacity: 0.45,
 				};
-				journey.guides.push(guide);
-				selectedWidget = { type: 'guide', id: guide.id };
-				selectedLocationRange = null;
-				selectedLocationGroupId = null;
-				commitJourneyEdit({ normalize: true, inspector: true });
-			}
+					journey.guides.push(guide);
+					selectedWidget = { type: 'guide', id: guide.id };
+					selectedLocationRange = null;
+					clearLocationGroupSelection();
+					commitJourneyEdit({ normalize: true, inspector: true });
+				}
 
 			function refreshStats() {
 				stats.get('time').textContent = `${evaluated.sceneTimeSecs.toFixed(2)}s`;
@@ -2605,13 +2867,13 @@ const title = 'Journey Editor';
 			}
 
 			function importJourneyJson() {
-				try {
-					journey = normalizeJourney(JSON.parse(jsonTextarea.value));
-					selectedWidget = null;
-					selectedLocationRange = null;
-					selectedLocationGroupId = null;
-					saveJourneyDraft();
-					renderAll();
+					try {
+						journey = prepareJourney(JSON.parse(jsonTextarea.value));
+						selectedWidget = null;
+						selectedLocationRange = null;
+						clearLocationGroupSelection();
+						saveJourneyDraft();
+						renderAll();
 				} catch (error) {
 					jsonTextarea.value = error instanceof Error ? error.message : String(error);
 				}
@@ -2699,14 +2961,14 @@ const title = 'Journey Editor';
 			}
 
 			window.__journeyEditor = {
-				getJourney: () => normalizeJourney(journey),
-				setJourney(nextJourney) {
-					journey = normalizeJourney(nextJourney);
-					selectedWidget = null;
-					selectedLocationRange = null;
-					selectedLocationGroupId = null;
-					saveJourneyDraft();
-					renderAll();
+					getJourney: () => normalizeJourney(journey),
+					setJourney(nextJourney) {
+						journey = prepareJourney(nextJourney);
+						selectedWidget = null;
+						selectedLocationRange = null;
+						clearLocationGroupSelection();
+						saveJourneyDraft();
+						renderAll();
 				},
 				evaluateAt(timeSecs) {
 					return evaluator.evaluate(timeSecs);
@@ -2717,10 +2979,11 @@ const title = 'Journey Editor';
 						tileModes: [...editorState.tileModes],
 						zoom: editorState.zoom,
 						easeSecs: editorState.easeSecs,
-						selectedWidget: selectedWidget ? { ...selectedWidget } : null,
-						selectedLocationRange: selectedLocationRange ? { ...selectedLocationRange } : null,
-						selectedLocationGroupId,
-						hoveredWidget: hoveredWidget ? { ...hoveredWidget } : null,
+							selectedWidget: selectedWidget ? { ...selectedWidget } : null,
+							selectedLocationRange: selectedLocationRange ? { ...selectedLocationRange } : null,
+							selectedLocationGroupId,
+							selectedLocationGroupPhase,
+							hoveredWidget: hoveredWidget ? { ...hoveredWidget } : null,
 						hasSkyKit: Boolean(skyKit),
 						hasSavedJourneyDraft: Boolean(window.localStorage.getItem(JOURNEY_DRAFT_STORAGE_KEY)),
 						skyKitGuideCount: skyKit?.guideGroup?.children?.length ?? 0,

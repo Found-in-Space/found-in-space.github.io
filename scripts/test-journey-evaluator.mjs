@@ -9,7 +9,6 @@ import {
 	easeLocationRangeStartEnd,
 	equalizeLocationRangeSpeeds,
 	getLocationRangeSpeedStats,
-	rebuildEaseLocationGroup,
 } from '../src/scripts/journey-retiming.js';
 
 function closeTo(actual, expected, tolerance = 1e-6) {
@@ -103,7 +102,7 @@ function lookJourney(overrides = {}) {
 				id: 'tagged-location',
 				timeSecs: 0,
 				positionPc: { x: 0, y: 0, z: 0 },
-				motionGroup: { id: 'ease-7', kind: 'ease', role: 'helper', easeSecs: 2, rampSampleSecs: 0.5 },
+				motionGroup: { id: 'ease-7', kind: 'ease', role: 'helper', phase: 'start', easeSecs: 2, rampSampleSecs: 0.5 },
 			},
 		],
 		cameraLookWaypoints: [
@@ -121,6 +120,7 @@ function lookJourney(overrides = {}) {
 		id: 'ease-7',
 		kind: 'ease',
 		role: 'helper',
+		phase: 'start',
 		easeSecs: 2,
 		rampSampleSecs: 0.5,
 	});
@@ -331,15 +331,22 @@ function lookJourney(overrides = {}) {
 	const result = easeLocationRangeStartEnd(locationWaypoints, 'a', 'e', {
 		easeSecs: 3,
 		rampSampleSecs: 1,
-		groupId: 'ease-2',
+		startGroupId: 'ease-2',
+		endGroupId: 'ease-3',
 	});
 	const byId = new Map(result.locationWaypoints.map((entry) => [entry.id, entry]));
 	assert.equal(result.groupId, 'ease-2');
+	assert.equal(result.startGroupId, 'ease-2');
+	assert.equal(result.endGroupId, 'ease-3');
 	closeTo(byId.get('a').timeSecs, 0, 1e-6);
 	closeTo(byId.get('e').timeSecs, 20, 1e-6);
+	assert.equal(byId.get('a').motionGroup.id, 'ease-2');
 	assert.equal(byId.get('a').motionGroup.role, 'anchor');
-	assert.equal(byId.get('c').motionGroup.role, 'real');
+	assert.equal(byId.get('a').motionGroup.phase, 'start');
+	assert.equal(byId.get('c').motionGroup, undefined);
+	assert.equal(byId.get('e').motionGroup.id, 'ease-3');
 	assert.equal(byId.get('e').motionGroup.role, 'anchor');
+	assert.equal(byId.get('e').motionGroup.phase, 'end');
 	assert.ok(byId.get('b').timeSecs > 5, 'ease should spend more time near the start');
 	closeTo(byId.get('c').timeSecs, 10, 0.05);
 	assert.ok(byId.get('d').timeSecs < 15, 'ease should spend more time near the end');
@@ -348,10 +355,11 @@ function lookJourney(overrides = {}) {
 	}
 	assert.ok(result.insertedIds.length > 0, 'ease should insert ramp helper waypoints');
 	for (const id of result.insertedIds) {
-		assert.ok(id.startsWith('loc-ease-2-'));
 		const helper = byId.get(id);
-		assert.equal(helper.motionGroup.id, 'ease-2');
+		assert.ok(['ease-2', 'ease-3'].includes(helper.motionGroup.id));
+		assert.ok(id.startsWith(`loc-${helper.motionGroup.id}-`));
 		assert.equal(helper.motionGroup.role, 'helper');
+		assert.ok(['start', 'end'].includes(helper.motionGroup.phase));
 		assert.ok(helper.timeSecs > 0 && helper.timeSecs < 20);
 		closeTo(helper.positionPc.y, 0, 1e-6);
 		closeTo(helper.positionPc.z, 0, 1e-6);
@@ -369,7 +377,8 @@ function lookJourney(overrides = {}) {
 	const result = easeLocationRangeStartEnd(locationWaypoints, 'a', 'd', {
 		easeSecs: 3,
 		rampSampleSecs: 1,
-		groupId: 'ease-3',
+		startGroupId: 'ease-4',
+		endGroupId: 'ease-5',
 	});
 	const byId = new Map(result.locationWaypoints.map((entry) => [entry.id, entry]));
 	closeTo(byId.get('b').timeSecs - byId.get('a').timeSecs, 4, 1e-6);
@@ -390,7 +399,8 @@ function lookJourney(overrides = {}) {
 	const result = easeLocationRangeStartEnd(locationWaypoints, 'a', 'c', {
 		easeSecs: 10,
 		rampSampleSecs: 0.5,
-		groupId: 'ease-short',
+		startGroupId: 'ease-short-start',
+		endGroupId: 'ease-short-end',
 	});
 	assert.ok(result.effectiveEaseSecs <= 1, 'ease duration should clamp to half the moving range duration');
 }
@@ -406,31 +416,44 @@ function lookJourney(overrides = {}) {
 	const first = easeLocationRangeStartEnd(locationWaypoints, 'a', 'e', {
 		easeSecs: 3,
 		rampSampleSecs: 1,
-		groupId: 'ease-9',
+		startGroupId: 'ease-9',
+		endGroupId: 'ease-10',
 	});
-	const rebuilt = rebuildEaseLocationGroup(first.locationWaypoints, 'ease-9', {
-		easeSecs: 1,
-		rampSampleSecs: 0.5,
-	});
-	const rebuiltById = new Map(rebuilt.locationWaypoints.map((entry) => [entry.id, entry]));
-	assert.equal(rebuilt.groupId, 'ease-9');
-	assert.equal(rebuiltById.get('a').motionGroup.role, 'anchor');
-	assert.equal(rebuiltById.get('c').motionGroup.role, 'real');
-	assert.ok(rebuilt.insertedIds.length > 0, 'rebuild should create helpers for the same group');
-	for (const id of rebuilt.insertedIds) {
-		assert.equal(rebuiltById.get(id).motionGroup.id, 'ease-9');
-	}
-	const deleted = deleteEaseLocationGroupHelpers(rebuilt.locationWaypoints, 'ease-9');
+	const deleted = deleteEaseLocationGroupHelpers(first.locationWaypoints, 'ease-9');
 	const deletedById = new Map(deleted.locationWaypoints.map((entry) => [entry.id, entry]));
-	assert.ok(deleted.deletedIds.length > 0, 'delete helpers should remove generated helpers');
+	assert.ok(deleted.deletedIds.length > 0, 'delete helpers should remove generated helpers from the selected group');
 	assert.ok(deleted.clearedIds.includes('a'));
-	assert.ok(deleted.clearedIds.includes('c'));
-	assert.ok(deleted.clearedIds.includes('e'));
 	assert.ok(deletedById.has('a') && deletedById.has('c') && deletedById.has('e'));
 	assert.equal(deletedById.get('a').motionGroup, undefined);
+	assert.equal(deletedById.get('e').motionGroup.id, 'ease-10');
 	for (const id of deleted.deletedIds) {
 		assert.equal(deletedById.has(id), false);
 	}
+}
+
+{
+	const locationWaypoints = [
+		{ id: 'a', timeSecs: 0, positionPc: { x: 0, y: 0, z: 0 } },
+		{ id: 'b', timeSecs: 5, positionPc: { x: 25, y: 0, z: 0 } },
+		{ id: 'c', timeSecs: 10, positionPc: { x: 50, y: 0, z: 0 } },
+		{ id: 'd', timeSecs: 15, positionPc: { x: 75, y: 0, z: 0 } },
+		{ id: 'e', timeSecs: 20, positionPc: { x: 100, y: 0, z: 0 } },
+	];
+	const first = easeLocationRangeStartEnd(locationWaypoints, 'a', 'e', {
+		easeSecs: 3,
+		rampSampleSecs: 1,
+		startGroupId: 'ease-11',
+		endGroupId: 'ease-12',
+	});
+	const deleted = deleteEaseLocationGroupHelpers(first.locationWaypoints, 'ease-11');
+	const deletedById = new Map(deleted.locationWaypoints.map((entry) => [entry.id, entry]));
+	assert.ok(deleted.deletedIds.length > 0, 'delete should remove start helpers');
+	assert.ok(deleted.clearedIds.includes('a'));
+	assert.equal(deletedById.get('a').motionGroup, undefined);
+	assert.equal(deletedById.get('e').motionGroup.id, 'ease-12');
+	assert.equal(deletedById.get('e').motionGroup.phase, 'end');
+	assert.ok(deleted.locationWaypoints.some((entry) => entry.motionGroup?.phase === 'end' && entry.motionGroup.role === 'helper'));
+	assert.equal(deleted.locationWaypoints.some((entry) => entry.motionGroup?.id === 'ease-11'), false);
 }
 
 console.log('[journey-evaluator] ok');

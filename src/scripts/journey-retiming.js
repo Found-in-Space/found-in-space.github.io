@@ -27,6 +27,7 @@ function cloneMotionGroup(motionGroup) {
 		id: String(motionGroup.id),
 		kind: motionGroup.kind === 'ease' ? 'ease' : String(motionGroup.kind ?? 'ease'),
 		role: ['anchor', 'real', 'helper'].includes(motionGroup.role) ? motionGroup.role : 'real',
+		...(motionGroup.phase === 'start' || motionGroup.phase === 'end' ? { phase: motionGroup.phase } : {}),
 		easeSecs: Math.max(0, finiteNumber(motionGroup.easeSecs, DEFAULT_EASE_SECS)),
 		rampSampleSecs: Math.max(0, finiteNumber(motionGroup.rampSampleSecs, DEFAULT_RAMP_SAMPLE_SECS)),
 	};
@@ -150,7 +151,7 @@ function rangeContext(locationWaypoints, anchorId, focusId, options = {}) {
 	};
 }
 
-function nextEaseGroupId(locationWaypoints) {
+function nextEaseGroupIds(locationWaypoints, count = 1) {
 	let maxIndex = 0;
 	for (const waypoint of locationWaypoints) {
 		const match = /^ease-(\d+)$/.exec(String(waypoint.motionGroup?.id ?? ''));
@@ -158,14 +159,15 @@ function nextEaseGroupId(locationWaypoints) {
 			maxIndex = Math.max(maxIndex, Number(match[1]));
 		}
 	}
-	return `ease-${maxIndex + 1}`;
+	return Array.from({ length: Math.max(1, count) }, (_, index) => `ease-${maxIndex + index + 1}`);
 }
 
-function groupMetadata(groupId, role, profile, options = {}) {
+function groupMetadata(groupId, role, profile, options = {}, phase = null) {
 	return {
 		id: groupId,
 		kind: 'ease',
 		role,
+		...(phase === 'start' || phase === 'end' ? { phase } : {}),
 		easeSecs: profile.effectiveEaseSecs,
 		rampSampleSecs: Math.max(EPSILON, finiteNumber(options.rampSampleSecs, DEFAULT_RAMP_SAMPLE_SECS)),
 	};
@@ -321,37 +323,62 @@ function pointAtMovementDistance(context, movementDistancePc) {
 }
 
 function generatedRampTimes(profile, movementDurationSecs, rampSampleSecs) {
-	const times = [];
+	const entries = [];
 	const sampleStepSecs = Math.max(EPSILON, finiteNumber(rampSampleSecs, DEFAULT_RAMP_SAMPLE_SECS));
 	const easeSecs = profile.effectiveEaseSecs;
-	if (easeSecs <= EPSILON) return times;
-	function add(timeSecs) {
+	if (easeSecs <= EPSILON) return entries;
+	function add(timeSecs, phase) {
 		if (timeSecs <= EPSILON || timeSecs >= movementDurationSecs - EPSILON) return;
-		if (!times.some((entry) => Math.abs(entry - timeSecs) <= EPSILON)) {
-			times.push(timeSecs);
+		if (!entries.some((entry) => Math.abs(entry.timeSecs - timeSecs) <= EPSILON)) {
+			entries.push({ timeSecs, phase });
 		}
 	}
 	for (let timeSecs = sampleStepSecs; timeSecs <= easeSecs + EPSILON; timeSecs += sampleStepSecs) {
-		add(Math.min(timeSecs, easeSecs));
+		add(Math.min(timeSecs, easeSecs), 'start');
 	}
 	for (let timeSecs = movementDurationSecs - easeSecs; timeSecs < movementDurationSecs - EPSILON; timeSecs += sampleStepSecs) {
-		add(timeSecs);
+		add(timeSecs, 'end');
 	}
-	return times.sort((left, right) => left - right);
+	return entries.sort((left, right) => left.timeSecs - right.timeSecs);
 }
 
-function tagEaseSourceWaypoints(context, profile, groupId, options = {}) {
+function easePhaseForMovementTime(profile, movementDurationSecs, movementTimeSecs) {
+	if (profile.effectiveEaseSecs <= EPSILON) return null;
+	if (movementTimeSecs <= profile.effectiveEaseSecs + EPSILON) return 'start';
+	if (movementTimeSecs >= movementDurationSecs - profile.effectiveEaseSecs - EPSILON) return 'end';
+	return null;
+}
+
+function tagEaseSourceWaypoints(context, profile, groupIds, options = {}) {
+	let traversedLengthPc = 0;
+	context.sortedWaypoints[context.range.startIndex].motionGroup = groupMetadata(groupIds.start, 'anchor', profile, options, 'start');
+	context.sortedWaypoints[context.range.endIndex].motionGroup = groupMetadata(groupIds.end, 'anchor', profile, options, 'end');
+	for (let index = context.range.startIndex + 1; index < context.range.endIndex; index += 1) {
+		context.sortedWaypoints[index].motionGroup = null;
+	}
 	for (let index = context.range.startIndex; index <= context.range.endIndex; index += 1) {
-		const role = index === context.range.startIndex || index === context.range.endIndex ? 'anchor' : 'real';
-		context.sortedWaypoints[index].motionGroup = groupMetadata(groupId, role, profile, options);
+		if (index < context.range.startIndex || index >= context.range.endIndex) continue;
+		const segment = context.rangeSegments.find((entry) => entry.index === index);
+		if (!segment) continue;
+		if (!segment.held && segment.lengthPc > EPSILON) {
+			traversedLengthPc += segment.lengthPc;
+		}
+		const waypointIndex = index + 1;
+		if (waypointIndex >= context.range.endIndex) continue;
+		const movementTimeSecs = profile.timeAtDistance(traversedLengthPc);
+		const phase = easePhaseForMovementTime(profile, context.movementDurationSecs, movementTimeSecs);
+		if (phase) {
+			context.sortedWaypoints[waypointIndex].motionGroup = groupMetadata(groupIds[phase], 'real', profile, options, phase);
+		}
 	}
 }
 
-function generateEaseWaypoints(context, profile, nextTimes, groupId, options = {}) {
+function generateEaseWaypoints(context, profile, nextTimes, groupIds, options = {}) {
 	const timeStepSecs = Math.max(EPSILON, finiteNumber(options.timeStepSecs, DEFAULT_TIME_STEP_SECS));
 	const usedTimes = new Set(nextTimes.map(timeKey));
 	const insertedWaypoints = [];
-	for (const movementTimeSecs of generatedRampTimes(profile, context.movementDurationSecs, options.rampSampleSecs)) {
+	const phaseCounts = { start: 0, end: 0 };
+	for (const { timeSecs: movementTimeSecs, phase } of generatedRampTimes(profile, context.movementDurationSecs, options.rampSampleSecs)) {
 		const movementDistancePc = profile.distanceAtTime(movementTimeSecs);
 		const actualTimeSecs = snapTime(
 			context.startTime + holdDurationBeforeMovementDistance(context, movementDistancePc) + movementTimeSecs,
@@ -361,11 +388,13 @@ function generateEaseWaypoints(context, profile, nextTimes, groupId, options = {
 		const key = timeKey(actualTimeSecs);
 		if (usedTimes.has(key)) continue;
 		usedTimes.add(key);
+		phaseCounts[phase] += 1;
+		const groupId = groupIds[phase];
 		insertedWaypoints.push({
-			id: `loc-${groupId}-${String(insertedWaypoints.length + 1).padStart(3, '0')}`,
+			id: `loc-${groupId}-${String(phaseCounts[phase]).padStart(3, '0')}`,
 			timeSecs: Number(actualTimeSecs.toFixed(6)),
 			positionPc: pointAtMovementDistance(context, movementDistancePc),
-			motionGroup: groupMetadata(groupId, 'helper', profile, options),
+			motionGroup: groupMetadata(groupId, 'helper', profile, options, phase),
 		});
 	}
 	return insertedWaypoints;
@@ -424,11 +453,14 @@ export function easeLocationRangeStartEnd(locationWaypoints, anchorId, focusId, 
 	if (context.movementLengthPc <= EPSILON || context.movementDurationSecs <= EPSILON) {
 		return noChangeResult(locationWaypoints, context.before, { effectiveEaseSecs: 0 });
 	}
-	const groupId = String(options.groupId ?? nextEaseGroupId(locationWaypoints));
+	const fallbackIds = nextEaseGroupIds(locationWaypoints, 2);
+	const startGroupId = String(options.startGroupId ?? options.groupId ?? fallbackIds[0]);
+	const endGroupId = String(options.endGroupId ?? fallbackIds[startGroupId === fallbackIds[0] ? 1 : 0]);
+	const groupIds = { start: startGroupId, end: endGroupId };
 	const profile = cosineRampProfile(context.movementLengthPc, context.movementDurationSecs, options.easeSecs);
 	const nextTimes = retimeExistingWaypoints(context, profile, timeStepSecs);
-	tagEaseSourceWaypoints(context, profile, groupId, options);
-	const insertedWaypoints = generateEaseWaypoints(context, profile, nextTimes, groupId, options);
+	tagEaseSourceWaypoints(context, profile, groupIds, options);
+	const insertedWaypoints = generateEaseWaypoints(context, profile, nextTimes, groupIds, options);
 	const changedIds = applyTimes(context, nextTimes);
 	const locationWaypointsNext = rebuildLocationWaypoints(locationWaypoints, context.sortedWaypoints, insertedWaypoints);
 	const after = getLocationRangeSpeedStats(locationWaypointsNext, anchorId, focusId, options);
@@ -440,19 +472,27 @@ export function easeLocationRangeStartEnd(locationWaypoints, anchorId, focusId, 
 		insertedIds: insertedWaypoints.map((waypoint) => waypoint.id),
 		insertedCount: insertedWaypoints.length,
 		effectiveEaseSecs: profile.effectiveEaseSecs,
-		groupId,
+		groupId: startGroupId,
+		startGroupId,
+		endGroupId,
+		groupIds: [startGroupId, endGroupId],
 		anchorId,
 		focusId,
 	};
 }
 
-export function deleteEaseLocationGroupHelpers(locationWaypoints, groupId) {
+export function deleteEaseLocationGroupHelpers(locationWaypoints, groupId, options = {}) {
+	const phase = options.phase === 'start' || options.phase === 'end' ? options.phase : null;
 	const deletedIds = [];
 	const clearedIds = [];
 	const locationWaypointsNext = [];
 	for (const waypoint of locationWaypoints) {
 		const motionGroup = cloneMotionGroup(waypoint.motionGroup);
-		if (motionGroup?.id !== groupId || motionGroup.kind !== 'ease') {
+		if (
+			motionGroup?.id !== groupId
+			|| motionGroup.kind !== 'ease'
+			|| (phase && motionGroup.phase !== phase)
+		) {
 			locationWaypointsNext.push(waypoint);
 			continue;
 		}

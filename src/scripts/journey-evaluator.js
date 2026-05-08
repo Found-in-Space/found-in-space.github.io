@@ -111,6 +111,7 @@ function cleanMotionGroup(motionGroup) {
 		id: String(motionGroup.id),
 		kind: motionGroup.kind === 'ease' ? 'ease' : String(motionGroup.kind ?? 'ease'),
 		role,
+		...(motionGroup.phase === 'start' || motionGroup.phase === 'end' ? { phase: motionGroup.phase } : {}),
 		easeSecs: Math.max(0, finiteNumber(motionGroup.easeSecs, 0)),
 		rampSampleSecs: Math.max(0, finiteNumber(motionGroup.rampSampleSecs, 0)),
 	};
