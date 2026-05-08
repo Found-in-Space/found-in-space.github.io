@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, firefox, webkit } from 'playwright';
@@ -93,6 +93,7 @@ function resolveOptions(rawArgs) {
 		frames: null,
 		browser: null,
 		crf: null,
+		journeyPath: null,
 	};
 
 	for (let index = 0; index < args.length; index += 1) {
@@ -139,6 +140,11 @@ function resolveOptions(rawArgs) {
 			parsed.browser = value;
 		} else if (rawName === 'crf') {
 			parsed.crf = parseCrf(value);
+		} else if (rawName === 'journey') {
+			if (!value) {
+				throw new Error('Invalid --journey. Expected a JSON file path.');
+			}
+			parsed.journeyPath = value;
 		} else {
 			throw new Error(`Unknown option --${rawName}`);
 		}
@@ -164,6 +170,7 @@ function resolveOptions(rawArgs) {
 		frameCount,
 		browser: parsed.browser ?? defaults.browser,
 		crf: parsed.crf ?? defaults.crf,
+		journeyPath: parsed.journeyPath,
 	};
 }
 
@@ -219,6 +226,9 @@ function createPageUrl() {
 	url.searchParams.set('canvasOverlay', '1');
 	if (cli.capture !== 'screenshot') {
 		url.searchParams.set('preserveDrawingBuffer', '1');
+	}
+	if (cli.journeyPath) {
+		url.searchParams.set('journey', 'external');
 	}
 	return url;
 }
@@ -383,6 +393,22 @@ async function prepareOutput() {
 	if (cli.plates === 'all') {
 		await Promise.all(FRAME_PLATES.map((plate) => mkdir(path.join(framesRoot, plate), { recursive: true })));
 	}
+}
+
+async function loadJourneyInput() {
+	if (!cli.journeyPath) {
+		return null;
+	}
+	const journeyPath = path.resolve(projectRoot, cli.journeyPath);
+	const raw = await readFile(journeyPath, 'utf8');
+	const payload = JSON.parse(raw);
+	if (payload?.format !== 'fis-journey-v1') {
+		throw new Error(`Journey file must use format "fis-journey-v1": ${journeyPath}`);
+	}
+	return {
+		path: journeyPath,
+		payload,
+	};
 }
 
 async function waitForExportPage(page) {
@@ -665,6 +691,7 @@ async function writeMetadata(metadata) {
 }
 
 async function main() {
+	const journeyInput = await loadJourneyInput();
 	await prepareOutput();
 
 	const server = startAstroServer();
@@ -687,6 +714,11 @@ async function main() {
 			viewport: { width: layout.width, height: layout.height },
 			deviceScaleFactor: 1,
 		});
+		if (journeyInput) {
+			await page.addInitScript({
+				content: `window.__fisJourneyInput = ${JSON.stringify(journeyInput.payload)};`,
+			});
+		}
 		page.setDefaultTimeout(PAGE_READY_TIMEOUT_MS);
 		page.on('console', (message) => {
 			const type = message.type();
@@ -714,7 +746,18 @@ async function main() {
 
 		const metadata = {
 			generatedAt: new Date().toISOString(),
-			journey: 'radio-bubble',
+			journey: journeyInput
+				? {
+					source: 'external',
+					path: rel(journeyInput.path),
+					format: journeyInput.payload.format,
+					id: journeyInput.payload.id ?? null,
+					title: journeyInput.payload.title ?? null,
+				}
+				: {
+					source: 'builtin',
+					id: 'radio-bubble',
+				},
 			mode: cli.mode,
 			layout: {
 				id: layout.id,

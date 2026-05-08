@@ -32,6 +32,7 @@ const title = 'Radio Bubble Full Video Export';
 				getRadioBubbleVideoCueOpacity,
 				RADIO_BUBBLE_VIDEO_DURATION_SECS,
 			} from '../../scripts/radio-bubble-video-timeline.js';
+			import { createJourneyEvaluator } from '../../scripts/journey-evaluator.js';
 
 			const FRAME_TIMEOUT_MS = 45_000;
 			const INITIAL_TIMEOUT_MS = 90_000;
@@ -52,6 +53,16 @@ const title = 'Radio Bubble Full Video Export';
 				?? getRadioBubbleVideoLayout(DEFAULT_RADIO_BUBBLE_VIDEO_LAYOUT_ID);
 			const preserveDrawingBuffer = routeParams.get('preserveDrawingBuffer') === '1';
 			const showCanvasOverlay = routeParams.get('canvasOverlay') === '1';
+			const injectedJourney = window.__fisJourneyInput && typeof window.__fisJourneyInput === 'object'
+				? window.__fisJourneyInput
+				: null;
+			const journeyEvaluator = injectedJourney?.format === 'fis-journey-v1'
+				? createJourneyEvaluator(injectedJourney)
+				: null;
+			const activeDurationSecs = journeyEvaluator?.durationSecs ?? RADIO_BUBBLE_VIDEO_DURATION_SECS;
+			const activeCues = Array.isArray(journeyEvaluator?.journey?.cues) && journeyEvaluator.journey.cues.length > 0
+				? journeyEvaluator.journey.cues
+				: null;
 			document.documentElement.dataset.videoLayout = layout.id;
 			document.documentElement.toggleAttribute('data-canvas-overlay', showCanvasOverlay);
 
@@ -163,11 +174,18 @@ const title = 'Radio Bubble Full Video Export';
 						width: layout.width,
 						height: layout.height,
 					},
-					durationSecs: RADIO_BUBBLE_VIDEO_DURATION_SECS,
+					durationSecs: activeDurationSecs,
 					preserveDrawingBuffer,
 					showCanvasOverlay,
 					captureStreamSupported: typeof canvas.captureStream === 'function',
 					mediaRecorderSupported: typeof MediaRecorder !== 'undefined',
+					journey: journeyEvaluator
+						? {
+							format: journeyEvaluator.journey.format,
+							id: journeyEvaluator.journey.id,
+							title: journeyEvaluator.journey.title,
+						}
+						: null,
 				};
 			}
 
@@ -580,9 +598,34 @@ const title = 'Radio Bubble Full Video Export';
 				});
 			}
 
+			function getActiveCue(sceneTimeSecs) {
+				if (activeCues) {
+					return activeCues.find((entry) => sceneTimeSecs >= entry.startSecs && sceneTimeSecs < entry.endSecs)
+						?? activeCues[activeCues.length - 1];
+				}
+				return getRadioBubbleVideoCue(sceneTimeSecs);
+			}
+
+			function getActiveCueOpacity(sceneTimeSecs, fadeSecs = 0.85) {
+				if (!activeCues) {
+					return getRadioBubbleVideoCueOpacity(sceneTimeSecs, fadeSecs);
+				}
+				const cue = getActiveCue(sceneTimeSecs);
+				const localTime = sceneTimeSecs - cue.startSecs;
+				const fadeIn = Math.min(1, Math.max(0, localTime / fadeSecs));
+				const fadeOut = Math.min(1, Math.max(0, (cue.endSecs - sceneTimeSecs) / fadeSecs));
+				return Math.min(fadeIn, fadeOut);
+			}
+
+			function getActiveCamera(sceneTimeSecs) {
+				return journeyEvaluator
+					? journeyEvaluator.evaluate(sceneTimeSecs)
+					: getRadioBubbleVideoCamera(sceneTimeSecs);
+			}
+
 			function updateOverlay(sceneTimeSecs) {
-				const cue = getRadioBubbleVideoCue(sceneTimeSecs);
-				const opacity = getRadioBubbleVideoCueOpacity(sceneTimeSecs);
+				const cue = getActiveCue(sceneTimeSecs);
+				const opacity = getActiveCueOpacity(sceneTimeSecs);
 
 				if (overlayEyebrow) overlayEyebrow.textContent = cue.eyebrow;
 				if (overlayTitle) overlayTitle.textContent = cue.title;
@@ -593,10 +636,10 @@ const title = 'Radio Bubble Full Video Export';
 
 			function applyCamera(sceneTimeSecs) {
 				const { viewer, cameraController } = mounted;
-				const nextCamera = getRadioBubbleVideoCamera(sceneTimeSecs);
+				const nextCamera = getActiveCamera(sceneTimeSecs);
 				cameraController.cancelAutomation();
 				cameraController.rig.setPosition(nextCamera.observerPc);
-				cameraController.rig.orientToward(nextCamera.targetPc);
+				cameraController.rig.orientToward(nextCamera.targetPc, nextCamera.cameraUpPc);
 				viewer.setState({
 					observerPc: { ...nextCamera.observerPc },
 					targetPc: { ...nextCamera.targetPc },
@@ -683,7 +726,14 @@ const title = 'Radio Bubble Full Video Export';
 						width: layout.width,
 						height: layout.height,
 					},
-					durationSecs: RADIO_BUBBLE_VIDEO_DURATION_SECS,
+					durationSecs: activeDurationSecs,
+					journey: journeyEvaluator
+						? {
+							format: journeyEvaluator.journey.format,
+							id: journeyEvaluator.journey.id,
+							title: journeyEvaluator.journey.title,
+						}
+						: null,
 				};
 			}
 

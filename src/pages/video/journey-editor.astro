@@ -1,0 +1,2745 @@
+---
+const title = 'Journey Editor';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<style>
+			:root {
+				color-scheme: dark;
+				font-family:
+					Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+					sans-serif;
+				background: #05070c;
+				color: #edf6ff;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				overflow: hidden;
+			}
+
+			body {
+				display: grid;
+				grid-template-columns: 390px 1fr;
+				background: #05070c;
+			}
+
+			button,
+			input,
+			select,
+			textarea {
+				font: inherit;
+			}
+
+			button {
+				height: 30px;
+				padding: 0 10px;
+				border: 1px solid rgb(120 207 255 / 0.34);
+				border-radius: 6px;
+				background: rgb(27 82 112 / 0.72);
+				color: white;
+				font-size: 12px;
+				font-weight: 750;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: rgb(36 112 144 / 0.84);
+			}
+
+			button.is-danger {
+				border-color: rgb(255 128 128 / 0.36);
+				background: rgb(118 42 58 / 0.68);
+			}
+
+			input,
+			select,
+			textarea {
+				width: 100%;
+				border: 1px solid rgb(164 219 255 / 0.2);
+				border-radius: 5px;
+				background: #030812;
+				color: #edf6ff;
+				font-size: 11px;
+			}
+
+			input,
+			select {
+				height: 26px;
+				padding: 0 6px;
+			}
+
+			input[type="range"] {
+				padding: 0;
+				accent-color: #5be7c4;
+			}
+
+			input[type="color"] {
+				padding: 2px;
+			}
+
+			textarea {
+				min-height: 150px;
+				padding: 8px;
+				resize: vertical;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+			}
+
+			h1 {
+				margin: 0 0 10px;
+				font-size: 20px;
+				line-height: 1.1;
+			}
+
+			h2 {
+				margin: 18px 0 8px;
+				color: #84dfff;
+				font-size: 12px;
+				line-height: 1.2;
+				text-transform: uppercase;
+			}
+
+			label {
+				display: grid;
+				gap: 5px;
+				color: rgb(218 241 255 / 0.76);
+				font-size: 11px;
+				font-weight: 700;
+			}
+
+			.sidebar {
+				min-width: 0;
+				height: 100vh;
+				padding: 14px;
+				overflow: auto;
+				border-right: 1px solid rgb(120 207 255 / 0.18);
+				background: #080e16;
+			}
+
+			.main {
+				min-width: 0;
+				height: 100vh;
+				padding: 12px;
+				display: grid;
+				grid-template-rows: auto minmax(0, 1fr) auto;
+				gap: 10px;
+			}
+
+			.view-toolbar {
+				display: flex;
+				align-items: center;
+				justify-content: flex-end;
+				min-width: 0;
+				min-height: 34px;
+				padding: 0 10px;
+				border: 1px solid rgb(120 207 255 / 0.18);
+				border-radius: 8px;
+				background: #080e16;
+			}
+
+			.zoom-control {
+				display: grid;
+				grid-template-columns: auto minmax(180px, 280px) 48px;
+				align-items: center;
+				gap: 10px;
+				color: rgb(218 241 255 / 0.74);
+				font-size: 11px;
+				font-weight: 800;
+				text-transform: uppercase;
+			}
+
+			.tile-grid {
+				min-height: 0;
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+				gap: 10px;
+			}
+
+			.tile {
+				position: relative;
+				min-width: 0;
+				min-height: 0;
+				overflow: hidden;
+				border: 1px solid rgb(120 207 255 / 0.2);
+				border-radius: 8px;
+				background: #02050b;
+			}
+
+			.tile-body,
+			:global(.journey-tile-canvas),
+			:global(.skykit-host) {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				display: block;
+			}
+
+			.tile-toolbar {
+				position: absolute;
+				top: 8px;
+				left: 8px;
+				z-index: 4;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				max-width: calc(100% - 16px);
+			}
+
+			.tile-toolbar select {
+				width: 118px;
+				height: 25px;
+				background: rgb(3 8 18 / 0.88);
+			}
+
+			.tile-status,
+			.tile-tooltip {
+				position: absolute;
+				z-index: 4;
+				max-width: calc(100% - 20px);
+				padding: 3px 6px;
+				border-radius: 4px;
+				background: rgb(4 10 20 / 0.78);
+				color: rgb(218 241 255 / 0.82);
+				font-size: 11px;
+				pointer-events: none;
+			}
+
+			.tile-status {
+				right: 10px;
+				bottom: 8px;
+			}
+
+			.tile-tooltip {
+				left: 10px;
+				bottom: 8px;
+			}
+
+			.bottom-panel {
+				--timeline-gutter: 62px;
+				--timeline-gap: 8px;
+
+				display: grid;
+				gap: 8px;
+				min-height: 152px;
+				padding: 10px 12px;
+				border: 1px solid rgb(120 207 255 / 0.18);
+				border-radius: 8px;
+				background: #080e16;
+			}
+
+			.transport {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				color: rgb(218 241 255 / 0.78);
+				font-size: 12px;
+				font-weight: 800;
+			}
+
+			.timeline {
+				position: relative;
+				display: grid;
+				gap: 6px;
+			}
+
+			.timeline-playhead {
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: calc(var(--timeline-gutter) + var(--timeline-gap));
+				width: 1px;
+				background: #ffffff;
+				box-shadow: 0 0 0 1px rgb(255 255 255 / 0.24), 0 0 18px rgb(255 255 255 / 0.36);
+				z-index: 5;
+				pointer-events: none;
+			}
+
+			.timeline-lane {
+				position: relative;
+				display: grid;
+				grid-template-columns: var(--timeline-gutter) minmax(0, 1fr);
+				align-items: center;
+				column-gap: var(--timeline-gap);
+				min-height: 34px;
+			}
+
+			.lane-head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 6px;
+				color: rgb(218 241 255 / 0.72);
+				font-size: 11px;
+				font-weight: 800;
+				text-transform: uppercase;
+			}
+
+			.lane-head button {
+				width: 24px;
+				height: 24px;
+				padding: 0;
+			}
+
+			.lane-track {
+				position: relative;
+				min-height: 28px;
+				border: 1px solid rgb(164 219 255 / 0.14);
+				border-radius: 6px;
+				background:
+					linear-gradient(90deg, rgb(255 255 255 / 0.08) 1px, transparent 1px) 0 0 / 10% 100%,
+					#030812;
+			}
+
+			.timeline-time-track {
+				--time-percent: 0%;
+
+				position: relative;
+				padding: 0;
+				overflow: visible;
+			}
+
+			.timeline-time-track::before,
+			.timeline-time-track::after {
+				content: "";
+				position: absolute;
+				top: 50%;
+				pointer-events: none;
+			}
+
+			.timeline-time-track::before {
+				left: 0;
+				right: 0;
+				height: 6px;
+				border-radius: 999px;
+				background: linear-gradient(
+					90deg,
+					#5be7c4 0 var(--time-percent),
+					rgb(255 255 255 / 0.18) var(--time-percent) 100%
+				);
+				transform: translateY(-50%);
+				z-index: 1;
+			}
+
+			.timeline-time-track::after {
+				left: var(--time-percent);
+				width: 18px;
+				height: 18px;
+				border: 1px solid rgb(255 255 255 / 0.32);
+				border-radius: 50%;
+				background: #5be7c4;
+				box-shadow: 0 0 0 2px rgb(91 231 196 / 0.12);
+				transform: translate(-50%, -50%);
+				z-index: 2;
+			}
+
+			.timeline-time-track:focus-within::after {
+				box-shadow: 0 0 0 4px rgb(91 231 196 / 0.22);
+			}
+
+			.timeline-time-track input {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				border: 0;
+				border-radius: 0;
+				background: transparent;
+				cursor: pointer;
+				opacity: 0;
+				z-index: 3;
+				appearance: none;
+				-webkit-appearance: none;
+			}
+
+			.timeline-time-track input:focus {
+				outline: none;
+			}
+
+			.timeline-time-track input::-webkit-slider-runnable-track {
+				width: 100%;
+				height: 6px;
+				border-radius: 999px;
+				background: transparent;
+			}
+
+			.timeline-time-track input::-webkit-slider-thumb {
+				width: 18px;
+				height: 18px;
+				margin-top: -6px;
+				border: 0;
+				border-radius: 50%;
+				background: transparent;
+				box-shadow: none;
+				appearance: none;
+				-webkit-appearance: none;
+			}
+
+			.timeline-time-track input:focus-visible::-webkit-slider-thumb {
+				box-shadow: none;
+			}
+
+			.timeline-time-track input::-moz-range-track {
+				height: 6px;
+				border: 0;
+				border-radius: 999px;
+				background: transparent;
+			}
+
+			.timeline-time-track input::-moz-range-progress {
+				height: 6px;
+				border-radius: 999px;
+				background: transparent;
+			}
+
+			.timeline-time-track input::-moz-range-thumb {
+				width: 18px;
+				height: 18px;
+				border: 0;
+				border-radius: 50%;
+				background: transparent;
+				box-shadow: none;
+			}
+
+			.timeline-time-track input:focus-visible::-moz-range-thumb {
+				box-shadow: none;
+			}
+
+			:global(.timeline-widget),
+			:global(.guide-chip) {
+				border: 1px solid rgb(255 255 255 / 0.28);
+				border-radius: 5px;
+				color: #061018;
+				font-size: 10px;
+				font-weight: 850;
+				line-height: 1;
+				cursor: pointer;
+				user-select: none;
+			}
+
+			:global(.timeline-widget) {
+				position: absolute;
+				top: 50%;
+				width: 18px;
+				height: 18px;
+				padding: 0;
+				display: grid;
+				place-items: center;
+				transform: translate(-50%, -50%);
+				z-index: 2;
+			}
+
+			:global(.timeline-range-band) {
+				position: absolute;
+				top: 50%;
+				height: 8px;
+				border: 1px solid rgb(91 231 196 / 0.42);
+				border-radius: 999px;
+				background: rgb(91 231 196 / 0.18);
+				transform: translateY(-50%);
+				z-index: 1;
+				pointer-events: none;
+			}
+
+			:global(.timeline-widget[data-widget-type="location"]) {
+				background: #f2f6ff;
+			}
+
+			:global(.timeline-widget[data-motion-role="helper"]) {
+				background: #5be7c4;
+				border-radius: 50%;
+			}
+
+			:global(.timeline-widget[data-motion-role="anchor"]),
+			:global(.timeline-widget[data-motion-role="real"]) {
+				box-shadow: inset 0 0 0 2px rgb(91 231 196 / 0.85);
+			}
+
+			:global(.timeline-widget[data-widget-type="camera"]) {
+				background: #5ddcff;
+				border-radius: 50%;
+			}
+
+			:global(.timeline-widget[data-widget-type="camera"][data-camera-kind="target"]) {
+				background: #ffb454;
+			}
+
+			:global(.guide-chip) {
+				height: 20px;
+				padding: 0 8px;
+				background: #ffd166;
+			}
+
+			.guide-list {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				min-height: 30px;
+				padding: 8px;
+				border: 1px solid rgb(164 219 255 / 0.14);
+				border-radius: 8px;
+				background: #030812;
+			}
+
+			:global(.timeline-widget.is-selected),
+			:global(.guide-chip.is-selected),
+			:global(.timeline-widget.is-hovered),
+			:global(.guide-chip.is-hovered) {
+				outline: 2px solid #ffb454;
+				outline-offset: 2px;
+			}
+
+			:global(.timeline-widget.is-in-range) {
+				box-shadow: 0 0 0 5px rgb(91 231 196 / 0.17);
+			}
+
+			:global(.timeline-widget.is-in-group) {
+				outline: 2px solid #5be7c4;
+				outline-offset: 3px;
+			}
+
+			.stats {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 5px 10px;
+				padding: 8px;
+				border: 1px solid rgb(164 219 255 / 0.14);
+				border-radius: 6px;
+				background: #030812;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+				font-size: 11px;
+				line-height: 1.35;
+			}
+
+			.stats dt {
+				color: #84dfff;
+			}
+
+			.stats dd {
+				margin: 0;
+				overflow-wrap: anywhere;
+			}
+
+			.button-row {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				margin: 8px 0;
+			}
+
+			.inspector {
+				display: grid;
+				gap: 12px;
+				padding: 10px;
+				border: 1px solid rgb(164 219 255 / 0.14);
+				border-radius: 8px;
+				background: #030812;
+			}
+
+			:global(.inspector-heading) {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+			}
+
+			:global(.inspector-heading strong) {
+				color: #f2f6ff;
+				font-size: 13px;
+			}
+
+			:global(.inspector-section) {
+				display: grid;
+				gap: 8px;
+				padding: 9px;
+				border: 1px solid rgb(164 219 255 / 0.13);
+				border-radius: 7px;
+				background: rgb(8 20 31 / 0.76);
+			}
+
+			:global(.inspector-section-title) {
+				color: #84dfff;
+				font-size: 10px;
+				font-weight: 850;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+			}
+
+			:global(.inspector-field) {
+				display: grid;
+				grid-template-columns: 72px minmax(0, 1fr);
+				align-items: center;
+				gap: 8px;
+				min-width: 0;
+				margin: 0;
+				color: rgb(218 241 255 / 0.74);
+				font-size: 11px;
+				font-weight: 750;
+			}
+
+			:global(.inspector-field.stacked) {
+				grid-template-columns: minmax(0, 1fr);
+				align-items: stretch;
+				gap: 4px;
+			}
+
+			:global(.inspector-field-label) {
+				min-width: 0;
+				overflow: hidden;
+				color: rgb(218 241 255 / 0.66);
+				font-size: 10px;
+				font-weight: 850;
+				line-height: 1.1;
+				text-overflow: ellipsis;
+				text-transform: uppercase;
+			}
+
+			:global(.inspector-field input),
+			:global(.inspector-field select) {
+				min-width: 0;
+				height: 28px;
+			}
+
+			:global(.inspector-field input[type="number"]) {
+				font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+			}
+
+			:global(.field-grid) {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 7px;
+			}
+
+			:global(.field-grid.two) {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			:global(.field-grid .inspector-field) {
+				grid-template-columns: minmax(0, 1fr);
+				gap: 4px;
+			}
+
+			:global(.empty-note) {
+				margin: 0;
+				color: rgb(218 241 255 / 0.58);
+				font-size: 12px;
+				line-height: 1.45;
+			}
+
+			:global(.diagnostic-grid) {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 5px 10px;
+				margin: 0;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+				font-size: 11px;
+				line-height: 1.35;
+			}
+
+			:global(.diagnostic-grid dt) {
+				color: #84dfff;
+			}
+
+			:global(.diagnostic-grid dd) {
+				margin: 0;
+				text-align: right;
+			}
+		</style>
+	</head>
+	<body>
+		<aside class="sidebar">
+			<h1>Journey Editor</h1>
+			<dl class="stats">
+				<dt>time</dt>
+				<dd data-stat="time">0.0s</dd>
+				<dt>position</dt>
+				<dd data-stat="position">-</dd>
+				<dt>speed</dt>
+				<dd data-stat="speed">-</dd>
+				<dt>velocity</dt>
+				<dd data-stat="velocity">-</dd>
+				<dt>camera</dt>
+				<dd data-stat="camera">-</dd>
+			</dl>
+
+			<h2>Journey</h2>
+			<label>
+				Duration
+				<input data-duration type="number" step="0.1" min="0.1" />
+			</label>
+			<div class="button-row">
+				<button type="button" data-export-json>Export JSON</button>
+				<button type="button" data-import-json>Import JSON</button>
+				<button type="button" data-download-json>Download</button>
+			</div>
+			<textarea data-json aria-label="Journey JSON"></textarea>
+
+			<h2>Guides</h2>
+			<div class="button-row">
+				<button type="button" data-add-guide>Add Guide</button>
+			</div>
+			<div class="guide-list" data-guide-list></div>
+
+			<h2>Inspector</h2>
+			<section class="inspector" data-inspector></section>
+		</aside>
+
+		<main class="main">
+			<div class="view-toolbar">
+				<div class="zoom-control">
+					<span>Zoom</span>
+					<input data-zoom type="range" min="0.35" max="50" step="0.05" value="1" aria-label="View zoom" />
+					<span data-zoom-label>100%</span>
+				</div>
+			</div>
+
+			<section class="tile-grid" data-tile-grid>
+				<div class="tile" data-tile="0">
+					<div class="tile-toolbar"><select data-tile-mode aria-label="Tile 1 mode"></select></div>
+					<div class="tile-body" data-tile-body></div>
+					<span class="tile-tooltip" data-tile-tooltip hidden></span>
+					<span class="tile-status" data-tile-status hidden></span>
+				</div>
+				<div class="tile" data-tile="1">
+					<div class="tile-toolbar"><select data-tile-mode aria-label="Tile 2 mode"></select></div>
+					<div class="tile-body" data-tile-body></div>
+					<span class="tile-tooltip" data-tile-tooltip hidden></span>
+					<span class="tile-status" data-tile-status hidden></span>
+				</div>
+				<div class="tile" data-tile="2">
+					<div class="tile-toolbar"><select data-tile-mode aria-label="Tile 3 mode"></select></div>
+					<div class="tile-body" data-tile-body></div>
+					<span class="tile-tooltip" data-tile-tooltip hidden></span>
+					<span class="tile-status" data-tile-status hidden></span>
+				</div>
+				<div class="tile" data-tile="3">
+					<div class="tile-toolbar"><select data-tile-mode aria-label="Tile 4 mode"></select></div>
+					<div class="tile-body" data-tile-body></div>
+					<span class="tile-tooltip" data-tile-tooltip hidden></span>
+					<span class="tile-status" data-tile-status hidden></span>
+				</div>
+			</section>
+
+			<section class="bottom-panel">
+				<div class="transport">
+					<button type="button" data-play>&gt;</button>
+					<span data-time-label>0.00s</span>
+				</div>
+
+				<div class="timeline" data-timeline>
+					<div class="timeline-playhead" data-playhead></div>
+					<div class="timeline-lane">
+						<div class="lane-head"><span>Time</span></div>
+						<div class="lane-track timeline-time-track" data-lane-track="time">
+							<input data-time type="range" min="0" max="60" step="0.05" value="0" aria-label="Scene time" />
+						</div>
+					</div>
+					<div class="timeline-lane">
+						<div class="lane-head"><span title="Location">Loc</span><button type="button" data-add-location aria-label="Add location waypoint" title="Add location waypoint">+</button></div>
+						<div class="lane-track" data-lane-track="location"></div>
+					</div>
+					<div class="timeline-lane">
+						<div class="lane-head"><span title="Camera">Cam</span><button type="button" data-add-camera aria-label="Add camera waypoint" title="Add camera waypoint">+</button></div>
+						<div class="lane-track" data-lane-track="camera"></div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<script>
+			import * as THREE from 'three';
+			import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+			import defaultJourney from '../../data/radio-bubble-journey.json';
+			import { mountJourneyEditorSkyKit } from '../../scripts/journey-editor-skykit.js';
+			import {
+				createJourneyEvaluator,
+				normalizeJourney,
+			} from '../../scripts/journey-evaluator.js';
+			import {
+				deleteEaseLocationGroupHelpers,
+				easeLocationRangeStartEnd,
+				equalizeLocationRangeSpeeds,
+				getLocationRangeSpeedStats,
+				rebuildEaseLocationGroup,
+			} from '../../scripts/journey-retiming.js';
+
+			const STORAGE_KEY = 'fis-journey-editor-ui-v1';
+			const JOURNEY_DRAFT_STORAGE_KEY = 'fis-journey-editor-journey-v1';
+			const TILE_MODES = ['xy', 'xz', 'yz', 'perspective', 'skykit'];
+			const TILE_MODE_LABELS = new Map([
+				['xy', 'XY'],
+				['xz', 'XZ'],
+				['yz', 'YZ'],
+				['perspective', 'Perspective'],
+				['skykit', 'SkyKit'],
+			]);
+			const DEFAULT_TILE_MODES = ['xy', 'xz', 'perspective', 'skykit'];
+			const TIMELINE_STEP_SECS = 0.05;
+			const SAMPLE_STEP_SECS = 0.5;
+			const AXIS_COLORS = {
+				x: '#ff5a66',
+				y: '#5be77b',
+				z: '#5d8cff',
+			};
+			const AXIS_COLOR_HEX = {
+				x: 0xff5a66,
+				y: 0x5be77b,
+				z: 0x5d8cff,
+			};
+			const AXIS_LABELS = {
+				x: '+X',
+				y: '+Y',
+				z: '+Z',
+			};
+
+			const tiles = [...document.querySelectorAll('[data-tile]')].map((tile) => ({
+				el: tile,
+				index: Number(tile.dataset.tile),
+				body: tile.querySelector('[data-tile-body]'),
+				select: tile.querySelector('[data-tile-mode]'),
+				tooltip: tile.querySelector('[data-tile-tooltip]'),
+				status: tile.querySelector('[data-tile-status]'),
+			}));
+			const timeInput = document.querySelector('[data-time]');
+			const timeLabel = document.querySelector('[data-time-label]');
+			const zoomInput = document.querySelector('[data-zoom]');
+			const zoomLabel = document.querySelector('[data-zoom-label]');
+			const playButton = document.querySelector('[data-play]');
+			const playhead = document.querySelector('[data-playhead]');
+			const durationInput = document.querySelector('[data-duration]');
+			const jsonTextarea = document.querySelector('[data-json]');
+			const inspector = document.querySelector('[data-inspector]');
+			const laneTracks = {
+				time: document.querySelector('[data-lane-track="time"]'),
+				location: document.querySelector('[data-lane-track="location"]'),
+				camera: document.querySelector('[data-lane-track="camera"]'),
+			};
+			const guideList = document.querySelector('[data-guide-list]');
+			const stats = new Map([...document.querySelectorAll('[data-stat]')].map((entry) => [entry.dataset.stat, entry]));
+
+			const skyHost = document.createElement('div');
+			skyHost.className = 'skykit-host';
+
+			const tileRenderers = new Map();
+			const perspectiveStates = new Map();
+			const canvasMarkers = new WeakMap();
+			const raycaster = new THREE.Raycaster();
+			const pointer = new THREE.Vector2();
+
+			let journey = loadInitialJourney();
+			let evaluator = createJourneyEvaluator(journey);
+			let samples = evaluator.sample({ stepSecs: SAMPLE_STEP_SECS });
+			let evaluated = evaluator.evaluate(0);
+			let selectedWidget = null;
+			let selectedLocationRange = null;
+			let selectedLocationGroupId = null;
+			let hoveredWidget = null;
+			let skyKit = null;
+			let skyRefreshTimer = null;
+			let playing = false;
+			let lastAnimationTime = performance.now();
+
+			const editorState = loadEditorState();
+
+			function loadInitialJourney() {
+				try {
+					const saved = window.localStorage.getItem(JOURNEY_DRAFT_STORAGE_KEY);
+					if (saved) {
+						return normalizeJourney(JSON.parse(saved));
+					}
+				} catch (error) {
+					console.warn('[journey-editor] could not load saved journey draft', error);
+				}
+				return normalizeJourney(structuredClone(defaultJourney));
+			}
+
+			function saveJourneyDraft() {
+				try {
+					window.localStorage.setItem(JOURNEY_DRAFT_STORAGE_KEY, JSON.stringify(normalizeJourney(journey)));
+				} catch (error) {
+					console.warn('[journey-editor] could not save journey draft', error);
+				}
+			}
+
+			function loadEditorState() {
+				try {
+					const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
+					return sanitizeEditorState({
+						tileModes: parsed.tileModes,
+						zoom: parsed.zoom,
+						easeSecs: parsed.easeSecs,
+						lastNonSkyModes: parsed.lastNonSkyModes,
+					});
+				} catch {
+					return sanitizeEditorState({});
+				}
+			}
+
+			function sanitizeEditorState(input) {
+				const tileModes = Array.isArray(input.tileModes)
+					? input.tileModes.slice(0, 4)
+					: [...DEFAULT_TILE_MODES];
+				while (tileModes.length < 4) tileModes.push(DEFAULT_TILE_MODES[tileModes.length]);
+				for (let index = 0; index < tileModes.length; index += 1) {
+					if (!TILE_MODES.includes(tileModes[index])) {
+						tileModes[index] = DEFAULT_TILE_MODES[index];
+					}
+				}
+				if (!tileModes.includes('skykit')) {
+					tileModes[3] = 'skykit';
+				}
+				let skySeen = false;
+				for (let index = 0; index < tileModes.length; index += 1) {
+					if (tileModes[index] === 'skykit') {
+						if (skySeen) {
+							tileModes[index] = DEFAULT_TILE_MODES[index] === 'skykit' ? 'yz' : DEFAULT_TILE_MODES[index];
+						}
+						skySeen = true;
+					}
+				}
+				const lastNonSkyModes = Array.isArray(input.lastNonSkyModes)
+					? input.lastNonSkyModes.slice(0, 4)
+					: ['xy', 'xz', 'perspective', 'yz'];
+				while (lastNonSkyModes.length < 4) lastNonSkyModes.push('xy');
+				for (let index = 0; index < lastNonSkyModes.length; index += 1) {
+					if (!TILE_MODES.includes(lastNonSkyModes[index]) || lastNonSkyModes[index] === 'skykit') {
+						lastNonSkyModes[index] = DEFAULT_TILE_MODES[index] === 'skykit' ? 'yz' : DEFAULT_TILE_MODES[index];
+					}
+				}
+				const zoom = Math.min(50, Math.max(0.35, Number(input.zoom ?? 1)));
+				const easeSecs = Math.min(60, Math.max(TIMELINE_STEP_SECS, Number(input.easeSecs ?? 3)));
+				return { tileModes, lastNonSkyModes, zoom, easeSecs };
+			}
+
+			function saveEditorState() {
+				window.localStorage.setItem(STORAGE_KEY, JSON.stringify(editorState));
+			}
+
+			function pointText(point) {
+				return `${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}`;
+			}
+
+			function numberValue(value, fallback = 0) {
+				const number = Number(value);
+				return Number.isFinite(number) ? number : fallback;
+			}
+
+			function clamp(value, min, max) {
+				return Math.min(max, Math.max(min, value));
+			}
+
+			function timelineDurationSecs() {
+				return Math.max(0.1, evaluator.durationSecs);
+			}
+
+			function currentTimelineTimeSecs(fallback = evaluated.sceneTimeSecs) {
+				return clamp(numberValue(timeInput.value, fallback), 0, timelineDurationSecs());
+			}
+
+			function timelinePercent(timeSecs) {
+				return clamp(numberValue(timeSecs) / timelineDurationSecs(), 0, 1);
+			}
+
+			function snapTime(value) {
+				return clamp(Math.round(numberValue(value) / TIMELINE_STEP_SECS) * TIMELINE_STEP_SECS, 0, timelineDurationSecs());
+			}
+
+			function formatInputNumber(value, precision = 3) {
+				const fixed = Number(value).toFixed(precision).replace(/\.?0+$/, '');
+				return fixed === '' || fixed === '-' ? '0' : fixed;
+			}
+
+			function widgetKey(widget) {
+				return widget ? `${widget.type}:${widget.id}` : '';
+			}
+
+			function sameWidget(left, right) {
+				return widgetKey(left) === widgetKey(right);
+			}
+
+			function selectedLocationRangeInfo() {
+				if (!selectedLocationRange) return null;
+				const sorted = sortedLocationWaypoints();
+				const anchorIndex = sorted.findIndex((entry) => entry.id === selectedLocationRange.anchorId);
+				const focusIndex = sorted.findIndex((entry) => entry.id === selectedLocationRange.focusId);
+				if (anchorIndex < 0 || focusIndex < 0 || anchorIndex === focusIndex) return null;
+				const startIndex = Math.min(anchorIndex, focusIndex);
+				const endIndex = Math.max(anchorIndex, focusIndex);
+				const waypoints = sorted.slice(startIndex, endIndex + 1);
+				return {
+					anchorId: selectedLocationRange.anchorId,
+					focusId: selectedLocationRange.focusId,
+					startIndex,
+					endIndex,
+					startId: waypoints[0].id,
+					endId: waypoints[waypoints.length - 1].id,
+					startTimeSecs: waypoints[0].timeSecs,
+					endTimeSecs: waypoints[waypoints.length - 1].timeSecs,
+					waypoints,
+					waypointIds: new Set(waypoints.map((entry) => entry.id)),
+				};
+			}
+
+			function selectedLocationRangeSamples(rangeInfo = selectedLocationRangeInfo()) {
+				if (!rangeInfo) return [];
+				const middle = samples.filter((sample) => (
+					sample.sceneTimeSecs > rangeInfo.startTimeSecs
+					&& sample.sceneTimeSecs < rangeInfo.endTimeSecs
+				));
+				return [
+					evaluator.evaluate(rangeInfo.startTimeSecs),
+					...middle,
+					evaluator.evaluate(rangeInfo.endTimeSecs),
+				];
+			}
+
+			function isWidgetInSelectedLocationRange(widget) {
+				if (widget?.type !== 'location') return false;
+				return selectedLocationRangeInfo()?.waypointIds.has(widget.id) ?? false;
+			}
+
+			function isWidgetInSelectedLocationGroup(widget) {
+				if (widget?.type !== 'location' || !selectedLocationGroupId) return false;
+				return findWidget('location', widget.id)?.motionGroup?.id === selectedLocationGroupId;
+			}
+
+			function isWidgetHighlighted(widget) {
+				return sameWidget(selectedWidget, widget)
+					|| sameWidget(hoveredWidget, widget)
+					|| isWidgetInSelectedLocationRange(widget)
+					|| isWidgetInSelectedLocationGroup(widget);
+			}
+
+			function clearLocationRangeSelection() {
+				selectedLocationRange = null;
+				renderTimeline();
+				renderInspector();
+				refreshViews();
+			}
+
+			function selectLocationGroup(groupId) {
+				selectedLocationGroupId = groupId;
+				selectedLocationRange = null;
+				renderTimeline();
+				renderInspector();
+				refreshViews();
+			}
+
+			function findWidget(type, id) {
+				if (type === 'location') {
+					return journey.locationWaypoints.find((entry) => entry.id === id) ?? null;
+				}
+				if (type === 'camera') {
+					return journey.cameraLookWaypoints.find((entry) => entry.id === id) ?? null;
+				}
+				if (type === 'guide') {
+					return journey.guides.find((entry) => entry.id === id) ?? null;
+				}
+				return null;
+			}
+
+			function sortedLocationWaypoints() {
+				return [...journey.locationWaypoints].sort((left, right) => {
+					const timeDiff = left.timeSecs - right.timeSecs;
+					return timeDiff || String(left.id ?? '').localeCompare(String(right.id ?? ''));
+				});
+			}
+
+			function sortedCameraWaypoints() {
+				return [...journey.cameraLookWaypoints].sort((left, right) => left.timeSecs - right.timeSecs);
+			}
+
+			function selectWidget(type, id, options = {}) {
+				if (!findWidget(type, id)) return false;
+				if (type === 'location' && options.extendRange === true) {
+					const anchorId = selectedLocationRange?.anchorId ?? (selectedWidget?.type === 'location' ? selectedWidget.id : id);
+					selectedLocationRange = anchorId === id ? null : { anchorId, focusId: id };
+					selectedLocationGroupId = null;
+				} else {
+					selectedLocationRange = null;
+					selectedLocationGroupId = null;
+				}
+				selectedWidget = { type, id };
+				renderTimeline();
+				renderInspector();
+				refreshViews();
+				return true;
+			}
+
+			function setHoveredWidget(widget) {
+				const next = widget && findWidget(widget.type, widget.id) ? widget : null;
+				if (sameWidget(hoveredWidget, next)) return;
+				hoveredWidget = next;
+				renderTimeline();
+				refreshViews();
+			}
+
+			function rebuildEvaluator(options = {}) {
+				if (options.normalize === true) {
+					journey = normalizeJourney(journey);
+				}
+				evaluator = createJourneyEvaluator(journey);
+				samples = evaluator.sample({ stepSecs: SAMPLE_STEP_SECS });
+				timeInput.max = String(evaluator.durationSecs);
+				durationInput.value = String(evaluator.durationSecs);
+				const currentTime = currentTimelineTimeSecs();
+				timeInput.value = String(currentTime);
+				evaluated = evaluator.evaluate(currentTime);
+			}
+
+			function commitJourneyEdit(options = {}) {
+				rebuildEvaluator({ normalize: options.normalize === true });
+				saveJourneyDraft();
+				renderTimeline();
+				if (options.inspector === true) {
+					renderInspector();
+				}
+				refreshViews();
+			}
+
+			function journeyBounds() {
+				const points = [];
+				for (const sample of samples) {
+					points.push(sample.observerPc);
+				}
+				for (const guide of journey.guides) {
+					const radius = guide.shape === 'cube' ? guide.sizePc : guide.radiusPc;
+					points.push(
+						{ x: guide.positionPc.x - radius, y: guide.positionPc.y - radius, z: guide.positionPc.z - radius },
+						{ x: guide.positionPc.x + radius, y: guide.positionPc.y + radius, z: guide.positionPc.z + radius },
+					);
+				}
+				for (const waypoint of journey.cameraLookWaypoints) {
+					if (waypoint.kind === 'target') {
+						points.push(waypoint.targetPc);
+					}
+				}
+				points.push(evaluated.observerPc, evaluated.targetPc);
+				let minX = Infinity;
+				let minY = Infinity;
+				let minZ = Infinity;
+				let maxX = -Infinity;
+				let maxY = -Infinity;
+				let maxZ = -Infinity;
+				for (const point of points) {
+					minX = Math.min(minX, numberValue(point.x));
+					minY = Math.min(minY, numberValue(point.y));
+					minZ = Math.min(minZ, numberValue(point.z));
+					maxX = Math.max(maxX, numberValue(point.x));
+					maxY = Math.max(maxY, numberValue(point.y));
+					maxZ = Math.max(maxZ, numberValue(point.z));
+				}
+				if (!Number.isFinite(minX) || maxX - minX < 1) {
+					minX = minY = minZ = -10;
+					maxX = maxY = maxZ = 10;
+				}
+				const span = Math.max(maxX - minX, maxY - minY, maxZ - minZ, 1);
+				const pad = span * 0.12;
+				return {
+					minX: minX - pad,
+					minY: minY - pad,
+					minZ: minZ - pad,
+					maxX: maxX + pad,
+					maxY: maxY + pad,
+					maxZ: maxZ + pad,
+					center: {
+						x: (minX + maxX) / 2,
+						y: (minY + maxY) / 2,
+						z: (minZ + maxZ) / 2,
+					},
+					span: span + pad * 2,
+				};
+			}
+
+			function syncCanvas(canvas) {
+				const scale = Math.min(window.devicePixelRatio || 1, 2);
+				const width = Math.max(1, Math.floor(canvas.clientWidth * scale));
+				const height = Math.max(1, Math.floor(canvas.clientHeight * scale));
+				if (canvas.width !== width) canvas.width = width;
+				if (canvas.height !== height) canvas.height = height;
+				return { width, height, scale };
+			}
+
+			function axesForMode(mode) {
+				if (mode === 'xz') return ['x', 'z'];
+				if (mode === 'yz') return ['y', 'z'];
+				return ['x', 'y'];
+			}
+
+			function cameraMarkerPosition(waypoint) {
+				return waypoint.kind === 'target'
+					? waypoint.targetPc
+					: evaluator.evaluate(waypoint.timeSecs).observerPc;
+			}
+
+			function widgetPosition(widget) {
+				if (!widget) return null;
+				if (widget.type === 'location') {
+					const entry = findWidget(widget.type, widget.id);
+					return entry?.positionPc ?? null;
+				}
+				if (widget.type === 'camera') {
+					const entry = findWidget(widget.type, widget.id);
+					return entry ? cameraMarkerPosition(entry) : null;
+				}
+				if (widget.type === 'guide') {
+					const entry = findWidget(widget.type, widget.id);
+					return entry?.positionPc ?? null;
+				}
+				return null;
+			}
+
+			function markerLabel(widget) {
+				const entry = findWidget(widget.type, widget.id);
+				if (!entry) return '';
+				if (widget.type === 'location') {
+					const group = entry.motionGroup;
+					return group ? `${entry.timeSecs.toFixed(2)}s ${group.id} ${group.role}` : `${entry.timeSecs.toFixed(2)}s location`;
+				}
+				if (widget.type === 'camera') return `${entry.timeSecs.toFixed(2)}s ${entry.kind === 'target' ? 'target' : 'direction'}`;
+				return entry.label ?? 'Guide';
+			}
+
+			function colorForWidget(widget, fallback = '#f2f6ff') {
+				if (widget.type === 'camera') return findWidget(widget.type, widget.id)?.kind === 'target' ? '#ffb454' : '#5ddcff';
+				if (widget.type === 'guide') return findWidget(widget.type, widget.id)?.color ?? '#ffd166';
+				return fallback;
+			}
+
+			function drawArrow(context, from, vector, color, scale = 1) {
+				const length = Math.hypot(vector.x, vector.y);
+				if (length <= 0.001) return;
+				const end = {
+					x: from.x + vector.x * scale,
+					y: from.y + vector.y * scale,
+				};
+				const angle = Math.atan2(end.y - from.y, end.x - from.x);
+				context.strokeStyle = color;
+				context.fillStyle = color;
+				context.lineWidth = 2;
+				context.beginPath();
+				context.moveTo(from.x, from.y);
+				context.lineTo(end.x, end.y);
+				context.stroke();
+				context.beginPath();
+				context.moveTo(end.x, end.y);
+				context.lineTo(end.x - Math.cos(angle - 0.55) * 9, end.y - Math.sin(angle - 0.55) * 9);
+				context.lineTo(end.x - Math.cos(angle + 0.55) * 9, end.y - Math.sin(angle + 0.55) * 9);
+				context.closePath();
+				context.fill();
+			}
+
+			function drawAxisCompass(context, width, height, axes, pixelScale = 1) {
+				const panelWidth = 82 * pixelScale;
+				const panelHeight = 68 * pixelScale;
+				const panelLeft = width - panelWidth - 12 * pixelScale;
+				const panelTop = height - panelHeight - 12 * pixelScale;
+				const origin = {
+					x: panelLeft + 23 * pixelScale,
+					y: panelTop + panelHeight - 19 * pixelScale,
+				};
+				const length = 36 * pixelScale;
+				const arrowHead = 7 * pixelScale;
+
+				function drawCompassArrow(axis, vector) {
+					const color = AXIS_COLORS[axis];
+					const end = {
+						x: origin.x + vector.x * length,
+						y: origin.y + vector.y * length,
+					};
+					const angle = Math.atan2(vector.y, vector.x);
+					context.strokeStyle = color;
+					context.fillStyle = color;
+					context.lineWidth = 2 * pixelScale;
+					context.beginPath();
+					context.moveTo(origin.x, origin.y);
+					context.lineTo(end.x, end.y);
+					context.stroke();
+					context.beginPath();
+					context.moveTo(end.x, end.y);
+					context.lineTo(end.x - Math.cos(angle - 0.55) * arrowHead, end.y - Math.sin(angle - 0.55) * arrowHead);
+					context.lineTo(end.x - Math.cos(angle + 0.55) * arrowHead, end.y - Math.sin(angle + 0.55) * arrowHead);
+					context.closePath();
+					context.fill();
+					context.font = `${11 * pixelScale}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+					context.textAlign = 'center';
+					context.textBaseline = 'middle';
+					context.fillText(
+						AXIS_LABELS[axis],
+						end.x + vector.x * 12 * pixelScale,
+						end.y + vector.y * 12 * pixelScale,
+					);
+				}
+
+				context.save();
+				context.fillStyle = 'rgba(4, 10, 20, 0.76)';
+				context.strokeStyle = 'rgba(164, 219, 255, 0.18)';
+				context.lineWidth = pixelScale;
+				context.beginPath();
+				context.roundRect(panelLeft, panelTop, panelWidth, panelHeight, 8 * pixelScale);
+				context.fill();
+				context.stroke();
+				drawCompassArrow(axes[0], { x: 1, y: 0 });
+				drawCompassArrow(axes[1], { x: 0, y: -1 });
+				context.restore();
+			}
+
+			function drawProjection(renderer) {
+				const canvas = renderer.canvas;
+				const mode = renderer.mode;
+				const axes = axesForMode(mode);
+				const { width, height, scale: pixelScale } = syncCanvas(canvas);
+				const context = canvas.getContext('2d');
+				const bounds = journeyBounds();
+				const pad = 30;
+				const minA = bounds[`min${axes[0].toUpperCase()}`];
+				const maxA = bounds[`max${axes[0].toUpperCase()}`];
+				const minB = bounds[`min${axes[1].toUpperCase()}`];
+				const maxB = bounds[`max${axes[1].toUpperCase()}`];
+				const sx = (width - pad * 2) / (maxA - minA);
+				const sy = (height - pad * 2) / (maxB - minB);
+				const scale = Math.min(sx, sy) * editorState.zoom;
+				const centerA = evaluated.observerPc[axes[0]];
+				const centerB = evaluated.observerPc[axes[1]];
+				const markers = [];
+
+				function project(point) {
+					return {
+						x: width / 2 + (point[axes[0]] - centerA) * scale,
+						y: height / 2 - (point[axes[1]] - centerB) * scale,
+					};
+				}
+
+				context.fillStyle = '#02050b';
+				context.fillRect(0, 0, width, height);
+				context.strokeStyle = 'rgba(91, 231, 196, 0.15)';
+				context.lineWidth = 1;
+				for (let index = -16; index <= 16; index += 1) {
+					const x = width / 2 + index * 44 * editorState.zoom;
+					const y = height / 2 + index * 44 * editorState.zoom;
+					context.beginPath();
+					context.moveTo(x, 0);
+					context.lineTo(x, height);
+					context.moveTo(0, y);
+					context.lineTo(width, y);
+					context.stroke();
+				}
+
+				for (const guide of journey.guides) {
+					const identity = { type: 'guide', id: guide.id };
+					const point = project(guide.positionPc);
+					const radius = Math.max(3, (guide.shape === 'cube' ? guide.sizePc : guide.radiusPc) * scale);
+					const active = sameWidget(selectedWidget, identity) || sameWidget(hoveredWidget, identity);
+					context.globalAlpha = clamp(numberValue(guide.opacity, 0.45), 0, 1);
+					context.strokeStyle = guide.color;
+					context.fillStyle = guide.color;
+					context.lineWidth = active ? 3 : 1.5;
+					if (guide.shape === 'cube') {
+						context.strokeRect(point.x - radius / 2, point.y - radius / 2, radius, radius);
+					} else {
+						context.beginPath();
+						context.arc(point.x, point.y, radius, 0, Math.PI * 2);
+						context.stroke();
+					}
+					context.globalAlpha = 1;
+					context.fillStyle = active ? '#ffb454' : 'rgba(226, 242, 255, 0.72)';
+					context.font = '11px ui-sans-serif, system-ui';
+					context.fillText(guide.label, point.x + 6, point.y - 6);
+					markers.push({ ...identity, x: point.x, y: point.y, radius: Math.max(8, Math.min(16, radius / 2)) });
+				}
+
+				context.strokeStyle = '#f2f6ff';
+				context.lineWidth = 2;
+				context.beginPath();
+				for (const [index, sample] of samples.entries()) {
+					const point = project(sample.observerPc);
+					if (index === 0) context.moveTo(point.x, point.y);
+					else context.lineTo(point.x, point.y);
+				}
+				context.stroke();
+
+				const rangeInfo = selectedLocationRangeInfo();
+				if (rangeInfo) {
+					context.strokeStyle = '#5be7c4';
+					context.lineWidth = 4;
+					context.beginPath();
+					for (const [index, sample] of selectedLocationRangeSamples(rangeInfo).entries()) {
+						const point = project(sample.observerPc);
+						if (index === 0) context.moveTo(point.x, point.y);
+						else context.lineTo(point.x, point.y);
+					}
+					context.stroke();
+				}
+
+				for (const waypoint of sortedLocationWaypoints()) {
+					const identity = { type: 'location', id: waypoint.id };
+					const point = project(waypoint.positionPc);
+					const active = isWidgetHighlighted(identity);
+					const role = waypoint.motionGroup?.role;
+					context.fillStyle = active ? '#ffb454' : (role === 'helper' ? '#5be7c4' : '#f2f6ff');
+					context.strokeStyle = role ? '#5be7c4' : '#02050b';
+					context.lineWidth = active || role ? 2.5 : 2;
+					context.beginPath();
+					context.arc(point.x, point.y, active ? 6 : (role === 'helper' ? 3.5 : 4), 0, Math.PI * 2);
+					context.fill();
+					context.stroke();
+					markers.push({ ...identity, x: point.x, y: point.y, radius: 9 });
+				}
+
+				for (const waypoint of sortedCameraWaypoints()) {
+					const identity = { type: 'camera', id: waypoint.id };
+					const point = project(cameraMarkerPosition(waypoint));
+					const active = sameWidget(selectedWidget, identity) || sameWidget(hoveredWidget, identity);
+					if (waypoint.kind === 'target') {
+						context.strokeStyle = active ? '#ffb454' : 'rgba(255, 180, 84, 0.72)';
+						context.fillStyle = active ? '#ffb454' : 'rgba(255, 180, 84, 0.18)';
+						context.lineWidth = active ? 3 : 1.5;
+						context.beginPath();
+						context.arc(point.x, point.y, active ? 8 : 6, 0, Math.PI * 2);
+						context.stroke();
+						context.beginPath();
+						context.moveTo(point.x - 10, point.y);
+						context.lineTo(point.x + 10, point.y);
+						context.moveTo(point.x, point.y - 10);
+						context.lineTo(point.x, point.y + 10);
+						context.stroke();
+						context.font = '11px ui-sans-serif, system-ui';
+						context.fillStyle = active ? '#ffb454' : 'rgba(255, 180, 84, 0.82)';
+						context.fillText('Look', point.x + 7, point.y - 8);
+						markers.push({ ...identity, x: point.x, y: point.y, radius: 12 });
+					} else {
+						context.save();
+						context.translate(point.x, point.y);
+						context.rotate(Math.PI / 4);
+						context.fillStyle = active ? '#ffb454' : '#5ddcff';
+						context.strokeStyle = '#02050b';
+						context.lineWidth = 2;
+						context.fillRect(active ? -5 : -4, active ? -5 : -4, active ? 10 : 8, active ? 10 : 8);
+						context.strokeRect(active ? -5 : -4, active ? -5 : -4, active ? 10 : 8, active ? 10 : 8);
+						context.restore();
+						markers.push({ ...identity, x: point.x, y: point.y, radius: 9 });
+					}
+				}
+
+				const current = project(evaluated.observerPc);
+				context.fillStyle = '#ffffff';
+				context.beginPath();
+				context.arc(current.x, current.y, 5, 0, Math.PI * 2);
+				context.fill();
+
+				drawArrow(
+					context,
+					current,
+					{
+						x: evaluated.velocityUnitVectorPc[axes[0]],
+						y: -evaluated.velocityUnitVectorPc[axes[1]],
+					},
+					'#ffb454',
+					34,
+				);
+				drawArrow(
+					context,
+					current,
+					{
+						x: evaluated.cameraForwardPc[axes[0]],
+						y: -evaluated.cameraForwardPc[axes[1]],
+					},
+					'#5ddcff',
+					46,
+				);
+
+				drawAxisCompass(context, width, height, axes, pixelScale);
+				canvasMarkers.set(canvas, markers);
+			}
+
+			function setupProjectionTile(tile, mode) {
+				const canvas = document.createElement('canvas');
+				canvas.className = 'journey-tile-canvas';
+				tile.body.replaceChildren(canvas);
+				attachCanvasMarkerEvents(canvas, tile);
+				tile.status.hidden = true;
+				tileRenderers.set(tile.index, { type: 'projection', mode, canvas });
+			}
+
+			function disposePerspective(index) {
+				const state = perspectiveStates.get(index);
+				if (!state) return;
+				state.controls.dispose();
+				disposeObject3d(state.root);
+				disposeObject3d(state.axisGizmo.scene);
+				state.renderer.dispose();
+				perspectiveStates.delete(index);
+			}
+
+			function createAxisLabelSprite(label, color) {
+				const canvas = document.createElement('canvas');
+				canvas.width = 96;
+				canvas.height = 48;
+				const context = canvas.getContext('2d');
+				context.font = '700 26px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+				context.textAlign = 'center';
+				context.textBaseline = 'middle';
+				context.lineWidth = 5;
+				context.strokeStyle = 'rgba(4, 10, 20, 0.95)';
+				context.fillStyle = color;
+				context.strokeText(label, canvas.width / 2, canvas.height / 2);
+				context.fillText(label, canvas.width / 2, canvas.height / 2);
+				const texture = new THREE.CanvasTexture(canvas);
+				texture.colorSpace = THREE.SRGBColorSpace;
+				const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+					map: texture,
+					transparent: true,
+					depthTest: false,
+					depthWrite: false,
+				}));
+				sprite.scale.set(0.36, 0.18, 1);
+				return sprite;
+			}
+
+			function createPerspectiveAxisGizmo() {
+				const scene = new THREE.Scene();
+				const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+				camera.position.set(0, 0, 4);
+				const root = new THREE.Group();
+				scene.add(root);
+				for (const axis of ['x', 'y', 'z']) {
+					const direction = new THREE.Vector3(
+						axis === 'x' ? 1 : 0,
+						axis === 'y' ? 1 : 0,
+						axis === 'z' ? 1 : 0,
+					);
+					root.add(new THREE.ArrowHelper(
+						direction,
+						new THREE.Vector3(0, 0, 0),
+						0.72,
+						AXIS_COLOR_HEX[axis],
+						0.16,
+						0.09,
+					));
+					const label = createAxisLabelSprite(AXIS_LABELS[axis], AXIS_COLORS[axis]);
+					label.position.copy(direction.clone().multiplyScalar(0.92));
+					root.add(label);
+				}
+				return { scene, camera, root };
+			}
+
+			function setupPerspectiveTile(tile) {
+				const canvas = document.createElement('canvas');
+				canvas.className = 'journey-tile-canvas';
+				tile.body.replaceChildren(canvas);
+				const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+				renderer.setClearColor(0x02050b, 1);
+				renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+				renderer.autoClear = false;
+				const scene = new THREE.Scene();
+				const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
+				const controls = new OrbitControls(camera, canvas);
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.08;
+				controls.enablePan = false;
+				controls.enableZoom = false;
+				const root = new THREE.Group();
+				scene.add(root);
+				const state = {
+					canvas,
+					renderer,
+					scene,
+					camera,
+					controls,
+					root,
+					axisGizmo: createPerspectiveAxisGizmo(),
+					markerMeshes: [],
+					direction: new THREE.Vector3(1, 0.62, -1).normalize(),
+					baseDistance: 120,
+					bounds: null,
+				};
+				controls.addEventListener('change', () => {
+					const offset = camera.position.clone().sub(controls.target);
+					if (offset.lengthSq() > 0) {
+						state.direction.copy(offset.normalize());
+					}
+				});
+				canvas.addEventListener('wheel', (event) => {
+					event.preventDefault();
+					const factor = event.deltaY > 0 ? 0.92 : 1.08;
+					setZoom(editorState.zoom * factor);
+				}, { passive: false });
+				canvas.addEventListener('pointermove', (event) => handlePerspectivePointer(event, tile, state, false));
+				canvas.addEventListener('pointerleave', () => {
+					setHoveredWidget(null);
+					hideTileTooltip(tile);
+				});
+				canvas.addEventListener('click', (event) => handlePerspectivePointer(event, tile, state, true));
+				perspectiveStates.set(tile.index, state);
+				tile.status.hidden = true;
+				tileRenderers.set(tile.index, { type: 'perspective', state });
+			}
+
+			function disposeObject3d(object) {
+				object.traverse((entry) => {
+					if (entry.geometry) entry.geometry.dispose();
+					if (entry.material) {
+						const disposeMaterial = (material) => {
+							material.map?.dispose?.();
+							material.dispose();
+						};
+						if (Array.isArray(entry.material)) {
+							for (const material of entry.material) disposeMaterial(material);
+						} else {
+							disposeMaterial(entry.material);
+						}
+					}
+				});
+			}
+
+			function vectorFromPoint(point) {
+				return new THREE.Vector3(point.x, point.y, point.z);
+			}
+
+			function createPerspectiveLine(points, color, opacity = 1) {
+				const geometry = new THREE.BufferGeometry().setFromPoints(points.map(vectorFromPoint));
+				const material = new THREE.LineBasicMaterial({
+					color,
+					transparent: opacity < 1,
+					opacity,
+				});
+				return new THREE.Line(geometry, material);
+			}
+
+			function createPerspectiveSphere(point, radius, color, opacity = 1) {
+				const mesh = new THREE.Mesh(
+					new THREE.SphereGeometry(radius, 20, 10),
+					new THREE.MeshBasicMaterial({
+						color,
+						transparent: opacity < 1,
+						opacity,
+						depthWrite: opacity >= 0.95,
+					}),
+				);
+				mesh.position.copy(vectorFromPoint(point));
+				return mesh;
+			}
+
+			function updatePerspectiveScene(state) {
+				disposeObject3d(state.root);
+				state.root.clear();
+				state.markerMeshes = [];
+				const bounds = journeyBounds();
+				state.bounds = bounds;
+				state.baseDistance = Math.max(bounds.span * 1.65, 24);
+				state.root.add(new THREE.GridHelper(Math.max(bounds.span, 20), 20, 0x23655d, 0x172732));
+				state.root.add(createPerspectiveLine(samples.map((sample) => sample.observerPc), 0xf2f6ff, 0.95));
+				const rangeInfo = selectedLocationRangeInfo();
+				if (rangeInfo) {
+					state.root.add(createPerspectiveLine(selectedLocationRangeSamples(rangeInfo).map((sample) => sample.observerPc), 0x5be7c4, 1));
+				}
+
+				for (const guide of journey.guides) {
+					const identity = { type: 'guide', id: guide.id };
+					const color = new THREE.Color(guide.color ?? '#ffd166');
+					const opacity = clamp(numberValue(guide.opacity, 0.45), 0, 1);
+					const radius = guide.shape === 'cube' ? Math.max(0.1, numberValue(guide.sizePc, guide.radiusPc)) : Math.max(0.1, numberValue(guide.radiusPc, 1));
+					const active = sameWidget(selectedWidget, identity) || sameWidget(hoveredWidget, identity);
+					const mesh = guide.shape === 'cube'
+						? new THREE.Mesh(
+								new THREE.BoxGeometry(radius, radius, radius),
+								new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity, wireframe: opacity < 0.35 }),
+							)
+						: createPerspectiveSphere(guide.positionPc, radius, color, opacity);
+					if (guide.shape === 'cube') {
+						mesh.position.copy(vectorFromPoint(guide.positionPc));
+					}
+					if (active) {
+						mesh.scale.multiplyScalar(1.16);
+					}
+					mesh.userData.widget = identity;
+					state.root.add(mesh);
+					state.markerMeshes.push(mesh);
+				}
+
+				for (const waypoint of sortedLocationWaypoints()) {
+					const identity = { type: 'location', id: waypoint.id };
+					const active = isWidgetHighlighted(identity);
+					const role = waypoint.motionGroup?.role;
+					const color = active ? 0xffb454 : (role === 'helper' ? 0x5be7c4 : 0xf2f6ff);
+					const mesh = createPerspectiveSphere(waypoint.positionPc, active ? 1.4 : (role === 'helper' ? 0.75 : 1.0), color, 1);
+					mesh.userData.widget = identity;
+					state.root.add(mesh);
+					state.markerMeshes.push(mesh);
+				}
+
+				for (const waypoint of sortedCameraWaypoints()) {
+					const identity = { type: 'camera', id: waypoint.id };
+					const active = sameWidget(selectedWidget, identity) || sameWidget(hoveredWidget, identity);
+					const mesh = waypoint.kind === 'target'
+						? new THREE.Mesh(
+								new THREE.TorusGeometry(active ? 1.35 : 1.0, 0.08, 8, 28),
+								new THREE.MeshBasicMaterial({ color: active ? 0xffb454 : 0xffb454 }),
+							)
+						: new THREE.Mesh(
+								new THREE.OctahedronGeometry(active ? 1.25 : 0.9),
+								new THREE.MeshBasicMaterial({ color: active ? 0xffb454 : 0x5ddcff }),
+							);
+					mesh.position.copy(vectorFromPoint(cameraMarkerPosition(waypoint)));
+					if (waypoint.kind === 'target') {
+						mesh.lookAt(vectorFromPoint(evaluated.observerPc));
+					}
+					mesh.userData.widget = identity;
+					state.root.add(mesh);
+					state.markerMeshes.push(mesh);
+				}
+
+				state.root.add(createPerspectiveSphere(evaluated.observerPc, 1.5, 0xffffff, 1));
+				state.root.add(new THREE.ArrowHelper(
+					vectorFromPoint(evaluated.cameraForwardPc).normalize(),
+					vectorFromPoint(evaluated.observerPc),
+					Math.min(bounds.span * 0.16, 18),
+					0x5ddcff,
+					3,
+					1.4,
+				));
+				applyPerspectiveCamera(state);
+			}
+
+			function applyPerspectiveCamera(state) {
+				const canvas = state.canvas;
+				const width = Math.max(1, canvas.clientWidth);
+				const height = Math.max(1, canvas.clientHeight);
+				state.renderer.setSize(width, height, false);
+				state.camera.aspect = width / height;
+				state.camera.updateProjectionMatrix();
+				const bounds = state.bounds ?? journeyBounds();
+				const center = vectorFromPoint(evaluated.observerPc);
+				state.controls.target.copy(center);
+				const distance = state.baseDistance / editorState.zoom;
+				state.camera.position.copy(center).add(state.direction.clone().multiplyScalar(distance));
+				state.camera.near = Math.max(0.01, distance / 2000);
+				state.camera.far = Math.max(5000, distance * 6);
+				state.camera.updateProjectionMatrix();
+				state.controls.update();
+				renderPerspectiveState(state);
+			}
+
+			function renderPerspectiveAxisGizmo(state, width, height) {
+				const renderer = state.renderer;
+				const bufferSize = new THREE.Vector2();
+				renderer.getDrawingBufferSize(bufferSize);
+				const pixelRatio = bufferSize.x / Math.max(1, width);
+				const gizmoSize = Math.round(Math.min(98, Math.max(74, Math.min(width, height) * 0.2)) * pixelRatio);
+				const margin = Math.round(12 * pixelRatio);
+				state.axisGizmo.root.quaternion.copy(state.camera.quaternion).invert();
+				renderer.clearDepth();
+				renderer.setScissorTest(true);
+				renderer.setViewport(
+					bufferSize.x - gizmoSize - margin,
+					margin,
+					gizmoSize,
+					gizmoSize,
+				);
+				renderer.setScissor(
+					bufferSize.x - gizmoSize - margin,
+					margin,
+					gizmoSize,
+					gizmoSize,
+				);
+				renderer.render(state.axisGizmo.scene, state.axisGizmo.camera);
+				renderer.setScissorTest(false);
+				renderer.setViewport(0, 0, bufferSize.x, bufferSize.y);
+			}
+
+			function renderPerspectiveState(state) {
+				const width = Math.max(1, state.canvas.clientWidth);
+				const height = Math.max(1, state.canvas.clientHeight);
+				const bufferSize = new THREE.Vector2();
+				state.renderer.getDrawingBufferSize(bufferSize);
+				state.renderer.setViewport(0, 0, bufferSize.x, bufferSize.y);
+				state.renderer.setScissorTest(false);
+				state.renderer.clear(true, true, true);
+				state.renderer.render(state.scene, state.camera);
+				renderPerspectiveAxisGizmo(state, width, height);
+			}
+
+			function handlePerspectivePointer(event, tile, state, shouldSelect) {
+				const rect = state.canvas.getBoundingClientRect();
+				pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+				pointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+				raycaster.setFromCamera(pointer, state.camera);
+				const hit = raycaster.intersectObjects(state.markerMeshes, false)[0];
+				if (!hit?.object?.userData?.widget) {
+					if (!shouldSelect) {
+						setHoveredWidget(null);
+						hideTileTooltip(tile);
+					}
+					return;
+				}
+				const widget = hit.object.userData.widget;
+				if (shouldSelect) {
+					selectWidget(widget.type, widget.id, { extendRange: event.shiftKey });
+				} else {
+					setHoveredWidget(widget);
+					showTileTooltip(tile, markerLabel(widget));
+				}
+			}
+
+			function setupSkyKitTile(tile) {
+				tile.body.replaceChildren(skyHost);
+				tile.status.hidden = false;
+				tile.status.textContent = skyKit ? 'ready' : 'loading';
+				tileRenderers.set(tile.index, { type: 'skykit' });
+				ensureSkyKit(tile);
+			}
+
+			async function ensureSkyKit(tile) {
+				if (skyKit) {
+					await skyKit.viewer.resize();
+					applySkyKitState();
+					return;
+				}
+				try {
+					tile.status.textContent = 'loading stars';
+					skyKit = await mountJourneyEditorSkyKit(skyHost, {
+						pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+						onStatus(message) {
+							for (const entry of tiles) {
+								if (editorState.tileModes[entry.index] === 'skykit') {
+									entry.status.hidden = false;
+									entry.status.textContent = message;
+								}
+							}
+						},
+					});
+					applySkyKitState();
+				} catch (error) {
+					tile.status.hidden = false;
+					tile.status.textContent = error instanceof Error ? error.message : String(error);
+				}
+			}
+
+			function scheduleSkyRefresh() {
+				window.clearTimeout(skyRefreshTimer);
+				skyRefreshTimer = window.setTimeout(() => {
+					if (!skyKit) return;
+					skyKit.refreshStars().catch((error) => {
+						for (const tile of tiles) {
+							if (editorState.tileModes[tile.index] === 'skykit') {
+								tile.status.hidden = false;
+								tile.status.textContent = error instanceof Error ? error.message : String(error);
+							}
+						}
+					});
+				}, 220);
+			}
+
+			function applySkyKitState() {
+				if (!skyKit) return;
+				skyKit.updateGuides(journey.guides);
+				skyKit.applyCamera(evaluated);
+				scheduleSkyRefresh();
+			}
+
+			function setupTile(tile) {
+				const mode = editorState.tileModes[tile.index];
+				const current = tileRenderers.get(tile.index);
+				if (current?.mode === mode || (mode === 'skykit' && current?.type === 'skykit')) return;
+				if (current?.type === 'perspective') {
+					disposePerspective(tile.index);
+				}
+				tile.body.replaceChildren();
+				tile.tooltip.hidden = true;
+				if (mode === 'skykit') {
+					setupSkyKitTile(tile);
+				} else if (mode === 'perspective') {
+					setupPerspectiveTile(tile);
+				} else {
+					setupProjectionTile(tile, mode);
+				}
+				const renderer = tileRenderers.get(tile.index);
+				if (renderer) renderer.mode = mode;
+			}
+
+			function renderTileSelectors() {
+				for (const tile of tiles) {
+					tile.select.replaceChildren(...TILE_MODES.map((mode) => {
+						const option = document.createElement('option');
+						option.value = mode;
+						option.textContent = TILE_MODE_LABELS.get(mode);
+						return option;
+					}));
+					tile.select.value = editorState.tileModes[tile.index];
+				}
+			}
+
+			function setTileMode(index, mode) {
+				if (!TILE_MODES.includes(mode)) return false;
+				const previous = editorState.tileModes[index];
+				if (previous && previous !== 'skykit') {
+					editorState.lastNonSkyModes[index] = previous;
+				}
+				if (mode === 'skykit') {
+					for (let tileIndex = 0; tileIndex < editorState.tileModes.length; tileIndex += 1) {
+						if (tileIndex !== index && editorState.tileModes[tileIndex] === 'skykit') {
+							editorState.tileModes[tileIndex] = editorState.lastNonSkyModes[tileIndex] ?? 'yz';
+						}
+					}
+					editorState.tileModes[index] = 'skykit';
+				} else {
+					editorState.tileModes[index] = mode;
+					editorState.lastNonSkyModes[index] = mode;
+					if (!editorState.tileModes.includes('skykit')) {
+						const target = index === 3 ? 0 : 3;
+						editorState.tileModes[target] = 'skykit';
+					}
+				}
+				saveEditorState();
+				renderTileSelectors();
+				for (const tile of tiles) setupTile(tile);
+				refreshViews();
+				return true;
+			}
+
+			function setZoom(value) {
+				editorState.zoom = clamp(numberValue(value, 1), 0.35, 50);
+				zoomInput.value = String(editorState.zoom);
+				zoomLabel.textContent = `${Math.round(editorState.zoom * 100)}%`;
+				saveEditorState();
+				refreshViews();
+			}
+
+			function showTileTooltip(tile, text) {
+				tile.tooltip.textContent = text;
+				tile.tooltip.hidden = false;
+			}
+
+			function hideTileTooltip(tile) {
+				tile.tooltip.hidden = true;
+			}
+
+			function attachCanvasMarkerEvents(canvas, tile) {
+				canvas.addEventListener('pointermove', (event) => {
+					const markers = canvasMarkers.get(canvas) ?? [];
+					const rect = canvas.getBoundingClientRect();
+					const scaleX = canvas.width / Math.max(1, rect.width);
+					const scaleY = canvas.height / Math.max(1, rect.height);
+					const x = (event.clientX - rect.left) * scaleX;
+					const y = (event.clientY - rect.top) * scaleY;
+					let best = null;
+					let bestDistance = Infinity;
+					for (const marker of markers) {
+						const distance = Math.hypot(marker.x - x, marker.y - y);
+						if (distance <= marker.radius && distance < bestDistance) {
+							best = marker;
+							bestDistance = distance;
+						}
+					}
+					if (best) {
+						const widget = { type: best.type, id: best.id };
+						setHoveredWidget(widget);
+						showTileTooltip(tile, markerLabel(widget));
+					} else {
+						setHoveredWidget(null);
+						hideTileTooltip(tile);
+					}
+				});
+				canvas.addEventListener('pointerleave', () => {
+					setHoveredWidget(null);
+					hideTileTooltip(tile);
+				});
+				canvas.addEventListener('click', (event) => {
+					if (hoveredWidget) {
+						selectWidget(hoveredWidget.type, hoveredWidget.id, { extendRange: event.shiftKey });
+					}
+				});
+			}
+
+			function renderTimeline() {
+				const locationChildren = [];
+				const rangeBand = createLocationRangeBand();
+				if (rangeBand) locationChildren.push(rangeBand);
+				locationChildren.push(...sortedLocationWaypoints().map((waypoint, index) => createTimedWidget('location', waypoint, String(index + 1))));
+				laneTracks.location.replaceChildren(...locationChildren);
+				laneTracks.camera.replaceChildren(...sortedCameraWaypoints().map((waypoint, index) => createTimedWidget('camera', waypoint, String(index + 1))));
+				renderGuideList();
+				renderTimelinePlayhead();
+			}
+
+			function createLocationRangeBand() {
+				const rangeInfo = selectedLocationRangeInfo();
+				if (!rangeInfo) return null;
+				const band = document.createElement('div');
+				band.className = 'timeline-range-band';
+				const left = timelinePercent(rangeInfo.startTimeSecs);
+				const right = timelinePercent(rangeInfo.endTimeSecs);
+				band.style.left = `${left * 100}%`;
+				band.style.width = `${Math.max(0, right - left) * 100}%`;
+				return band;
+			}
+
+			function createTimedWidget(type, waypoint, label) {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.className = 'timeline-widget';
+				button.dataset.widgetType = type;
+				button.dataset.widgetId = waypoint.id;
+				if (type === 'camera') {
+					button.dataset.cameraKind = waypoint.kind;
+				} else if (type === 'location' && waypoint.motionGroup) {
+					button.dataset.motionRole = waypoint.motionGroup.role;
+					button.dataset.motionGroup = waypoint.motionGroup.id;
+				}
+				button.textContent = label;
+				button.style.left = `${timelinePercent(waypoint.timeSecs) * 100}%`;
+				const identity = { type, id: waypoint.id };
+				button.classList.toggle('is-selected', sameWidget(selectedWidget, identity));
+				button.classList.toggle('is-hovered', sameWidget(hoveredWidget, identity));
+				button.classList.toggle('is-in-range', isWidgetInSelectedLocationRange(identity));
+				button.classList.toggle('is-in-group', isWidgetInSelectedLocationGroup(identity));
+				button.title = markerLabel(identity);
+				button.addEventListener('click', (event) => selectWidget(type, waypoint.id, { extendRange: event.shiftKey }));
+				button.addEventListener('mouseenter', () => setHoveredWidget(identity));
+				button.addEventListener('mouseleave', () => setHoveredWidget(null));
+				button.addEventListener('pointerdown', (event) => beginTimelineDrag(event, type, waypoint, button));
+				return button;
+			}
+
+			function beginTimelineDrag(event, type, waypoint, button) {
+				event.preventDefault();
+				if (event.shiftKey && type === 'location') {
+					selectWidget(type, waypoint.id, { extendRange: true });
+					return;
+				}
+				button.setPointerCapture?.(event.pointerId);
+				const track = button.closest('.lane-track');
+				if (!track) return;
+				const trackRect = track.getBoundingClientRect();
+				const duration = timelineDurationSecs();
+				selectedWidget = { type, id: waypoint.id };
+				selectedLocationRange = null;
+				selectedLocationGroupId = null;
+				renderInspector();
+				renderTimeline();
+				function move(moveEvent) {
+					const percent = clamp((moveEvent.clientX - trackRect.left) / Math.max(1, trackRect.width), 0, 1);
+					waypoint.timeSecs = snapTime(percent * duration);
+					rebuildEvaluator();
+					selectedWidget = { type, id: waypoint.id };
+					renderTimeline();
+					renderInspector();
+					refreshViews();
+				}
+				function done() {
+					document.removeEventListener('pointermove', move);
+					document.removeEventListener('pointerup', done);
+					commitJourneyEdit({ normalize: true, inspector: true });
+				}
+				document.addEventListener('pointermove', move);
+				document.addEventListener('pointerup', done, { once: true });
+			}
+
+			function createGuideChip(guide) {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.className = 'guide-chip';
+				button.dataset.widgetType = 'guide';
+				button.dataset.widgetId = guide.id;
+				button.textContent = guide.label || guide.id;
+				button.style.background = guide.color;
+				const identity = { type: 'guide', id: guide.id };
+				button.classList.toggle('is-selected', sameWidget(selectedWidget, identity));
+				button.classList.toggle('is-hovered', sameWidget(hoveredWidget, identity));
+				button.addEventListener('click', () => selectWidget('guide', guide.id));
+				button.addEventListener('mouseenter', () => setHoveredWidget(identity));
+				button.addEventListener('mouseleave', () => setHoveredWidget(null));
+				return button;
+			}
+
+			function renderGuideList() {
+				guideList.replaceChildren(...journey.guides.map((guide) => createGuideChip(guide)));
+			}
+
+			function renderInspector() {
+				const rangeInfo = selectedLocationRangeInfo();
+				if (rangeInfo) {
+					renderLocationRangeInspector(rangeInfo);
+					return;
+				}
+				if (!selectedWidget || !findWidget(selectedWidget.type, selectedWidget.id)) {
+					selectedWidget = null;
+					inspector.replaceChildren(emptyInspector());
+					return;
+				}
+				if (selectedWidget.type === 'location') {
+					renderLocationInspector(findWidget('location', selectedWidget.id));
+				} else if (selectedWidget.type === 'camera') {
+					renderCameraInspector(findWidget('camera', selectedWidget.id));
+				} else {
+					renderGuideInspector(findWidget('guide', selectedWidget.id));
+				}
+			}
+
+			function emptyInspector() {
+				const paragraph = document.createElement('p');
+				paragraph.className = 'empty-note';
+				paragraph.textContent = 'Select a timeline widget or path marker.';
+				return paragraph;
+			}
+
+			function inspectorHeading(title, onDelete, actionLabel = 'Delete') {
+				const row = document.createElement('div');
+				row.className = 'inspector-heading';
+				const strong = document.createElement('strong');
+				strong.textContent = title;
+				const button = document.createElement('button');
+				button.type = 'button';
+				if (actionLabel === 'Delete') {
+					button.className = 'is-danger';
+				}
+				button.textContent = actionLabel;
+				button.addEventListener('click', onDelete);
+				row.append(strong, button);
+				return row;
+			}
+
+			function field(labelText, input) {
+				const label = document.createElement('label');
+				label.className = 'inspector-field';
+				const text = document.createElement('span');
+				text.className = 'inspector-field-label';
+				text.textContent = labelText;
+				label.append(text, input);
+				return label;
+			}
+
+			function inspectorSection(title, ...children) {
+				const section = document.createElement('section');
+				section.className = 'inspector-section';
+				const heading = document.createElement('div');
+				heading.className = 'inspector-section-title';
+				heading.textContent = title;
+				section.append(heading, ...children);
+				return section;
+			}
+
+			function numberInput(value, onInput, options = {}) {
+				const input = document.createElement('input');
+				input.type = 'number';
+				input.step = options.step ?? '0.001';
+				input.value = formatInputNumber(value, options.precision ?? 3);
+				input.addEventListener('input', () => onInput(numberValue(input.value, value), false));
+				input.addEventListener('change', () => onInput(numberValue(input.value, value), true));
+				return input;
+			}
+
+			function textInput(value, onInput) {
+				const input = document.createElement('input');
+				input.value = String(value ?? '');
+				input.addEventListener('input', () => onInput(input.value));
+				return input;
+			}
+
+			function colorInput(value, onInput) {
+				const input = document.createElement('input');
+				input.type = 'color';
+				input.value = /^#[0-9a-f]{6}$/i.test(String(value)) ? value : '#8fd5ff';
+				input.addEventListener('input', () => onInput(input.value));
+				return input;
+			}
+
+			function selectInput(value, values, onInput) {
+				const select = document.createElement('select');
+				for (const entry of values) {
+					const option = document.createElement('option');
+					option.value = entry;
+					option.textContent = entry;
+					select.append(option);
+				}
+				select.value = value;
+				select.addEventListener('change', () => onInput(select.value));
+				return select;
+			}
+
+			function vectorGrid(point, onInput, prefix = '') {
+				const grid = document.createElement('div');
+				grid.className = 'field-grid';
+				for (const axis of ['x', 'y', 'z']) {
+					grid.append(field(`${prefix}${axis.toUpperCase()}`, numberInput(point[axis], (value, commit) => {
+						onInput(axis, value, commit);
+					})));
+				}
+				return grid;
+			}
+
+			function formatRangeValue(value, suffix = '', precision = 2) {
+				return `${formatInputNumber(value, precision)}${suffix}`;
+			}
+
+			function diagnosticGrid(stats, extraRows = []) {
+				const grid = document.createElement('dl');
+				grid.className = 'diagnostic-grid';
+				const rows = [
+					['time', `${formatRangeValue(stats.startTimeSecs, 's')} - ${formatRangeValue(stats.endTimeSecs, 's')}`],
+					['waypoints', String(stats.waypointCount)],
+					['arc', formatRangeValue(stats.totalLengthPc, ' pc', 3)],
+					['avg speed', formatRangeValue(stats.averageSpeedPcPerSec, ' pc/s', 3)],
+					['min speed', formatRangeValue(stats.minSpeedPcPerSec, ' pc/s', 3)],
+					['max speed', formatRangeValue(stats.maxSpeedPcPerSec, ' pc/s', 3)],
+					['holds', String(stats.holdSegmentCount)],
+					...extraRows,
+				];
+				for (const [label, value] of rows) {
+					const term = document.createElement('dt');
+					term.textContent = label;
+					const detail = document.createElement('dd');
+					detail.textContent = value;
+					grid.append(term, detail);
+				}
+				return grid;
+			}
+
+			function keyValueGrid(rows) {
+				const grid = document.createElement('dl');
+				grid.className = 'diagnostic-grid';
+				for (const [label, value] of rows) {
+					const term = document.createElement('dt');
+					term.textContent = label;
+					const detail = document.createElement('dd');
+					detail.textContent = value;
+					grid.append(term, detail);
+				}
+				return grid;
+			}
+
+			function renderLocationRangeInspector(rangeInfo) {
+				const before = getLocationRangeSpeedStats(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId);
+				const maxEaseSecs = Math.max(TIMELINE_STEP_SECS, (rangeInfo.endTimeSecs - rangeInfo.startTimeSecs) / 2);
+				const easeSecs = clamp(numberValue(editorState.easeSecs, 3), TIMELINE_STEP_SECS, maxEaseSecs);
+				const retimeOptions = {
+					timeStepSecs: TIMELINE_STEP_SECS,
+					easeSecs,
+					rampSampleSecs: 0.5,
+				};
+				const equalizePreview = equalizeLocationRangeSpeeds(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
+				const easePreview = easeLocationRangeStartEnd(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
+				const easeInput = field('Ease secs', numberInput(easeSecs, (value, commit) => {
+					editorState.easeSecs = clamp(value, TIMELINE_STEP_SECS, maxEaseSecs);
+					saveEditorState();
+					if (commit) renderInspector();
+				}, { step: '0.05', precision: 2 }));
+				const equalizeButton = document.createElement('button');
+				equalizeButton.type = 'button';
+				equalizeButton.textContent = 'Equalise speed';
+				equalizeButton.disabled = !before || equalizePreview.changedIds.length === 0;
+				equalizeButton.addEventListener('click', () => {
+					const result = equalizeLocationRangeSpeeds(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
+					journey.locationWaypoints = result.locationWaypoints;
+					selectedLocationRange = { anchorId: rangeInfo.anchorId, focusId: rangeInfo.focusId };
+					selectedLocationGroupId = null;
+					selectedWidget = { type: 'location', id: rangeInfo.focusId };
+					commitJourneyEdit({ normalize: true, inspector: true });
+				});
+				const easeButton = document.createElement('button');
+				easeButton.type = 'button';
+				easeButton.textContent = 'Ease start/end';
+				easeButton.disabled = !before || (easePreview.changedIds.length === 0 && easePreview.insertedIds.length === 0);
+				easeButton.addEventListener('click', () => {
+					const result = easeLocationRangeStartEnd(journey.locationWaypoints, rangeInfo.anchorId, rangeInfo.focusId, retimeOptions);
+					journey.locationWaypoints = result.locationWaypoints;
+					selectedLocationRange = { anchorId: rangeInfo.anchorId, focusId: rangeInfo.focusId };
+					selectedLocationGroupId = result.groupId ?? null;
+					selectedWidget = { type: 'location', id: rangeInfo.focusId };
+					commitJourneyEdit({ normalize: true, inspector: true });
+				});
+				const actionRow = document.createElement('div');
+				actionRow.className = 'button-row';
+				actionRow.append(equalizeButton, easeButton);
+				inspector.replaceChildren(
+					inspectorHeading(`Location range ${rangeInfo.startIndex + 1}-${rangeInfo.endIndex + 1}`, () => clearLocationRangeSelection(), 'Clear'),
+					inspectorSection('Actions', easeInput, actionRow),
+					inspectorSection('Before', before ? diagnosticGrid(before) : emptyInspector()),
+					inspectorSection('After equalise', equalizePreview.after ? diagnosticGrid(equalizePreview.after) : emptyInspector()),
+					inspectorSection('After ease', easePreview.after ? diagnosticGrid(easePreview.after, [
+						['ease secs', formatRangeValue(easePreview.effectiveEaseSecs, 's')],
+						['helpers', String(easePreview.insertedIds.length)],
+					]) : emptyInspector()),
+				);
+			}
+
+			function locationGroupWaypoints(groupId) {
+				return sortedLocationWaypoints().filter((waypoint) => waypoint.motionGroup?.id === groupId && waypoint.motionGroup?.kind === 'ease');
+			}
+
+			function locationGroupBounds(groupId) {
+				const waypoints = locationGroupWaypoints(groupId);
+				const anchors = waypoints.filter((waypoint) => waypoint.motionGroup?.role === 'anchor');
+				const endpoints = anchors.length >= 2 ? anchors : waypoints;
+				if (endpoints.length < 2) return null;
+				return {
+					start: endpoints[0],
+					end: endpoints[endpoints.length - 1],
+					waypoints,
+					helperCount: waypoints.filter((waypoint) => waypoint.motionGroup?.role === 'helper').length,
+				};
+			}
+
+			function renderLocationMotionGroupSection(waypoint) {
+				const group = waypoint.motionGroup;
+				if (!group?.id) return null;
+				const bounds = locationGroupBounds(group.id);
+				if (!bounds) return null;
+				const maxEaseSecs = Math.max(TIMELINE_STEP_SECS, (bounds.end.timeSecs - bounds.start.timeSecs) / 2);
+				const groupEaseSecs = clamp(numberValue(group.easeSecs, editorState.easeSecs), TIMELINE_STEP_SECS, maxEaseSecs);
+				const easeInput = numberInput(groupEaseSecs, (value, commit) => {
+					editorState.easeSecs = clamp(value, TIMELINE_STEP_SECS, maxEaseSecs);
+					saveEditorState();
+					if (commit) renderInspector();
+				}, { step: '0.05', precision: 2 });
+				const selectButton = document.createElement('button');
+				selectButton.type = 'button';
+				selectButton.textContent = 'Select group';
+				selectButton.addEventListener('click', () => selectLocationGroup(group.id));
+				const rebuildButton = document.createElement('button');
+				rebuildButton.type = 'button';
+				rebuildButton.textContent = 'Rebuild ease';
+				rebuildButton.addEventListener('click', () => {
+					const result = rebuildEaseLocationGroup(journey.locationWaypoints, group.id, {
+						timeStepSecs: TIMELINE_STEP_SECS,
+						easeSecs: clamp(numberValue(easeInput.value, groupEaseSecs), TIMELINE_STEP_SECS, maxEaseSecs),
+						rampSampleSecs: numberValue(group.rampSampleSecs, 0.5),
+					});
+					journey.locationWaypoints = result.locationWaypoints;
+					selectedLocationRange = null;
+					selectedLocationGroupId = group.id;
+					selectedWidget = { type: 'location', id: result.focusId ?? bounds.end.id };
+					commitJourneyEdit({ normalize: true, inspector: true });
+				});
+				const deleteButton = document.createElement('button');
+				deleteButton.type = 'button';
+				deleteButton.className = 'is-danger';
+				deleteButton.textContent = 'Delete helpers';
+				deleteButton.addEventListener('click', () => {
+					const result = deleteEaseLocationGroupHelpers(journey.locationWaypoints, group.id);
+					journey.locationWaypoints = result.locationWaypoints;
+					selectedLocationRange = null;
+					selectedLocationGroupId = null;
+					selectedWidget = result.clearedIds[0] ? { type: 'location', id: result.clearedIds[0] } : null;
+					commitJourneyEdit({ normalize: true, inspector: true });
+				});
+				const actionRow = document.createElement('div');
+				actionRow.className = 'button-row';
+				actionRow.append(selectButton, rebuildButton, deleteButton);
+				return inspectorSection(
+					`Ease group ${group.id}`,
+					keyValueGrid([
+						['time', `${formatRangeValue(bounds.start.timeSecs, 's')} - ${formatRangeValue(bounds.end.timeSecs, 's')}`],
+						['waypoints', String(bounds.waypoints.length)],
+						['role', group.role],
+						['helpers', String(bounds.helperCount)],
+					]),
+					field('Ease secs', easeInput),
+					actionRow,
+				);
+			}
+
+			function renderLocationInspector(waypoint) {
+				const positionGrid = document.createElement('div');
+				positionGrid.className = 'field-grid';
+				for (const axis of ['x', 'y', 'z']) {
+					positionGrid.append(field(axis.toUpperCase(), numberInput(waypoint.positionPc[axis], (value, commit) => {
+						waypoint.positionPc[axis] = value;
+						commitJourneyEdit({ normalize: commit, inspector: commit });
+					})));
+				}
+				const sections = [
+					inspectorHeading('Location waypoint', () => deleteSelectedWidget()),
+					inspectorSection(
+						'Timing',
+						field('Time', numberInput(waypoint.timeSecs, (value, commit) => {
+							waypoint.timeSecs = snapTime(value);
+							commitJourneyEdit({ normalize: commit, inspector: commit });
+						}, { step: '0.05', precision: 2 })),
+					),
+					inspectorSection('Position', positionGrid),
+				];
+				const motionSection = renderLocationMotionGroupSection(waypoint);
+				if (motionSection) sections.push(motionSection);
+				inspector.replaceChildren(...sections);
+			}
+
+			function renderCameraInspector(waypoint) {
+				const upGrid = document.createElement('div');
+				upGrid.className = 'field-grid';
+				for (const axis of ['x', 'y', 'z']) {
+					upGrid.append(field(`U${axis.toUpperCase()}`, numberInput(waypoint.up[axis], (value, commit) => {
+						waypoint.up[axis] = value;
+						commitJourneyEdit({ normalize: commit, inspector: commit });
+					})));
+				}
+
+				const modeControl = field('Mode', selectInput(waypoint.kind, ['direction', 'target'], (value) => {
+					const evaluatedAtKey = evaluator.evaluate(waypoint.timeSecs);
+					waypoint.kind = value;
+					if (value === 'target') {
+						waypoint.targetPc = waypoint.targetPc ? { ...waypoint.targetPc } : { ...evaluatedAtKey.targetPc };
+						delete waypoint.forward;
+					} else {
+						waypoint.forward = waypoint.forward ? { ...waypoint.forward } : { ...evaluatedAtKey.cameraForwardPc };
+						delete waypoint.targetPc;
+						delete waypoint.targetGuide;
+					}
+					commitJourneyEdit({ normalize: true, inspector: true });
+				}));
+				const aimSection = waypoint.kind === 'target'
+					? inspectorSection('Target', field('Guide', guideTargetPicker(waypoint)), vectorGrid(waypoint.targetPc, (axis, value, commit) => {
+							waypoint.targetPc[axis] = value;
+							delete waypoint.targetGuide;
+							commitJourneyEdit({ normalize: commit, inspector: commit });
+						}))
+					: inspectorSection('Forward', vectorGrid(waypoint.forward, (axis, value, commit) => {
+							waypoint.forward[axis] = value;
+							commitJourneyEdit({ normalize: commit, inspector: commit });
+						}, 'F'));
+				inspector.replaceChildren(
+					inspectorHeading('Camera waypoint', () => deleteSelectedWidget()),
+					inspectorSection(
+						'Timing',
+						field('Time', numberInput(waypoint.timeSecs, (value, commit) => {
+							waypoint.timeSecs = snapTime(value);
+							commitJourneyEdit({ normalize: commit, inspector: commit });
+						}, { step: '0.05', precision: 2 })),
+						modeControl,
+					),
+					aimSection,
+					inspectorSection('Up', upGrid),
+				);
+			}
+
+			function guideTargetPicker(waypoint) {
+				const select = document.createElement('select');
+				const placeholder = document.createElement('option');
+				placeholder.value = '';
+				placeholder.textContent = 'Copy guide position...';
+				select.append(placeholder);
+				let matchedGuideId = '';
+				for (const guide of journey.guides) {
+					const option = document.createElement('option');
+					option.value = guide.id;
+					option.textContent = guide.label || guide.id;
+					select.append(option);
+					if (
+						waypoint.targetGuide
+						&& (waypoint.targetGuide.id === guide.id || (!matchedGuideId && waypoint.targetGuide.label === guide.label))
+					) {
+						matchedGuideId = guide.id;
+					}
+				}
+				select.value = matchedGuideId;
+				select.addEventListener('change', () => {
+					const guide = findWidget('guide', select.value);
+					if (!guide) return;
+					waypoint.targetPc = { ...guide.positionPc };
+					waypoint.targetGuide = { id: guide.id, label: guide.label || guide.id };
+					commitJourneyEdit({ normalize: true, inspector: true });
+				});
+				return select;
+			}
+
+			function renderGuideInspector(guide) {
+				const positionGrid = document.createElement('div');
+				positionGrid.className = 'field-grid';
+				for (const axis of ['x', 'y', 'z']) {
+					positionGrid.append(field(axis.toUpperCase(), numberInput(guide.positionPc[axis], (value, commit) => {
+						guide.positionPc[axis] = value;
+						commitJourneyEdit({ normalize: commit, inspector: commit });
+					})));
+				}
+				const guideGrid = document.createElement('div');
+				guideGrid.className = 'field-grid two';
+				guideGrid.append(
+					field('Size', numberInput(guide.radiusPc, (value, commit) => {
+						const next = Math.max(0, value);
+						guide.radiusPc = next;
+						guide.sizePc = next;
+						commitJourneyEdit({ normalize: commit, inspector: commit });
+					})),
+					field('Opacity', numberInput(guide.opacity, (value, commit) => {
+						guide.opacity = clamp(value, 0, 1);
+						commitJourneyEdit({ normalize: commit, inspector: commit });
+					}, { step: '0.05', precision: 2 })),
+				);
+				inspector.replaceChildren(
+					inspectorHeading('Guide', () => deleteSelectedWidget()),
+					inspectorSection(
+						'Identity',
+						field('Label', textInput(guide.label, (value) => {
+							guide.label = value;
+							commitJourneyEdit();
+						})),
+						field('Shape', selectInput(guide.shape, ['sphere', 'cube'], (value) => {
+							guide.shape = value;
+							commitJourneyEdit({ normalize: true, inspector: true });
+						})),
+					),
+					inspectorSection('Position', positionGrid),
+					inspectorSection('Appearance', guideGrid, field('Color', colorInput(guide.color, (value) => {
+						guide.color = value;
+						commitJourneyEdit();
+					}))),
+				);
+			}
+
+			function deleteSelectedWidget() {
+				if (!selectedWidget) return;
+				if (selectedWidget.type === 'location') {
+					journey.locationWaypoints = journey.locationWaypoints.filter((entry) => entry.id !== selectedWidget.id);
+				} else if (selectedWidget.type === 'camera') {
+					journey.cameraLookWaypoints = journey.cameraLookWaypoints.filter((entry) => entry.id !== selectedWidget.id);
+				} else if (selectedWidget.type === 'guide') {
+					journey.guides = journey.guides.filter((entry) => entry.id !== selectedWidget.id);
+				}
+				selectedWidget = null;
+				selectedLocationRange = null;
+				selectedLocationGroupId = null;
+				commitJourneyEdit({ normalize: true, inspector: true });
+			}
+
+			function addLocationAtCurrentTime() {
+				const timeSecs = currentTimelineTimeSecs();
+				const snapshot = evaluator.evaluate(timeSecs);
+				const waypoint = {
+					id: `loc-${Date.now()}`,
+					timeSecs,
+					positionPc: { ...snapshot.observerPc },
+				};
+				journey.locationWaypoints.push(waypoint);
+				selectedWidget = { type: 'location', id: waypoint.id };
+				selectedLocationRange = null;
+				selectedLocationGroupId = null;
+				commitJourneyEdit({ normalize: true, inspector: true });
+			}
+
+			function addCameraAtCurrentTime() {
+				const timeSecs = currentTimelineTimeSecs();
+				const snapshot = evaluator.evaluate(timeSecs);
+				const waypoint = {
+					id: `cam-${Date.now()}`,
+					timeSecs,
+					kind: 'direction',
+					forward: { ...snapshot.cameraForwardPc },
+					up: { ...snapshot.cameraUpPc },
+				};
+				journey.cameraLookWaypoints.push(waypoint);
+				selectedWidget = { type: 'camera', id: waypoint.id };
+				selectedLocationRange = null;
+				selectedLocationGroupId = null;
+				commitJourneyEdit({ normalize: true, inspector: true });
+			}
+
+			function addGuideAtCurrentPosition() {
+				const guide = {
+					id: `guide-${Date.now()}`,
+					label: 'Guide',
+					shape: 'sphere',
+					positionPc: { ...evaluated.observerPc },
+					radiusPc: 4,
+					sizePc: 4,
+					color: '#ffd166',
+					opacity: 0.45,
+				};
+				journey.guides.push(guide);
+				selectedWidget = { type: 'guide', id: guide.id };
+				selectedLocationRange = null;
+				selectedLocationGroupId = null;
+				commitJourneyEdit({ normalize: true, inspector: true });
+			}
+
+			function refreshStats() {
+				stats.get('time').textContent = `${evaluated.sceneTimeSecs.toFixed(2)}s`;
+				stats.get('position').textContent = pointText(evaluated.observerPc);
+				stats.get('speed').textContent = `${evaluated.speedPcPerSec.toFixed(3)} pc/s`;
+				stats.get('velocity').textContent = pointText(evaluated.velocityUnitVectorPc);
+				stats.get('camera').textContent = pointText(evaluated.cameraForwardPc);
+				timeLabel.textContent = `${evaluated.sceneTimeSecs.toFixed(2)}s`;
+			}
+
+			function refreshViews() {
+				evaluated = evaluator.evaluate(currentTimelineTimeSecs());
+				refreshStats();
+				renderTimelinePlayhead();
+				for (const renderer of tileRenderers.values()) {
+					if (renderer.type === 'projection') {
+						drawProjection(renderer);
+					} else if (renderer.type === 'perspective') {
+						updatePerspectiveScene(renderer.state);
+					}
+				}
+				applySkyKitState();
+			}
+
+			function renderTimelinePlayhead() {
+				const track = laneTracks.time ?? laneTracks.location ?? laneTracks.camera;
+				if (!track) return;
+				const timelineRect = playhead.parentElement.getBoundingClientRect();
+				const trackRect = track.getBoundingClientRect();
+				const percent = timelinePercent(evaluated.sceneTimeSecs);
+				track.style.setProperty('--time-percent', `${percent * 100}%`);
+				playhead.style.left = `${trackRect.left - timelineRect.left + trackRect.width * percent}px`;
+			}
+
+			function exportJourneyJson() {
+				rebuildEvaluator({ normalize: true });
+				jsonTextarea.value = JSON.stringify(journey, null, 2);
+			}
+
+			function importJourneyJson() {
+				try {
+					journey = normalizeJourney(JSON.parse(jsonTextarea.value));
+					selectedWidget = null;
+					selectedLocationRange = null;
+					selectedLocationGroupId = null;
+					saveJourneyDraft();
+					renderAll();
+				} catch (error) {
+					jsonTextarea.value = error instanceof Error ? error.message : String(error);
+				}
+			}
+
+			function downloadJourneyJson() {
+				exportJourneyJson();
+				const blob = new Blob([`${jsonTextarea.value}\n`], { type: 'application/json' });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${journey.id || 'journey'}.json`;
+				link.click();
+				URL.revokeObjectURL(url);
+			}
+
+			function renderAll() {
+				rebuildEvaluator({ normalize: true });
+				renderTileSelectors();
+				for (const tile of tiles) setupTile(tile);
+				renderTimeline();
+				renderInspector();
+				refreshViews();
+				exportJourneyJson();
+			}
+
+			for (const tile of tiles) {
+				tile.select.addEventListener('change', () => {
+					setTileMode(tile.index, tile.select.value);
+				});
+			}
+
+			document.querySelector('[data-export-json]').addEventListener('click', exportJourneyJson);
+			document.querySelector('[data-import-json]').addEventListener('click', importJourneyJson);
+			document.querySelector('[data-download-json]').addEventListener('click', downloadJourneyJson);
+			document.querySelector('[data-add-location]').addEventListener('click', addLocationAtCurrentTime);
+			document.querySelector('[data-add-camera]').addEventListener('click', addCameraAtCurrentTime);
+			document.querySelector('[data-add-guide]').addEventListener('click', addGuideAtCurrentPosition);
+			durationInput.addEventListener('change', () => {
+				journey.durationSecs = Math.max(0.1, numberValue(durationInput.value, journey.durationSecs));
+				commitJourneyEdit({ normalize: true, inspector: true });
+			});
+			timeInput.addEventListener('input', () => {
+				playing = false;
+				playButton.textContent = '>';
+				refreshViews();
+				renderTimeline();
+			});
+			playButton.addEventListener('click', () => {
+				playing = !playing;
+				playButton.textContent = playing ? 'II' : '>';
+			});
+			zoomInput.addEventListener('input', () => setZoom(zoomInput.value));
+			window.addEventListener('resize', () => {
+				for (const tile of tiles) {
+					if (editorState.tileModes[tile.index] === 'skykit' && skyKit) {
+						skyKit.viewer.resize().catch(() => {});
+					}
+				}
+				refreshViews();
+			});
+			window.addEventListener('beforeunload', () => {
+				for (const state of perspectiveStates.values()) {
+					state.controls.dispose();
+					disposeObject3d(state.axisGizmo.scene);
+					state.renderer.dispose();
+				}
+				skyKit?.dispose?.().catch(() => {});
+			});
+
+			function animate(now) {
+				const deltaSecs = Math.min((now - lastAnimationTime) / 1000, 0.08);
+				lastAnimationTime = now;
+				if (playing) {
+					const nextTime = (currentTimelineTimeSecs() + deltaSecs * 2.5) % timelineDurationSecs();
+					timeInput.value = String(nextTime);
+					refreshViews();
+					renderTimeline();
+				}
+				for (const state of perspectiveStates.values()) {
+					state.controls.update();
+					renderPerspectiveState(state);
+				}
+				requestAnimationFrame(animate);
+			}
+
+			window.__journeyEditor = {
+				getJourney: () => normalizeJourney(journey),
+				setJourney(nextJourney) {
+					journey = normalizeJourney(nextJourney);
+					selectedWidget = null;
+					selectedLocationRange = null;
+					selectedLocationGroupId = null;
+					saveJourneyDraft();
+					renderAll();
+				},
+				evaluateAt(timeSecs) {
+					return evaluator.evaluate(timeSecs);
+				},
+				getSamples: () => samples,
+				getEditorState() {
+					return {
+						tileModes: [...editorState.tileModes],
+						zoom: editorState.zoom,
+						easeSecs: editorState.easeSecs,
+						selectedWidget: selectedWidget ? { ...selectedWidget } : null,
+						selectedLocationRange: selectedLocationRange ? { ...selectedLocationRange } : null,
+						selectedLocationGroupId,
+						hoveredWidget: hoveredWidget ? { ...hoveredWidget } : null,
+						hasSkyKit: Boolean(skyKit),
+						hasSavedJourneyDraft: Boolean(window.localStorage.getItem(JOURNEY_DRAFT_STORAGE_KEY)),
+						skyKitGuideCount: skyKit?.guideGroup?.children?.length ?? 0,
+						skyKitRadioBubbleCount: skyKit?.viewer?.contentRoot?.children
+							?.filter?.((child) => child.name === 'radio-bubble')?.length ?? 0,
+					};
+				},
+				setTileMode,
+				setZoom,
+				selectWidget,
+			};
+
+			zoomInput.value = String(editorState.zoom);
+			zoomLabel.textContent = `${Math.round(editorState.zoom * 100)}%`;
+			if (journey.locationWaypoints[0]) {
+				selectedWidget = { type: 'location', id: journey.locationWaypoints[0].id };
+			}
+			renderAll();
+			requestAnimationFrame(animate);
+		</script>
+	</body>
+</html>

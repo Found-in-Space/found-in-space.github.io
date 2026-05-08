@@ -50,6 +50,21 @@ node scripts/render-radio-bubble-video.mjs --mode=preview --layout=portrait-1080
 node scripts/render-radio-bubble-video.mjs --mode=final --layout=landscape-4k --capture=frames --frames=24
 ```
 
+## Waypoint journey editor
+
+`/video/journey-editor/` is a generic waypoint editor for the `fis-journey-v1` JSON format. It keeps script sync in seconds, but the location evaluator traverses each spline segment by arc length so movement speed is stable between timestamped waypoints.
+
+Camera orientation is authored as one continuous `cameraLookWaypoints` track. Each camera key is either a `direction` key, which looks along an infinite forward vector, or a `target` key, which tracks a fixed `targetPc` from the current observer position. Adjacent look keys are slerped with whole-interval smoothstep easing, so switching from one target to another is part of the gaze interpolation rather than a separate aim overlay.
+
+The editor has four configurable tiles (`XY`, `XZ`, `YZ`, `Perspective`, `SkyKit`), a shared zoom for non-SkyKit views, and a single timeline with draggable location/camera widgets. Static guides live in the sidebar and can be copied into a target look key. The SkyKit tile uses core SkyKit directly and renders guide meshes from JSON; it does not mount the radio bubble tour viewer.
+
+The seeded radio bubble journey lives in `src/data/radio-bubble-journey.json`. The editor can import/export JSON, and the renderer can consume an exported journey:
+
+```sh
+npm run video:journey:test
+node scripts/render-radio-bubble-video.mjs --mode=preview --layout=landscape-1080p --journey=src/data/radio-bubble-journey.json --frames=24
+```
+
 ## Blender authoring path
 
 The current generated camera path can be exported into a Blender-friendly interchange scene, opened in Blender, edited, and sampled back into a renderer scene JSON.
