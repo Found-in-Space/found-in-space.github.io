@@ -16,6 +16,7 @@ import {
 	SOLAR_ORIGIN_PC,
 	resolveFoundInSpaceDatasetOverrides,
 } from '@found-in-space/skykit';
+import * as THREE from 'three';
 
 /** Disables WASD / arrows on the rig while keeping pointer drag-to-look on the canvas. */
 const NO_KEYBOARD_EVENTS_TARGET = {
@@ -90,6 +91,7 @@ function createDatasetSession() {
  * @param {boolean}                    [options.observeResize]
  * @param {boolean}                    [options.enableSelectionRefreshController]
  * @param {boolean}                    [options.autoStart]
+ * @param {boolean}                    [options.preserveDrawingBuffer]
  * @returns {Promise<{ viewer: object, goTo: (id: string) => void, radiusPc: number, radiusLy: number, datasetSession: object, starLayer: object, cameraController: object }>}
  */
 export async function mountRadioBubbleViewer(mount, options = {}) {
@@ -163,6 +165,17 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	}
 	if (typeof options.autoStart === 'boolean') {
 		viewerOptions.autoStart = options.autoStart;
+	}
+	if (options.preserveDrawingBuffer === true) {
+		const renderer = new THREE.WebGLRenderer({
+			antialias: true,
+			alpha: false,
+			preserveDrawingBuffer: true,
+		});
+		renderer.domElement.style.display = 'block';
+		renderer.domElement.style.width = '100%';
+		renderer.domElement.style.height = '100%';
+		viewerOptions.renderer = renderer;
 	}
 
 	const viewer = await createViewer(mount, {

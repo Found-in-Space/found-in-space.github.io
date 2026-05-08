@@ -65,6 +65,7 @@ const title = 'Radio Bubble Video Export Test';
 				pendingSignature: null,
 				waiters: new Set(),
 			};
+			const expectedStarCountCache = new Map();
 
 			const exportApi = {
 				ready: null,
@@ -116,9 +117,20 @@ const title = 'Radio Bubble Video Export Test';
 					.filter((node) => node && node.payloadLength > 0);
 			}
 
-			async function computeExpectedStarCount(nodes) {
+			async function computeExpectedStarCount(nodes, signature) {
+				if (expectedStarCountCache.has(signature)) {
+					return {
+						expectedStarCount: expectedStarCountCache.get(signature),
+						cacheHit: true,
+					};
+				}
+
 				if (!Array.isArray(nodes) || nodes.length === 0) {
-					return 0;
+					expectedStarCountCache.set(signature, 0);
+					return {
+						expectedStarCount: 0,
+						cacheHit: false,
+					};
 				}
 
 				const renderService = mounted.datasetSession.getRenderService();
@@ -128,7 +140,11 @@ const title = 'Radio Bubble Video Export Test';
 					const decoded = renderService.decodePayload(entry.buffer, entry.node);
 					expectedStarCount += Number(decoded?.count ?? 0);
 				}
-				return expectedStarCount;
+				expectedStarCountCache.set(signature, expectedStarCount);
+				return {
+					expectedStarCount,
+					cacheHit: false,
+				};
 			}
 
 			function currentCommitMatches(signature, expectedStarCount) {
@@ -243,21 +259,41 @@ const title = 'Radio Bubble Video Export Test';
 			}
 
 			async function settleStars({ frameIndex, sceneTimeSecs, timeoutMs = FRAME_TIMEOUT_MS }) {
+				const startedAt = performance.now();
+				const timings = {};
+				const selectionStartedAt = performance.now();
 				const selection = await mounted.viewer.refreshSelection();
+				timings.selectionMs = performance.now() - selectionStartedAt;
+
 				const payloadNodes = getPayloadNodes(selection);
 				const signature = selectionSignature(selection);
-				const expectedStarCount = await computeExpectedStarCount(payloadNodes);
+				const expectedStartedAt = performance.now();
+				const expected = await computeExpectedStarCount(payloadNodes, signature);
+				timings.expectedMs = performance.now() - expectedStartedAt;
+				const expectedStarCount = expected.expectedStarCount;
 				starReadiness.pendingSignature = signature;
-				renderTimelineStep(0);
-				const stats = await waitForCommittedStars({
-					frameIndex,
-					sceneTimeSecs,
-					signature,
-					expectedStarCount,
-					nodeCount: payloadNodes.length,
-					timeoutMs,
-				});
+
+				const alreadyCommitted = currentCommitMatches(signature, expectedStarCount);
+				const waitStartedAt = performance.now();
+				let stats = getStarStats();
+				if (!alreadyCommitted) {
+					renderTimelineStep(0);
+					stats = await waitForCommittedStars({
+						frameIndex,
+						sceneTimeSecs,
+						signature,
+						expectedStarCount,
+						nodeCount: payloadNodes.length,
+						timeoutMs,
+					});
+				}
+				timings.commitWaitMs = performance.now() - waitStartedAt;
+
+				const renderOnceStartedAt = performance.now();
 				mounted.viewer.runtime.renderOnce();
+				timings.renderOnceMs = performance.now() - renderOnceStartedAt;
+				timings.totalMs = performance.now() - startedAt;
+
 				return {
 					frameIndex,
 					sceneTimeSecs,
@@ -267,6 +303,10 @@ const title = 'Radio Bubble Video Export Test';
 					committedNodeCount: stats.nodeCount,
 					loadGeneration: stats.loadGeneration,
 					selectionMeta: selection.meta ?? {},
+					expectedCacheHit: expected.cacheHit,
+					expectedCacheSize: expectedStarCountCache.size,
+					skippedCommitWait: alreadyCommitted,
+					timings,
 				};
 			}
 

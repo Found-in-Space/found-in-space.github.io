@@ -12,6 +12,7 @@ const title = 'Radio Bubble Full Video Export';
 	<body>
 		<main class="video-stage" aria-label={title}>
 			<div class="skyview" data-video-skyview></div>
+			<canvas class="copy-overlay-canvas" data-video-overlay-canvas aria-hidden="true"></canvas>
 			<div class="copy-overlay" data-video-overlay>
 				<p class="copy-overlay__eyebrow" data-video-overlay-eyebrow></p>
 				<p class="copy-overlay__title" data-video-overlay-title></p>
@@ -20,70 +21,39 @@ const title = 'Radio Bubble Full Video Export';
 		</main>
 
 		<script>
-			import {
-				HYADES_CENTER_PC,
-				ORION_NEBULA_PC,
-			} from '@found-in-space/skykit';
 			import { mountRadioBubbleViewer } from '../../scripts/radio-bubble-viewer.js';
+			import {
+				DEFAULT_RADIO_BUBBLE_VIDEO_LAYOUT_ID,
+				getRadioBubbleVideoLayout,
+			} from '../../scripts/radio-bubble-video-layouts.js';
+			import {
+				getRadioBubbleVideoCamera,
+				getRadioBubbleVideoCue,
+				getRadioBubbleVideoCueOpacity,
+				RADIO_BUBBLE_VIDEO_DURATION_SECS,
+			} from '../../scripts/radio-bubble-video-timeline.js';
 
 			const FRAME_TIMEOUT_MS = 45_000;
 			const INITIAL_TIMEOUT_MS = 90_000;
-			const SOLAR_ORIGIN_PC = Object.freeze({ x: 0, y: 0, z: 0 });
-			const HYADES_FRAMING_TARGET_PC = Object.freeze({
-				x: HYADES_CENTER_PC.x * 0.64,
-				y: HYADES_CENTER_PC.y * 0.64,
-				z: HYADES_CENTER_PC.z * 0.64,
-			});
-			const CUES = Object.freeze([
-				{
-					startSecs: 0,
-					endSecs: 8,
-					eyebrow: 'Inside the bubble',
-					title: 'Earth sits inside a shell of old signals.',
-					body: 'Every radio broadcast and radar pulse expands outward at light speed, centred on the Sun.',
-				},
-				{
-					startSecs: 8,
-					endSecs: 18,
-					eyebrow: 'The wavefront',
-					title: 'After 131 years, it reaches about 40 parsecs.',
-					body: 'The blue mesh marks the leading edge. Stars inside have been washed over by our electromagnetic history.',
-				},
-				{
-					startSecs: 18,
-					endSecs: 30,
-					eyebrow: 'Pulling back',
-					title: 'The impressive sphere quickly becomes small.',
-					body: 'A thousand nearby systems sounds like a lot, until the local neighbourhood begins to fill the frame.',
-				},
-				{
-					startSecs: 30,
-					endSecs: 42,
-					eyebrow: 'Galactic scale',
-					title: 'Against the Milky Way, the bubble is almost nothing.',
-					body: "If the galaxy were a football pitch, humanity's radio footprint would be smaller than a grain of sand.",
-				},
-				{
-					startSecs: 42,
-					endSecs: 52,
-					eyebrow: 'The Hyades',
-					title: 'The nearest open cluster is still just beyond reach.',
-					body: 'The Hyades sit about 48 parsecs away. Our earliest signals are still roughly 8 parsecs short.',
-				},
-				{
-					startSecs: 52,
-					endSecs: 60,
-					eyebrow: 'Back home',
-					title: 'The volume that knows we are here is tiny.',
-					body: 'From inside, the shell becomes invisible again. Most of the galaxy has no electromagnetic evidence of us at all.',
-				},
-			]);
+			const ARTIFACT_PLATES = Object.freeze(['composite', 'sky', 'overlay']);
 
 			const mount = document.querySelector('[data-video-skyview]');
 			const overlay = document.querySelector('[data-video-overlay]');
 			const overlayEyebrow = document.querySelector('[data-video-overlay-eyebrow]');
 			const overlayTitle = document.querySelector('[data-video-overlay-title]');
 			const overlayBody = document.querySelector('[data-video-overlay-body]');
+			const overlayCanvas = document.querySelector('[data-video-overlay-canvas]');
+			const compositeCanvas = document.createElement('canvas');
+			const compositeContext = compositeCanvas.getContext('2d', { alpha: false });
+			const routeParams = new URLSearchParams(window.location.search);
+			const requestedLayoutId = routeParams.get('layout')
+				?? (routeParams.get('videoScale') === '0.5' ? 'landscape-1080p' : DEFAULT_RADIO_BUBBLE_VIDEO_LAYOUT_ID);
+			const layout = getRadioBubbleVideoLayout(requestedLayoutId)
+				?? getRadioBubbleVideoLayout(DEFAULT_RADIO_BUBBLE_VIDEO_LAYOUT_ID);
+			const preserveDrawingBuffer = routeParams.get('preserveDrawingBuffer') === '1';
+			const showCanvasOverlay = routeParams.get('canvasOverlay') === '1';
+			document.documentElement.dataset.videoLayout = layout.id;
+			document.documentElement.toggleAttribute('data-canvas-overlay', showCanvasOverlay);
 
 			let mounted = null;
 			let manualTimeMs = 0;
@@ -95,6 +65,7 @@ const title = 'Radio Bubble Full Video Export';
 				pendingSignature: null,
 				waiters: new Set(),
 			};
+			const expectedStarCountCache = new Map();
 
 			const exportApi = {
 				ready: null,
@@ -103,99 +74,36 @@ const title = 'Radio Bubble Full Video Export';
 				getStatus,
 				startClip,
 				captureFrame,
+				captureFrameArtifacts,
+				getCanvasInfo,
+				captureCanvasBlob,
+				captureCanvasBlobDataUrl,
+				captureCompositeBlob,
+				captureCompositeBlobDataUrl,
+				recordCanvasStream,
 			};
 			window.__radioBubbleVideoExport = exportApi;
 
-			function clamp01(value) {
-				return Math.min(1, Math.max(0, Number(value) || 0));
+			function applyOverlayLayout() {
+				const rootStyle = document.documentElement.style;
+				const text = layout.text;
+				rootStyle.setProperty('--video-overlay-x', `${text.x}px`);
+				rootStyle.setProperty('--video-overlay-bottom', `${text.bottom}px`);
+				rootStyle.setProperty('--video-overlay-max-width', `${text.maxWidth}px`);
+				rootStyle.setProperty('--video-overlay-title-max-width', `${text.titleMaxWidth ?? text.maxWidth}px`);
+				rootStyle.setProperty('--video-overlay-body-max-width', `${text.bodyMaxWidth ?? text.maxWidth}px`);
+				rootStyle.setProperty('--video-overlay-eyebrow-font-size', `${text.eyebrowFontSize}px`);
+				rootStyle.setProperty('--video-overlay-title-font-size', `${text.titleFontSize}px`);
+				rootStyle.setProperty('--video-overlay-body-font-size', `${text.bodyFontSize}px`);
+				rootStyle.setProperty('--video-overlay-eyebrow-gap', `${text.eyebrowGap}px`);
+				rootStyle.setProperty('--video-overlay-body-gap', `${text.bodyGap}px`);
+				rootStyle.setProperty('--video-overlay-title-line-height', String(text.titleLineHeight));
+				rootStyle.setProperty('--video-overlay-body-line-height', String(text.bodyLineHeight));
+				rootStyle.setProperty('--video-overlay-shadow-blur', `${text.shadowBlur}px`);
+				rootStyle.setProperty('--video-overlay-shadow-offset-y', `${text.shadowOffsetY}px`);
 			}
 
-			function smoothstep(value) {
-				const t = clamp01(value);
-				return t * t * (3 - 2 * t);
-			}
-
-			function lerp(left, right, t) {
-				return left + (right - left) * t;
-			}
-
-			function lerpPoint(left, right, t) {
-				return {
-					x: lerp(left.x, right.x, t),
-					y: lerp(left.y, right.y, t),
-					z: lerp(left.z, right.z, t),
-				};
-			}
-
-			function orbitPoint(center, radiusPc, angleRad, heightPc = 0) {
-				return {
-					x: center.x + Math.cos(angleRad) * radiusPc,
-					y: center.y + heightPc,
-					z: center.z + Math.sin(angleRad) * radiusPc,
-				};
-			}
-
-			function insideCamera(sceneTimeSecs) {
-				const angle = -0.95 + sceneTimeSecs * 0.08;
-				return {
-					observerPc: orbitPoint(SOLAR_ORIGIN_PC, 8, angle, 1.6),
-					targetPc: ORION_NEBULA_PC,
-				};
-			}
-
-			function outsideCamera(sceneTimeSecs) {
-				const angle = 0.34 + (sceneTimeSecs - 24) * 0.045;
-				return {
-					observerPc: orbitPoint(SOLAR_ORIGIN_PC, 175, angle, 28),
-					targetPc: SOLAR_ORIGIN_PC,
-				};
-			}
-
-			function hyadesCamera(sceneTimeSecs) {
-				const angle = -0.65 + (sceneTimeSecs - 48) * 0.08;
-				return {
-					observerPc: orbitPoint(HYADES_CENTER_PC, 28, angle, 8),
-					targetPc: HYADES_FRAMING_TARGET_PC,
-				};
-			}
-
-			function cameraAt(sceneTimeSecs) {
-				const t = Number(sceneTimeSecs) || 0;
-				if (t < 10) {
-					return insideCamera(t);
-				}
-				if (t < 24) {
-					const u = smoothstep((t - 10) / 14);
-					const start = insideCamera(10);
-					const end = outsideCamera(24);
-					return {
-						observerPc: lerpPoint(start.observerPc, end.observerPc, u),
-						targetPc: lerpPoint(start.targetPc, SOLAR_ORIGIN_PC, u),
-					};
-				}
-				if (t < 38) {
-					return outsideCamera(t);
-				}
-				if (t < 48) {
-					const u = smoothstep((t - 38) / 10);
-					const start = outsideCamera(38);
-					const end = hyadesCamera(48);
-					return {
-						observerPc: lerpPoint(start.observerPc, end.observerPc, u),
-						targetPc: lerpPoint(SOLAR_ORIGIN_PC, HYADES_FRAMING_TARGET_PC, u),
-					};
-				}
-				if (t < 54) {
-					return hyadesCamera(t);
-				}
-				const u = smoothstep((t - 54) / 6);
-				const start = hyadesCamera(54);
-				const end = insideCamera(60);
-				return {
-					observerPc: lerpPoint(start.observerPc, end.observerPc, u),
-					targetPc: lerpPoint(HYADES_FRAMING_TARGET_PC, ORION_NEBULA_PC, u),
-				};
-			}
+			applyOverlayLayout();
 
 			function getStarStats() {
 				const stats = mounted?.starLayer?.getStats?.() ?? {};
@@ -204,6 +112,349 @@ const title = 'Radio Bubble Full Video Export';
 					starCount: Number(stats.starCount ?? 0),
 					loadGeneration: Number(stats.loadGeneration ?? 0),
 				};
+			}
+
+			function getCanvas() {
+				const canvas = mounted?.viewer?.canvas ?? mount?.querySelector?.('canvas');
+				if (!(canvas instanceof HTMLCanvasElement)) {
+					throw new Error('Radio bubble export canvas is not available.');
+				}
+				return canvas;
+			}
+
+			function getOverlayCanvas() {
+				if (!(overlayCanvas instanceof HTMLCanvasElement)) {
+					throw new Error('Radio bubble overlay canvas is not available.');
+				}
+				return overlayCanvas;
+			}
+
+			function syncCanvasSize(targetCanvas, sourceCanvas) {
+				if (targetCanvas.width !== sourceCanvas.width) {
+					targetCanvas.width = sourceCanvas.width;
+				}
+				if (targetCanvas.height !== sourceCanvas.height) {
+					targetCanvas.height = sourceCanvas.height;
+				}
+			}
+
+			function syncOverlayCanvas() {
+				const sourceCanvas = getCanvas();
+				const targetCanvas = getOverlayCanvas();
+				syncCanvasSize(targetCanvas, sourceCanvas);
+				return targetCanvas;
+			}
+
+			function getCanvasInfo() {
+				const canvas = getCanvas();
+				const currentOverlayCanvas = syncOverlayCanvas();
+				syncCanvasSize(compositeCanvas, canvas);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					clientWidth: canvas.clientWidth,
+					clientHeight: canvas.clientHeight,
+					overlayWidth: currentOverlayCanvas.width,
+					overlayHeight: currentOverlayCanvas.height,
+					compositeWidth: compositeCanvas.width,
+					compositeHeight: compositeCanvas.height,
+					layout: {
+						id: layout.id,
+						width: layout.width,
+						height: layout.height,
+					},
+					durationSecs: RADIO_BUBBLE_VIDEO_DURATION_SECS,
+					preserveDrawingBuffer,
+					showCanvasOverlay,
+					captureStreamSupported: typeof canvas.captureStream === 'function',
+					mediaRecorderSupported: typeof MediaRecorder !== 'undefined',
+				};
+			}
+
+			function wrapCanvasText(context, text, maxWidth) {
+				const words = String(text ?? '').split(/\s+/).filter(Boolean);
+				const lines = [];
+				let line = '';
+				for (const word of words) {
+					const candidate = line ? `${line} ${word}` : word;
+					if (line && context.measureText(candidate).width > maxWidth) {
+						lines.push(line);
+						line = word;
+					} else {
+						line = candidate;
+					}
+				}
+				if (line) {
+					lines.push(line);
+				}
+				return lines;
+			}
+
+			function drawTextLines(context, lines, x, y, lineHeight) {
+				let nextY = y;
+				for (const line of lines) {
+					context.fillText(line, x, nextY);
+					nextY += lineHeight;
+				}
+				return nextY;
+			}
+
+			function drawCanvasOverlay(cue, opacity) {
+				const canvas = syncOverlayCanvas();
+				const context = canvas.getContext('2d');
+				if (!context) {
+					return;
+				}
+
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				if (!cue || opacity <= 0) {
+					return;
+				}
+
+				const scaleX = canvas.width / layout.width;
+				const scaleY = canvas.height / layout.height;
+				const textScale = Math.min(scaleX, scaleY);
+				const text = layout.text;
+				const x = text.x * scaleX;
+				const maxWidth = text.maxWidth * scaleX;
+				const titleMaxWidth = (text.titleMaxWidth ?? text.maxWidth) * scaleX;
+				const bodyMaxWidth = (text.bodyMaxWidth ?? text.maxWidth) * scaleX;
+				const eyebrowFontSize = text.eyebrowFontSize * textScale;
+				const titleFontSize = text.titleFontSize * textScale;
+				const bodyFontSize = text.bodyFontSize * textScale;
+				const eyebrowGap = text.eyebrowGap * textScale;
+				const bodyGap = text.bodyGap * textScale;
+				const titleLineHeight = titleFontSize * text.titleLineHeight;
+				const bodyLineHeight = bodyFontSize * text.bodyLineHeight;
+
+				context.save();
+				context.globalAlpha = opacity;
+				context.textBaseline = 'top';
+				context.textAlign = 'left';
+				context.shadowColor = 'rgba(0, 0, 0, 0.78)';
+				context.shadowBlur = text.shadowBlur * textScale;
+				context.shadowOffsetY = text.shadowOffsetY * textScale;
+
+				context.font = `750 ${titleFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+				const titleLines = wrapCanvasText(context, cue.title, Math.min(maxWidth, titleMaxWidth));
+				context.font = `450 ${bodyFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+				const bodyLines = wrapCanvasText(context, cue.body, Math.min(maxWidth, bodyMaxWidth));
+				const blockHeight = eyebrowFontSize * 1.1
+					+ eyebrowGap
+					+ titleLines.length * titleLineHeight
+					+ bodyGap
+					+ bodyLines.length * bodyLineHeight;
+				let y = canvas.height - (text.bottom * scaleY) - blockHeight;
+
+				context.fillStyle = '#8fd5ff';
+				context.font = `700 ${eyebrowFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+				context.fillText(String(cue.eyebrow ?? '').toUpperCase(), x, y);
+				y += eyebrowFontSize * 1.1 + eyebrowGap;
+
+				context.fillStyle = '#f7fbff';
+				context.font = `750 ${titleFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+				y = drawTextLines(context, titleLines, x, y, titleLineHeight) + bodyGap;
+
+				context.fillStyle = 'rgba(236, 244, 255, 0.88)';
+				context.font = `450 ${bodyFontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+				drawTextLines(context, bodyLines, x, y, bodyLineHeight);
+				context.restore();
+			}
+
+			function renderCompositeFrame() {
+				const sourceCanvas = getCanvas();
+				const currentOverlayCanvas = syncOverlayCanvas();
+				syncCanvasSize(compositeCanvas, sourceCanvas);
+				if (!compositeContext) {
+					throw new Error('Could not create composite canvas context.');
+				}
+				compositeContext.fillStyle = '#02040b';
+				compositeContext.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+				compositeContext.drawImage(sourceCanvas, 0, 0, compositeCanvas.width, compositeCanvas.height);
+				compositeContext.drawImage(currentOverlayCanvas, 0, 0, compositeCanvas.width, compositeCanvas.height);
+				return compositeCanvas;
+			}
+
+			function canvasToBlob(canvas, type, quality) {
+				return new Promise((resolve, reject) => {
+					try {
+						canvas.toBlob((blob) => {
+							if (blob) {
+								resolve(blob);
+							} else {
+								reject(new Error('Canvas toBlob returned null.'));
+							}
+						}, type, quality);
+					} catch (error) {
+						reject(error);
+					}
+				});
+			}
+
+			function blobToDataUrl(blob) {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.addEventListener('load', () => resolve(String(reader.result)));
+					reader.addEventListener('error', () => reject(reader.error ?? new Error('Could not read blob.')));
+					reader.readAsDataURL(blob);
+				});
+			}
+
+			async function captureCanvasBlob(options = {}) {
+				await exportApi.ready;
+				const canvas = getCanvas();
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const startedAt = performance.now();
+				const blob = await canvasToBlob(canvas, type, quality);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					type: blob.type,
+					size: blob.size,
+					encodeMs: performance.now() - startedAt,
+					preserveDrawingBuffer,
+				};
+			}
+
+			async function captureCanvasBlobDataUrl(options = {}) {
+				await exportApi.ready;
+				const canvas = getCanvas();
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const encodeStartedAt = performance.now();
+				const blob = await canvasToBlob(canvas, type, quality);
+				const encodeMs = performance.now() - encodeStartedAt;
+				const readStartedAt = performance.now();
+				const dataUrl = await blobToDataUrl(blob);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					type: blob.type,
+					size: blob.size,
+					encodeMs,
+					readMs: performance.now() - readStartedAt,
+					preserveDrawingBuffer,
+					dataUrl,
+				};
+			}
+
+			async function captureCompositeBlob(options = {}) {
+				await exportApi.ready;
+				const canvas = renderCompositeFrame();
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const startedAt = performance.now();
+				const blob = await canvasToBlob(canvas, type, quality);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					type: blob.type,
+					size: blob.size,
+					encodeMs: performance.now() - startedAt,
+					preserveDrawingBuffer,
+					composited: true,
+				};
+			}
+
+			async function captureCompositeBlobDataUrl(options = {}) {
+				await exportApi.ready;
+				const canvas = renderCompositeFrame();
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const encodeStartedAt = performance.now();
+				const blob = await canvasToBlob(canvas, type, quality);
+				const encodeMs = performance.now() - encodeStartedAt;
+				const readStartedAt = performance.now();
+				const dataUrl = await blobToDataUrl(blob);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					type: blob.type,
+					size: blob.size,
+					encodeMs,
+					readMs: performance.now() - readStartedAt,
+					preserveDrawingBuffer,
+					composited: true,
+					dataUrl,
+				};
+			}
+
+			function normalizeRequestedPlates(plates) {
+				if (plates === 'all') {
+					return [...ARTIFACT_PLATES];
+				}
+				if (Array.isArray(plates)) {
+					const requested = plates.filter((plate) => ARTIFACT_PLATES.includes(plate));
+					return requested.length > 0 ? requested : ['composite'];
+				}
+				return ['composite'];
+			}
+
+			function getPlateCanvas(plate) {
+				if (plate === 'sky') {
+					return getCanvas();
+				}
+				if (plate === 'overlay') {
+					return syncOverlayCanvas();
+				}
+				return renderCompositeFrame();
+			}
+
+			async function captureCanvasDataUrl(canvas, options = {}) {
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const encodeStartedAt = performance.now();
+				const blob = await canvasToBlob(canvas, type, quality);
+				const encodeMs = performance.now() - encodeStartedAt;
+				const readStartedAt = performance.now();
+				const dataUrl = await blobToDataUrl(blob);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					type: blob.type,
+					size: blob.size,
+					encodeMs,
+					readMs: performance.now() - readStartedAt,
+					dataUrl,
+				};
+			}
+
+			async function captureFrameArtifacts(options = {}) {
+				await exportApi.ready;
+				const stats = await captureFrame(options);
+				const requestedPlates = normalizeRequestedPlates(options.plates);
+				const type = options.type ?? 'image/png';
+				const quality = Number.isFinite(options.quality) ? options.quality : undefined;
+				const artifacts = {};
+
+				for (const plate of requestedPlates) {
+					const artifactType = plate === 'overlay' ? 'image/png' : type;
+					const canvas = getPlateCanvas(plate);
+					artifacts[plate] = await captureCanvasDataUrl(canvas, {
+						type: artifactType,
+						quality,
+					});
+				}
+
+				return {
+					stats,
+					artifacts,
+				};
+			}
+
+			function getMediaRecorderType(preferredType) {
+				if (typeof MediaRecorder === 'undefined') {
+					throw new Error('MediaRecorder is not available in this browser.');
+				}
+				const candidates = [
+					preferredType,
+					'video/webm;codecs=vp9',
+					'video/webm;codecs=vp8',
+					'video/webm',
+					'video/mp4',
+				].filter(Boolean);
+				return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? '';
 			}
 
 			function notifyCommitWaiters() {
@@ -237,9 +488,20 @@ const title = 'Radio Bubble Full Video Export';
 					.filter((node) => node && node.payloadLength > 0);
 			}
 
-			async function computeExpectedStarCount(nodes) {
+			async function computeExpectedStarCount(nodes, signature) {
+				if (expectedStarCountCache.has(signature)) {
+					return {
+						expectedStarCount: expectedStarCountCache.get(signature),
+						cacheHit: true,
+					};
+				}
+
 				if (!Array.isArray(nodes) || nodes.length === 0) {
-					return 0;
+					expectedStarCountCache.set(signature, 0);
+					return {
+						expectedStarCount: 0,
+						cacheHit: false,
+					};
 				}
 
 				const renderService = mounted.datasetSession.getRenderService();
@@ -249,7 +511,11 @@ const title = 'Radio Bubble Full Video Export';
 					const decoded = renderService.decodePayload(entry.buffer, entry.node);
 					expectedStarCount += Number(decoded?.count ?? 0);
 				}
-				return expectedStarCount;
+				expectedStarCountCache.set(signature, expectedStarCount);
+				return {
+					expectedStarCount,
+					cacheHit: false,
+				};
 			}
 
 			function currentCommitMatches(signature, expectedStarCount) {
@@ -315,22 +581,19 @@ const title = 'Radio Bubble Full Video Export';
 			}
 
 			function updateOverlay(sceneTimeSecs) {
-				const cue = CUES.find((entry) => sceneTimeSecs >= entry.startSecs && sceneTimeSecs < entry.endSecs)
-					?? CUES[CUES.length - 1];
-				const localTime = sceneTimeSecs - cue.startSecs;
-				const fadeIn = Math.min(1, Math.max(0, localTime / 0.85));
-				const fadeOut = Math.min(1, Math.max(0, (cue.endSecs - sceneTimeSecs) / 0.85));
-				const opacity = Math.min(fadeIn, fadeOut);
+				const cue = getRadioBubbleVideoCue(sceneTimeSecs);
+				const opacity = getRadioBubbleVideoCueOpacity(sceneTimeSecs);
 
 				if (overlayEyebrow) overlayEyebrow.textContent = cue.eyebrow;
 				if (overlayTitle) overlayTitle.textContent = cue.title;
 				if (overlayBody) overlayBody.textContent = cue.body;
 				if (overlay) overlay.style.opacity = String(opacity);
+				drawCanvasOverlay(cue, opacity);
 			}
 
 			function applyCamera(sceneTimeSecs) {
 				const { viewer, cameraController } = mounted;
-				const nextCamera = cameraAt(sceneTimeSecs);
+				const nextCamera = getRadioBubbleVideoCamera(sceneTimeSecs);
 				cameraController.cancelAutomation();
 				cameraController.rig.setPosition(nextCamera.observerPc);
 				cameraController.rig.orientToward(nextCamera.targetPc);
@@ -357,21 +620,41 @@ const title = 'Radio Bubble Full Video Export';
 			}
 
 			async function settleStars({ frameIndex, sceneTimeSecs, timeoutMs = FRAME_TIMEOUT_MS }) {
+				const startedAt = performance.now();
+				const timings = {};
+				const selectionStartedAt = performance.now();
 				const selection = await mounted.viewer.refreshSelection();
+				timings.selectionMs = performance.now() - selectionStartedAt;
+
 				const payloadNodes = getPayloadNodes(selection);
 				const signature = selectionSignature(selection);
-				const expectedStarCount = await computeExpectedStarCount(payloadNodes);
+				const expectedStartedAt = performance.now();
+				const expected = await computeExpectedStarCount(payloadNodes, signature);
+				timings.expectedMs = performance.now() - expectedStartedAt;
+				const expectedStarCount = expected.expectedStarCount;
 				starReadiness.pendingSignature = signature;
-				renderTimelineStep(0);
-				const stats = await waitForCommittedStars({
-					frameIndex,
-					sceneTimeSecs,
-					signature,
-					expectedStarCount,
-					nodeCount: payloadNodes.length,
-					timeoutMs,
-				});
+
+				const alreadyCommitted = currentCommitMatches(signature, expectedStarCount);
+				const waitStartedAt = performance.now();
+				let stats = getStarStats();
+				if (!alreadyCommitted) {
+					renderTimelineStep(0);
+					stats = await waitForCommittedStars({
+						frameIndex,
+						sceneTimeSecs,
+						signature,
+						expectedStarCount,
+						nodeCount: payloadNodes.length,
+						timeoutMs,
+					});
+				}
+				timings.commitWaitMs = performance.now() - waitStartedAt;
+
+				const renderOnceStartedAt = performance.now();
 				mounted.viewer.runtime.renderOnce();
+				timings.renderOnceMs = performance.now() - renderOnceStartedAt;
+				timings.totalMs = performance.now() - startedAt;
+
 				return {
 					frameIndex,
 					sceneTimeSecs,
@@ -381,6 +664,10 @@ const title = 'Radio Bubble Full Video Export';
 					committedNodeCount: stats.nodeCount,
 					loadGeneration: stats.loadGeneration,
 					selectionMeta: selection.meta ?? {},
+					expectedCacheHit: expected.cacheHit,
+					expectedCacheSize: expectedStarCountCache.size,
+					skippedCommitWait: alreadyCommitted,
+					timings,
 				};
 			}
 
@@ -391,6 +678,12 @@ const title = 'Radio Bubble Full Video Export';
 					starStats: getStarStats(),
 					commitCount: starReadiness.commitCount,
 					lastCommit: starReadiness.lastCommit,
+					layout: {
+						id: layout.id,
+						width: layout.width,
+						height: layout.height,
+					},
+					durationSecs: RADIO_BUBBLE_VIDEO_DURATION_SECS,
 				};
 			}
 
@@ -419,6 +712,111 @@ const title = 'Radio Bubble Full Video Export';
 				});
 			}
 
+			async function recordCanvasStream(options = {}) {
+				await exportApi.ready;
+				const useComposite = options.source === 'composite';
+				const canvas = useComposite ? renderCompositeFrame() : getCanvas();
+				if (typeof canvas.captureStream !== 'function') {
+					throw new Error('Canvas captureStream() is not available in this browser.');
+				}
+				const stream = canvas.captureStream(0);
+				const [track] = stream.getVideoTracks();
+				if (!track || typeof track.requestFrame !== 'function') {
+					stream.getTracks().forEach((entry) => entry.stop());
+					throw new Error('CanvasCaptureMediaStreamTrack.requestFrame() is not available.');
+				}
+
+				const frameCount = Math.max(1, Math.floor(Number(options.frameCount) || 1));
+				const fps = Math.max(1, Number(options.fps) || 24);
+				const mimeType = getMediaRecorderType(options.mimeType);
+				const recorderOptions = {};
+				if (mimeType) {
+					recorderOptions.mimeType = mimeType;
+				}
+				if (Number.isFinite(options.bitsPerSecond)) {
+					recorderOptions.videoBitsPerSecond = options.bitsPerSecond;
+				}
+
+				const chunks = [];
+				const recorder = new MediaRecorder(stream, recorderOptions);
+				const stopped = new Promise((resolve, reject) => {
+					recorder.addEventListener('dataavailable', (event) => {
+						if (event.data && event.data.size > 0) {
+							chunks.push(event.data);
+						}
+					});
+					recorder.addEventListener('stop', resolve, { once: true });
+					recorder.addEventListener('error', () => {
+						reject(recorder.error ?? new Error('MediaRecorder failed.'));
+					}, { once: true });
+				});
+
+				const timings = [];
+				const startedAt = performance.now();
+				recorder.start();
+				try {
+					for (let frameIndex = 1; frameIndex <= frameCount; frameIndex += 1) {
+						const frameStartedAt = performance.now();
+						const sceneTimeSecs = (frameIndex - 1) / fps;
+						const deltaSecs = frameIndex === 1 ? 0 : 1 / fps;
+						const stats = frameIndex === 1
+							? await startClip()
+							: await captureFrame({ frameIndex, timeSecs: sceneTimeSecs, deltaSecs });
+						if (useComposite) {
+							renderCompositeFrame();
+						}
+						const requestStartedAt = performance.now();
+						track.requestFrame();
+						timings.push({
+							frameIndex,
+							sceneTimeSecs,
+							captureMs: requestStartedAt - frameStartedAt,
+							requestFrameMs: performance.now() - requestStartedAt,
+							routeMs: stats.timings?.totalMs ?? 0,
+							expectedStarCount: stats.expectedStarCount,
+							actualStarCount: stats.actualStarCount,
+							nodeCount: stats.nodeCount,
+							committedNodeCount: stats.committedNodeCount,
+							expectedCacheHit: stats.expectedCacheHit,
+							skippedCommitWait: stats.skippedCommitWait,
+						});
+						const targetElapsedMs = options.paceFrames === true
+							? (frameIndex * 1000) / fps
+							: 0;
+						const waitMs = targetElapsedMs > 0
+							? Math.max(0, startedAt + targetElapsedMs - performance.now())
+							: 0;
+						await new Promise((resolve) => window.setTimeout(resolve, waitMs));
+					}
+				} finally {
+					if (recorder.state !== 'inactive') {
+						recorder.stop();
+					}
+				}
+				await stopped;
+				stream.getTracks().forEach((entry) => entry.stop());
+
+				const blob = new Blob(chunks, {
+					type: recorder.mimeType || mimeType || 'video/webm',
+				});
+				const readStartedAt = performance.now();
+				const dataUrl = await blobToDataUrl(blob);
+				return {
+					width: canvas.width,
+					height: canvas.height,
+					frameCount,
+					fps,
+					source: useComposite ? 'composite' : 'canvas',
+					layoutId: layout.id,
+					mimeType: blob.type,
+					size: blob.size,
+					recordMs: performance.now() - startedAt,
+					readMs: performance.now() - readStartedAt,
+					timings,
+					dataUrl,
+				};
+			}
+
 			async function initialize() {
 				if (!mount) {
 					throw new Error('Missing radio bubble video mount element.');
@@ -430,6 +828,7 @@ const title = 'Radio Bubble Full Video Export';
 					autoStart: false,
 					enableSelectionRefreshController: false,
 					onStarFieldCommit,
+					preserveDrawingBuffer,
 				});
 				enterManualTimeline();
 				applyCamera(0);
@@ -502,14 +901,32 @@ const title = 'Radio Bubble Full Video Export';
 		display: block;
 	}
 
+	.copy-overlay-canvas {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		width: 100%;
+		height: 100%;
+		display: none;
+		pointer-events: none;
+	}
+
+	html[data-canvas-overlay] .copy-overlay {
+		display: none;
+	}
+
+	html[data-canvas-overlay] .copy-overlay-canvas {
+		display: block;
+	}
+
 	.copy-overlay {
 		position: absolute;
-		left: 132px;
-		bottom: 126px;
+		left: var(--video-overlay-x, 132px);
+		bottom: var(--video-overlay-bottom, 126px);
 		z-index: 2;
-		max-width: 1460px;
+		max-width: var(--video-overlay-max-width, 1460px);
 		color: #f7fbff;
-		text-shadow: 0 6px 32px rgba(0, 0, 0, 0.78);
+		text-shadow: 0 var(--video-overlay-shadow-offset-y, 6px) var(--video-overlay-shadow-blur, 32px) rgba(0, 0, 0, 0.78);
 		opacity: 0;
 		pointer-events: none;
 	}
@@ -522,27 +939,27 @@ const title = 'Radio Bubble Full Video Export';
 	}
 
 	.copy-overlay__eyebrow {
-		margin-bottom: 22px;
+		margin-bottom: var(--video-overlay-eyebrow-gap, 22px);
 		color: #8fd5ff;
-		font-size: 28px;
+		font-size: var(--video-overlay-eyebrow-font-size, 28px);
 		line-height: 1.1;
 		font-weight: 700;
 		text-transform: uppercase;
 	}
 
 	.copy-overlay__title {
-		max-width: 22ch;
-		font-size: 72px;
-		line-height: 1.04;
+		max-width: var(--video-overlay-title-max-width, var(--video-overlay-max-width, 1460px));
+		font-size: var(--video-overlay-title-font-size, 72px);
+		line-height: var(--video-overlay-title-line-height, 1.04);
 		font-weight: 750;
 	}
 
 	.copy-overlay__body {
-		max-width: 47ch;
-		margin-top: 30px;
+		max-width: var(--video-overlay-body-max-width, var(--video-overlay-max-width, 1460px));
+		margin-top: var(--video-overlay-body-gap, 30px);
 		color: rgba(236, 244, 255, 0.88);
-		font-size: 36px;
-		line-height: 1.36;
+		font-size: var(--video-overlay-body-font-size, 36px);
+		line-height: var(--video-overlay-body-line-height, 1.36);
 		font-weight: 450;
 	}
 </style>
