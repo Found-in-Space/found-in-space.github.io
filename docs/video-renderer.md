@@ -50,6 +50,34 @@ node scripts/render-radio-bubble-video.mjs --mode=preview --layout=portrait-1080
 node scripts/render-radio-bubble-video.mjs --mode=final --layout=landscape-4k --capture=frames --frames=24
 ```
 
+## Blender authoring path
+
+The current generated camera path can be exported into a Blender-friendly interchange scene, opened in Blender, edited, and sampled back into a renderer scene JSON.
+
+The intended loop is:
+
+1. Define key features and waypoints in the radio bubble timeline.
+2. Export a Blender scene description with landmarks, path samples, targets, cue timings, and the current camera path.
+3. Launch Blender with an importer script that builds editable curves, waypoints, a camera, and a look-at target.
+4. Edit the camera and target animation in Blender.
+5. Export the edited camera motion and orientation back to JSON for the renderer.
+
+Commands:
+
+```sh
+npm run video:radio-bubble:blender:export
+npm run video:radio-bubble:blender:launch
+npm run video:radio-bubble:blender:convert
+```
+
+The Blender launcher uses `BLENDER_BIN` when set, otherwise it tries `/Applications/Blender.app/Contents/MacOS/Blender` on macOS and then falls back to `blender` on `PATH`.
+
+Outputs live under `video-output/radio-bubble/blender/`:
+
+- `radio-bubble-blender-scene.json`: interchange input for Blender.
+- `radio-bubble-path.blend`: editable Blender scene from the launcher.
+- `radio-bubble-camera-scene.json`: sampled camera/target/orientation output from Blender.
+
 ## Current limitations
 
 The renderer path is sound, but the radio bubble journey itself still needs authoring work before final production renders:

@@ -1,0 +1,416 @@
+---
+const title = 'Radio Bubble Path Debug';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<style>
+			:root {
+				color-scheme: dark;
+				font-family:
+					Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+					sans-serif;
+				background: #05070c;
+				color: #eef5ff;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				overflow: hidden;
+			}
+
+			#scene {
+				position: fixed;
+				inset: 0;
+				width: 100vw;
+				height: 100vh;
+				display: block;
+			}
+
+			.panel {
+				position: fixed;
+				left: 16px;
+				top: 16px;
+				width: min(360px, calc(100vw - 32px));
+				padding: 14px;
+				border: 1px solid rgb(118 186 255 / 0.22);
+				border-radius: 8px;
+				background: rgb(4 9 18 / 0.82);
+				backdrop-filter: blur(12px);
+				box-shadow: 0 18px 60px rgb(0 0 0 / 0.28);
+			}
+
+			.panel h1 {
+				margin: 0 0 10px;
+				font-size: 16px;
+				font-weight: 800;
+				line-height: 1.1;
+			}
+
+			.controls {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 10px;
+				align-items: center;
+			}
+
+			button {
+				width: 40px;
+				height: 32px;
+				border: 1px solid rgb(156 210 255 / 0.36);
+				border-radius: 6px;
+				background: rgb(30 89 142 / 0.5);
+				color: white;
+				font: inherit;
+				cursor: pointer;
+			}
+
+			input[type="range"] {
+				width: 100%;
+				accent-color: #63d2ff;
+			}
+
+			.stats {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 5px 12px;
+				margin-top: 12px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+				font-size: 11px;
+				line-height: 1.35;
+				color: rgb(229 241 255 / 0.86);
+			}
+
+			.stats dt {
+				color: rgb(127 204 255 / 0.94);
+			}
+
+			.stats dd {
+				margin: 0;
+				overflow-wrap: anywhere;
+			}
+
+			.legend {
+				display: grid;
+				gap: 6px;
+				margin-top: 12px;
+				font-size: 11px;
+				line-height: 1.2;
+				color: rgb(226 239 255 / 0.8);
+			}
+
+			.legend-row {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				min-width: 0;
+			}
+
+			.swatch {
+				width: 22px;
+				height: 3px;
+				flex: 0 0 auto;
+				border-radius: 999px;
+			}
+
+			.hint {
+				margin-top: 12px;
+				font-size: 11px;
+				line-height: 1.35;
+				color: rgb(226 239 255 / 0.58);
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="scene" aria-label="Radio bubble journey path debug"></canvas>
+		<section class="panel">
+			<h1>Radio Bubble Path Debug</h1>
+			<div class="controls">
+				<button type="button" data-play title="Play or pause">&gt;</button>
+				<input data-time type="range" min="0" max="60" step="0.1" value="0" aria-label="Scene time" />
+			</div>
+			<dl class="stats">
+				<dt>time</dt>
+				<dd data-stat="time">0.0s</dd>
+				<dt>cue</dt>
+				<dd data-stat="cue">-</dd>
+				<dt>observer</dt>
+				<dd data-stat="observer">-</dd>
+				<dt>target</dt>
+				<dd data-stat="target">-</dd>
+				<dt>sun</dt>
+				<dd data-stat="sun">-</dd>
+				<dt>hyades</dt>
+				<dd data-stat="hyades">-</dd>
+			</dl>
+			<div class="legend" data-legend></div>
+			<p class="hint">Drag to orbit, scroll to zoom. Coordinates are sampled from the current video timeline in parsecs.</p>
+		</section>
+
+		<script>
+			import * as THREE from 'three';
+			import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+			import {
+				RADIO_BUBBLE_VIDEO_CUES,
+				RADIO_BUBBLE_VIDEO_DURATION_SECS,
+				getRadioBubbleVideoCamera,
+				getRadioBubbleVideoCue,
+				getRadioBubbleVideoLandmarks,
+				sampleRadioBubbleVideoPath,
+			} from '../../scripts/radio-bubble-video-timeline.js';
+
+			const canvas = document.querySelector('#scene');
+			const playButton = document.querySelector('[data-play]');
+			const timeInput = document.querySelector('[data-time]');
+			const legend = document.querySelector('[data-legend]');
+			const stats = new Map([...document.querySelectorAll('[data-stat]')].map((el) => [el.dataset.stat, el]));
+
+			const SEGMENT_COLORS = [
+				0xf2f6ff,
+				0xffb454,
+				0x61e6a4,
+				0x45c8ff,
+				0xd98cff,
+				0x9a8cff,
+				0xff6f75,
+			];
+			const SAMPLE_STEP_SECS = 0.25;
+			const samples = sampleRadioBubbleVideoPath({ stepSecs: SAMPLE_STEP_SECS, includeEnd: true });
+			const landmarks = getRadioBubbleVideoLandmarks();
+			const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+			renderer.setClearColor(0x05070c, 1);
+			renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+			const scene = new THREE.Scene();
+			const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1200);
+			camera.position.set(138, 88, -176);
+
+			const controls = new OrbitControls(camera, canvas);
+			controls.target.set(20, 22, 18);
+			controls.enableDamping = true;
+			controls.dampingFactor = 0.08;
+
+			const markerGroup = new THREE.Group();
+			scene.add(markerGroup);
+			scene.add(new THREE.AxesHelper(30));
+			scene.add(new THREE.GridHelper(180, 18, 0x1d6388, 0x10263a));
+
+			function toVector(point) {
+				return new THREE.Vector3(point.x, point.y, point.z);
+			}
+
+			function pointText(point) {
+				return `${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}`;
+			}
+
+			function createLine(points, color, opacity = 1) {
+				const geometry = new THREE.BufferGeometry().setFromPoints(points.map(toVector));
+				const material = new THREE.LineBasicMaterial({
+					color,
+					transparent: opacity < 1,
+					opacity,
+				});
+				return new THREE.Line(geometry, material);
+			}
+
+			function createSphere(point, radius, color, opacity = 1) {
+				const mesh = new THREE.Mesh(
+					new THREE.SphereGeometry(radius, 24, 12),
+					new THREE.MeshBasicMaterial({
+						color,
+						transparent: opacity < 1,
+						opacity,
+						depthWrite: opacity >= 1,
+					}),
+				);
+				mesh.position.copy(toVector(point));
+				return mesh;
+			}
+
+			function createLabel(text, point, color = '#ffffff') {
+				const canvas = document.createElement('canvas');
+				const context = canvas.getContext('2d');
+				const fontSize = 34;
+				const paddingX = 18;
+				const paddingY = 10;
+				context.font = `700 ${fontSize}px Inter, system-ui, sans-serif`;
+				const metrics = context.measureText(text);
+				canvas.width = Math.ceil(metrics.width + paddingX * 2);
+				canvas.height = fontSize + paddingY * 2;
+				context.font = `700 ${fontSize}px Inter, system-ui, sans-serif`;
+				context.fillStyle = 'rgba(2, 6, 14, 0.74)';
+				context.fillRect(0, 0, canvas.width, canvas.height);
+				context.strokeStyle = 'rgba(120, 196, 255, 0.44)';
+				context.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
+				context.fillStyle = color;
+				context.textBaseline = 'middle';
+				context.fillText(text, paddingX, canvas.height / 2);
+				const texture = new THREE.CanvasTexture(canvas);
+				const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+				sprite.position.copy(toVector(point));
+				sprite.position.y += 4;
+				const scale = 0.035;
+				sprite.scale.set(canvas.width * scale, canvas.height * scale, 1);
+				return sprite;
+			}
+
+			function createRing(radius, color) {
+				const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, Math.PI * 2);
+				const points = curve.getPoints(160).map((point) => new THREE.Vector3(point.x, 0, point.y));
+				const line = new THREE.LineLoop(
+					new THREE.BufferGeometry().setFromPoints(points),
+					new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.38 }),
+				);
+				line.position.copy(toVector(landmarks.sunPc));
+				return line;
+			}
+
+			function buildPathSegments() {
+				for (let cueIndex = 0; cueIndex < RADIO_BUBBLE_VIDEO_CUES.length; cueIndex += 1) {
+					const cue = RADIO_BUBBLE_VIDEO_CUES[cueIndex];
+					const points = samples
+						.filter((sample) => sample.sceneTimeSecs >= cue.startSecs && sample.sceneTimeSecs <= cue.endSecs)
+						.map((sample) => sample.observerPc);
+					if (points.length > 1) {
+						scene.add(createLine(points, SEGMENT_COLORS[cueIndex] ?? 0xffffff, 0.98));
+					}
+				}
+
+				scene.add(createLine(samples.map((sample) => sample.targetPc), 0x91f7ff, 0.28));
+
+				for (let index = 0; index < samples.length - 1; index += 12) {
+					const start = toVector(samples[index].observerPc);
+					const end = toVector(samples[index + 1].observerPc);
+					const direction = end.clone().sub(start);
+					if (direction.length() < 0.001) continue;
+					const arrow = new THREE.ArrowHelper(
+						direction.clone().normalize(),
+						start,
+						Math.min(direction.length() * 4, 7),
+						SEGMENT_COLORS[samples[index].cueIndex] ?? 0xffffff,
+						2.2,
+						1.1,
+					);
+					scene.add(arrow);
+				}
+			}
+
+			function buildLandmarks() {
+				const orionGuide = {
+					x: landmarks.sunPc.x + landmarks.orionForward.x * 90,
+					y: landmarks.sunPc.y + landmarks.orionForward.y * 90,
+					z: landmarks.sunPc.z + landmarks.orionForward.z * 90,
+				};
+				scene.add(createRing(landmarks.radioBubbleRadiusPc, 0x45c8ff));
+				scene.add(createSphere(landmarks.sunPc, 1.2, 0xffd56a));
+				scene.add(createSphere(landmarks.hyadesCenterPc, 2.1, 0xd98cff));
+				scene.add(createSphere(landmarks.orionNebulaPc, 3.2, 0x83a8ff, 0.6));
+				scene.add(createSphere(orionGuide, 1.4, 0x83a8ff, 0.95));
+				scene.add(createLine([landmarks.sunPc, orionGuide], 0x83a8ff, 0.45));
+				scene.add(createLine([landmarks.sunPc, landmarks.hyadesCenterPc], 0xd98cff, 0.22));
+				scene.add(createLabel('Sun', landmarks.sunPc, '#ffd56a'));
+				scene.add(createLabel('Hyades', landmarks.hyadesCenterPc, '#efc4ff'));
+				scene.add(createLabel('Orion direction', orionGuide, '#cad7ff'));
+				scene.add(createLabel('Orion Nebula actual', landmarks.orionNebulaPc, '#aebfff'));
+			}
+
+			function buildLegend() {
+				legend.replaceChildren(...RADIO_BUBBLE_VIDEO_CUES.map((cue, index) => {
+					const row = document.createElement('div');
+					row.className = 'legend-row';
+					const swatch = document.createElement('span');
+					swatch.className = 'swatch';
+					swatch.style.background = `#${(SEGMENT_COLORS[index] ?? 0xffffff).toString(16).padStart(6, '0')}`;
+					const label = document.createElement('span');
+					label.textContent = `${cue.startSecs}-${cue.endSecs}s ${cue.eyebrow}`;
+					row.append(swatch, label);
+					return row;
+				}));
+			}
+
+			function updateMarker(sceneTimeSecs) {
+				const cameraState = getRadioBubbleVideoCamera(sceneTimeSecs);
+				const cue = getRadioBubbleVideoCue(sceneTimeSecs);
+				const observer = toVector(cameraState.observerPc);
+				const target = toVector(cameraState.targetPc);
+				markerGroup.clear();
+				markerGroup.add(createSphere(cameraState.observerPc, 1.4, 0xffffff));
+				markerGroup.add(createSphere(cameraState.targetPc, 0.9, 0x91f7ff, 0.92));
+				markerGroup.add(createLine([cameraState.observerPc, cameraState.targetPc], 0xffffff, 0.34));
+				const lookDirection = target.clone().sub(observer);
+				if (lookDirection.length() > 0.001) {
+					markerGroup.add(new THREE.ArrowHelper(
+						lookDirection.clone().normalize(),
+						observer,
+						Math.min(lookDirection.length(), 14),
+						0xffffff,
+						3,
+						1.4,
+					));
+				}
+				stats.get('time').textContent = `${sceneTimeSecs.toFixed(1)}s`;
+				stats.get('cue').textContent = cue.eyebrow;
+				stats.get('observer').textContent = pointText(cameraState.observerPc);
+				stats.get('target').textContent = pointText(cameraState.targetPc);
+				stats.get('sun').textContent = `${observer.distanceTo(toVector(landmarks.sunPc)).toFixed(2)} pc`;
+				stats.get('hyades').textContent = `${observer.distanceTo(toVector(landmarks.hyadesCenterPc)).toFixed(2)} pc`;
+			}
+
+			function resize() {
+				const { innerWidth, innerHeight } = window;
+				renderer.setSize(innerWidth, innerHeight, false);
+				camera.aspect = innerWidth / innerHeight;
+				camera.updateProjectionMatrix();
+			}
+
+			let playing = false;
+			let lastNow = performance.now();
+
+			function animate(now) {
+				const deltaSecs = Math.min((now - lastNow) / 1000, 0.08);
+				lastNow = now;
+				if (playing) {
+					const nextTime = (Number(timeInput.value) + deltaSecs * 2.5) % RADIO_BUBBLE_VIDEO_DURATION_SECS;
+					timeInput.value = String(nextTime);
+					updateMarker(nextTime);
+				}
+				controls.update();
+				renderer.render(scene, camera);
+				requestAnimationFrame(animate);
+			}
+
+			buildPathSegments();
+			buildLandmarks();
+			buildLegend();
+			updateMarker(0);
+			resize();
+			window.addEventListener('resize', resize);
+			timeInput.addEventListener('input', () => {
+				playing = false;
+				playButton.textContent = '>';
+				updateMarker(Number(timeInput.value));
+			});
+			playButton.addEventListener('click', () => {
+				playing = !playing;
+				playButton.textContent = playing ? 'II' : '>';
+			});
+			window.__radioBubblePathDebug = {
+				samples,
+				landmarks,
+				getCamera: getRadioBubbleVideoCamera,
+			};
+			requestAnimationFrame(animate);
+		</script>
+	</body>
+</html>
