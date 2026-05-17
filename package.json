@@ -9,31 +9,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "video:install-browsers": "playwright install chromium firefox webkit",
-    "video:radio-bubble:test": "node scripts/render-radio-bubble-video.mjs --mode=preview --seconds=6 --layout=landscape-1080p",
-    "video:radio-bubble:preview": "node scripts/render-radio-bubble-video.mjs --mode=preview",
-    "video:radio-bubble:preview:vertical": "node scripts/render-radio-bubble-video.mjs --mode=preview --layout=vertical-1080x1920",
-    "video:radio-bubble:plates:test": "node scripts/render-radio-bubble-video.mjs --mode=preview --layout=landscape-1080p --fps=6 --seconds=2 --plates=all",
-    "video:radio-bubble:final:4k": "node scripts/render-radio-bubble-video.mjs --mode=final --layout=landscape-4k",
-    "video:radio-bubble:full": "npm run video:radio-bubble:final:4k",
-    "video:radio-bubble:full:1080p": "node scripts/render-radio-bubble-video.mjs --mode=final --layout=landscape-1080p",
-    "video:radio-bubble:benchmark:capture": "node scripts/benchmark-radio-bubble-capture.mjs --browser=chromium --frames=30",
-    "video:radio-bubble:benchmark:capture:firefox": "node scripts/benchmark-radio-bubble-capture.mjs --browser=firefox --frames=30",
-    "video:radio-bubble:benchmark:capture:webkit": "node scripts/benchmark-radio-bubble-capture.mjs --browser=webkit --frames=30",
-    "video:radio-bubble:benchmark:composite:webkit": "node scripts/benchmark-radio-bubble-capture.mjs --browser=webkit --frames=30 --captures=composite-blob,media-recorder-composite-paced",
-    "video:journey:test": "node scripts/test-journey-evaluator.mjs",
-    "video:radio-bubble:path:export": "node scripts/export-radio-bubble-path.mjs",
-    "video:radio-bubble:blender:export": "node scripts/export-radio-bubble-blender-scene.mjs",
-    "video:radio-bubble:blender:launch": "node scripts/launch-radio-bubble-blender.mjs",
-    "video:radio-bubble:blender:convert": "node scripts/export-radio-bubble-blender-edits.mjs"
+    "astro": "astro"
   },
   "dependencies": {
     "@found-in-space/skykit": "github:Found-in-Space/skykit#6ff219",
     "astro": "^6.1.1",
     "three": "^0.170.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.59.1"
   }
 }
