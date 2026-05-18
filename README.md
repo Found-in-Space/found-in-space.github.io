@@ -37,7 +37,11 @@ SKYKIT_LOCAL_PATH=../skykit SKYCULTURES_LOCAL_PATH=../stellarium-skycultures npm
 With those variables set, `astro.config.mjs` resolves normal package imports
 such as `@found-in-space/skykit`, `@found-in-space/skykit/parallax`,
 `@found-in-space/star-octree-provider`, `@found-in-space/three-star-field`, and
-`@found-in-space/stellarium-skycultures-western/bundled` to local workspace
-source. Page code should still import public package names, not relative paths
-into sibling repositories, so it can switch back to released packages once those
-versions are published.
+`@found-in-space/stellarium-skycultures-western/anchored-image` to local
+workspace source. Page code should still import public package names, not
+relative paths into sibling repositories, so it can switch back to released
+packages once those versions are published.
+
+The parallax page currently needs
+`@found-in-space/stellarium-skycultures-western@0.3.0` or newer because it uses
+the generated `./anchored-image` subpath.
