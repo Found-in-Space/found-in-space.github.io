@@ -25,7 +25,7 @@ import {
 	createStarOctreeProviderService,
 	createTargetFrustumStrategy,
 } from '@found-in-space/star-octree-provider';
-import { bundledManifest as westernSkycultureManifest } from '@found-in-space/stellarium-skycultures-western/bundled';
+import { anchoredImageManifest as westernSkycultureAnchoredImageManifest } from '@found-in-space/stellarium-skycultures-western/anchored-image';
 import { computeSpatialLookAtOrientation } from '@found-in-space/spatial';
 import { createThreeStarField } from '@found-in-space/three-star-field';
 
@@ -58,7 +58,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 
 	onStatus('Loading constellation catalog…');
 	const manifest = await loadAnchoredImageManifest({
-		manifest: westernSkycultureManifest,
+		manifest: westernSkycultureAnchoredImageManifest,
 	});
 	const resolver = buildAnchoredImageDirectionResolver(manifest);
 	const constellations = buildConstellationCatalog(resolver);
