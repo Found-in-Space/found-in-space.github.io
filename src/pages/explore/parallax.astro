@@ -36,6 +36,14 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 				>
 					<option value="">Loading constellations…</option>
 				</select>
+				<button
+					type="button"
+					class="button button--ghost viewer-controls__button"
+					data-enable-parallax-tilt
+					hidden
+				>
+					Device motion
+				</button>
 			</div>
 			<div class="viewer-shell" data-constellation-viewer="parallax"></div>
 			<p class="status">Status: <span data-viewer-status>Loading the parallax example…</span></p>
@@ -76,15 +84,16 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 </Layout>
 
 <script>
-	import { mountConstellationViewer } from '../../scripts/examples/constellation-viewer.js';
+	import { mountParallaxViewer } from '../../scripts/parallax-viewer.js';
 
 	const mount = document.querySelector('[data-constellation-viewer]');
 	const statusEl = document.querySelector('[data-viewer-status]');
 	const constellationSelect = document.querySelector('[data-parallax-constellation]');
+	const tiltButton = document.querySelector('[data-enable-parallax-tilt]');
 
 	if (mount) {
-		mountConstellationViewer(mount, {
-			mode: 'parallax',
+		mountParallaxViewer(mount, {
+			tiltButton: tiltButton instanceof HTMLButtonElement ? tiltButton : null,
 			onStatus: (msg) => {
 				if (statusEl) statusEl.textContent = msg;
 			},
@@ -118,6 +127,10 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 			if (constellationSelect instanceof HTMLSelectElement) {
 				constellationSelect.disabled = true;
 				constellationSelect.innerHTML = '<option value="">Unable to load constellations</option>';
+			}
+			if (tiltButton instanceof HTMLButtonElement) {
+				tiltButton.hidden = true;
+				tiltButton.disabled = true;
 			}
 		});
 	}
@@ -167,6 +180,7 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 	.viewer-controls {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.7rem;
 		padding: 0.8rem 1.5rem 0.65rem;
 		background: rgba(2, 4, 11, 0.92);
@@ -202,6 +216,10 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 	.viewer-controls__select:disabled {
 		opacity: 0.65;
 		cursor: not-allowed;
+	}
+
+	.viewer-controls__button {
+		white-space: nowrap;
 	}
 
 	.viewer-shell {
