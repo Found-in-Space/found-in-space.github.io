@@ -1,15 +1,6 @@
 import * as THREE from 'three';
 
 import {
-	createButton,
-	createColumn,
-	createDPad,
-	createDockLayout,
-	createHoldButton,
-	createRuntime,
-} from '@found-in-space/touch-os';
-import { createHudPanelDriver } from '@found-in-space/touch-os/hosts/three';
-import {
 	SKYKIT_ACTIONS,
 	createAnchoredImageCatalog,
 	createAnchoredImageSkyPlugin,
@@ -22,6 +13,10 @@ import {
 	createSkykitViewer,
 	createStreamingStarsPlugin,
 } from '@found-in-space/skykit';
+import {
+	createSkykitShipControlsRoot,
+	createTouchOsHudPlugin,
+} from '@found-in-space/skykit/touch-os';
 import {
 	OCTREE_DEFAULT,
 	createObserverShellStrategy,
@@ -133,9 +128,18 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
 			}),
-			createTouchNavigationHudPlugin({
+			createTouchOsHudPlugin({
+				id: 'free-roam-touch-hud',
 				target: mount,
 				enabled: showTouchControls,
+				root: createSkykitShipControlsRoot({
+					id: 'free-roam-touch-controls',
+					controlsMaxHeight: 178,
+					commands: [
+						{ id: 'free-roam-look-sun', label: 'Look Sun', actionId: APP_ACTIONS.lookSun },
+						{ id: 'free-roam-fly-sun', label: 'Fly Sun', actionId: APP_ACTIONS.flySun },
+					],
+				}),
 			}),
 			createSkykitStatusPlugin({
 				intervalSeconds: 0.5,
@@ -224,169 +228,6 @@ function createFreeRoamActionsPlugin({ onStatus }) {
 				},
 			});
 		},
-	};
-}
-
-function createTouchNavigationHudPlugin({ target, enabled }) {
-	return {
-		id: 'free-roam-touch-hud',
-		setup(context) {
-			if (!enabled || !(target instanceof HTMLElement)) return;
-			const runtime = createRuntime({
-				root: createTouchControlsRoot(),
-				surface: resolveTouchSurface(target),
-			});
-			const driver = createHudPanelDriver({
-				runtime,
-				sizing: 'viewport',
-				distance: 0.58,
-				pointerClaimPolicy: 'block-on-hit',
-				transparent: true,
-			});
-			let latestFrame = null;
-			const activePointers = new Set();
-
-			const part = {
-				id: 'free-roam-touch-hud',
-				attach() {
-					driver.attach();
-					target.addEventListener('pointerdown', onPointerEvent, true);
-					target.addEventListener('pointermove', onPointerEvent, true);
-					target.addEventListener('pointerup', onPointerEvent, true);
-					target.addEventListener('pointercancel', onPointerEvent, true);
-				},
-				update(frame) {
-					latestFrame = frame;
-					driver.update(createTouchFrame(frame, target));
-					consumeTouchOutputs(runtime.takeOutputs(), context);
-				},
-				dispose() {
-					target.removeEventListener('pointerdown', onPointerEvent, true);
-					target.removeEventListener('pointermove', onPointerEvent, true);
-					target.removeEventListener('pointerup', onPointerEvent, true);
-					target.removeEventListener('pointercancel', onPointerEvent, true);
-					activePointers.clear();
-					driver.detach();
-					runtime.dispose();
-				},
-			};
-			context.addPart(part);
-
-			function onPointerEvent(event) {
-				if (!latestFrame || !(event instanceof PointerEvent)) return;
-				const pointerId = String(event.pointerId ?? 'default');
-				const hostEvent = pointerEventToTouchOs(event, target);
-				if (!hostEvent) return;
-				const wasActive = activePointers.has(pointerId);
-				driver.update({
-					...createTouchFrame(latestFrame, target),
-					events: [hostEvent],
-				});
-				const hit = driver.getHit();
-				const claimed = Boolean(hit?.componentId);
-				if (event.type === 'pointerdown' && claimed) activePointers.add(pointerId);
-				if (event.type === 'pointerup' || event.type === 'pointercancel') activePointers.delete(pointerId);
-				consumeTouchOutputs(runtime.takeOutputs(), context);
-				if (claimed || wasActive) {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				}
-			}
-		},
-	};
-}
-
-function createTouchControlsRoot() {
-	const payloadStart = { phase: 'start' };
-	const payloadStop = { phase: 'stop' };
-	const hold = (id, label, actionId) => createHoldButton(id, {
-		label,
-		actionId,
-		startPayload: payloadStart,
-		stopPayload: payloadStop,
-	});
-
-	return createDockLayout('free-roam-touch-controls', {
-		padding: 24,
-		bottomLeft: {
-			maxWidth: 168,
-			maxHeight: 168,
-			child: createDPad('free-roam-move-pad', {
-				up: { label: 'F', actionId: SKYKIT_ACTIONS.ship.moveForward, startPayload: payloadStart, stopPayload: payloadStop },
-				down: { label: 'B', actionId: SKYKIT_ACTIONS.ship.moveBack, startPayload: payloadStart, stopPayload: payloadStop },
-				left: { label: 'L', actionId: SKYKIT_ACTIONS.ship.moveLeft, startPayload: payloadStart, stopPayload: payloadStop },
-				right: { label: 'R', actionId: SKYKIT_ACTIONS.ship.moveRight, startPayload: payloadStart, stopPayload: payloadStop },
-			}),
-		},
-		bottomRight: {
-			maxWidth: 132,
-			maxHeight: 178,
-			child: createColumn('free-roam-action-column', {
-				gap: 8,
-				padding: 0,
-				children: [
-					hold('free-roam-up', 'Up', SKYKIT_ACTIONS.ship.moveUp),
-					hold('free-roam-down', 'Down', SKYKIT_ACTIONS.ship.moveDown),
-					createButton('free-roam-look-sun', { label: 'Look Sun', actionId: APP_ACTIONS.lookSun }),
-					createButton('free-roam-fly-sun', { label: 'Fly Sun', actionId: APP_ACTIONS.flySun }),
-				],
-			}),
-		},
-	});
-}
-
-function consumeTouchOutputs(outputs, context) {
-	for (const output of outputs) {
-		if (output.type !== 'action') continue;
-		const source = `touch-os:${output.componentId}`;
-		if (output.payload?.phase === 'start') {
-			context.actions.press(output.actionId, output.payload, { source });
-		} else if (output.payload?.phase === 'stop') {
-			context.actions.release(output.actionId, { source });
-		} else {
-			void context.actions.invoke(output.actionId, output.payload, { source });
-		}
-	}
-}
-
-function createTouchFrame(frame, target) {
-	return {
-		scene: frame.scene,
-		camera: frame.camera,
-		parent: frame.scene,
-		surfaceMetrics: resolveTouchSurface(target),
-	};
-}
-
-function pointerEventToTouchOs(event, target) {
-	const rect = target.getBoundingClientRect();
-	const width = rect.width || 1;
-	const height = rect.height || 1;
-	const phaseByType = {
-		pointerdown: 'pointer-down',
-		pointermove: 'pointer-move',
-		pointerup: 'pointer-up',
-		pointercancel: 'cancel',
-	};
-	const type = phaseByType[event.type];
-	if (!type) return null;
-	return {
-		type,
-		source: 'screen',
-		pointerId: String(event.pointerId ?? 'default'),
-		pointerType: event.pointerType || 'unknown',
-		ndcX: ((event.clientX - rect.left) / width) * 2 - 1,
-		ndcY: -(((event.clientY - rect.top) / height) * 2 - 1),
-		timestamp: event.timeStamp || performance.now(),
-		pressure: event.pressure,
-	};
-}
-
-function resolveTouchSurface(target) {
-	return {
-		width: Math.max(320, Math.round(target.clientWidth || 1)),
-		height: Math.max(240, Math.round(target.clientHeight || 1)),
-		pixelDensity: Math.min(window.devicePixelRatio || 1, 2),
 	};
 }
 

@@ -175,6 +175,7 @@ function createFoundInSpaceWorkspaceAliases(workspaceRoot) {
 		['@found-in-space/meta-sidecar-provider', 'packages/meta-sidecar-provider/src/index.js'],
 		['@found-in-space/product-stream', 'packages/product-stream/src/index.js'],
 		['@found-in-space/skykit/parallax', 'packages/skykit/src/parallax.js'],
+		['@found-in-space/skykit/touch-os', 'packages/skykit/src/touch-os.js'],
 		['@found-in-space/skykit/xr', 'packages/skykit/src/xr.js'],
 		['@found-in-space/skykit', 'packages/skykit/src/index.js'],
 		['@found-in-space/spatial', 'packages/spatial/src/index.js'],
