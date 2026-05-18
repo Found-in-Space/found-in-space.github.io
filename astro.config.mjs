@@ -19,6 +19,7 @@ const site =
 const projectRoot = fileURLToPath(new URL('.', import.meta.url));
 const skykitLocalPathEnv = process.env.SKYKIT_LOCAL_PATH?.trim() ?? '';
 const skyculturesLocalPathEnv = process.env.SKYCULTURES_LOCAL_PATH?.trim() ?? '';
+const touchOsLocalPathEnv = process.env.TOUCH_OS_LOCAL_PATH?.trim() ?? '';
 const resolvedSkykitRoot = skykitLocalPathEnv
 	? (isAbsolute(skykitLocalPathEnv)
 		? skykitLocalPathEnv
@@ -29,24 +30,34 @@ const resolvedSkyculturesRoot = skyculturesLocalPathEnv
 		? skyculturesLocalPathEnv
 		: resolve(projectRoot, skyculturesLocalPathEnv))
 	: null;
+const resolvedTouchOsRoot = touchOsLocalPathEnv
+	? (isAbsolute(touchOsLocalPathEnv)
+		? touchOsLocalPathEnv
+		: resolve(projectRoot, touchOsLocalPathEnv))
+	: null;
 const skykitPackageAliases = resolvedSkykitRoot
 	? createFoundInSpaceWorkspaceAliases(resolvedSkykitRoot)
 	: [];
 const skyculturePackageAliases = resolvedSkyculturesRoot
 	? createSkyculturePackageAliases(resolvedSkyculturesRoot)
 	: [];
-const localPackageAliases = [...skykitPackageAliases, ...skyculturePackageAliases]
+const touchOsPackageAliases = resolvedTouchOsRoot
+	? createTouchOsPackageAliases(resolvedTouchOsRoot)
+	: [];
+const localPackageAliases = [...skykitPackageAliases, ...skyculturePackageAliases, ...touchOsPackageAliases]
 	.sort((a, b) => b.find.length - a.find.length);
 const legacySkykitEntry = resolvedSkykitRoot
 	? resolve(resolvedSkykitRoot, 'src/index.js')
 	: null;
 const useLocalSkykit = skykitPackageAliases.length > 0 || (legacySkykitEntry != null && existsSync(legacySkykitEntry));
 const useLocalSkycultures = skyculturePackageAliases.length > 0;
+const useLocalTouchOs = touchOsPackageAliases.length > 0;
 const useLocalPackages = localPackageAliases.length > 0 || (legacySkykitEntry != null && existsSync(legacySkykitEntry));
 const fsAllow = [
 	projectRoot,
 	...(useLocalSkykit ? [resolvedSkykitRoot] : []),
 	...(useLocalSkycultures ? [resolvedSkyculturesRoot] : []),
+	...(useLocalTouchOs ? [resolvedTouchOsRoot] : []),
 ];
 
 if (skykitLocalPathEnv) {
@@ -64,6 +75,15 @@ if (skyculturesLocalPathEnv) {
 	} else {
 		console.warn(
 			`[astro] SKYCULTURES_LOCAL_PATH was set to "${skyculturesLocalPathEnv}", but no skyculture package source was found. Falling back to installed @found-in-space packages.`,
+		);
+	}
+}
+if (touchOsLocalPathEnv) {
+	if (useLocalTouchOs) {
+		console.warn(`[astro] Using local touch-os override from TOUCH_OS_LOCAL_PATH: ${resolvedTouchOsRoot}`);
+	} else {
+		console.warn(
+			`[astro] TOUCH_OS_LOCAL_PATH was set to "${touchOsLocalPathEnv}", but no touch-os package build was found. Falling back to installed @found-in-space/touch-os.`,
 		);
 	}
 }
@@ -86,6 +106,7 @@ export default defineConfig({
 		optimizeDeps: {
 			exclude: [
 				'@found-in-space/stellarium-skycultures-western',
+				'@found-in-space/stellarium-skycultures-western/anchored-image',
 				'@found-in-space/stellarium-skycultures-western/bundled',
 			],
 		},
@@ -107,8 +128,28 @@ export default defineConfig({
 
 function createSkyculturePackageAliases(workspaceRoot) {
 	const packageEntries = [
+		['@found-in-space/stellarium-skycultures-western/anchored-image', 'packages/stellarium-skycultures-western/src/anchored-image.js'],
 		['@found-in-space/stellarium-skycultures-western/bundled', 'packages/stellarium-skycultures-western/src/bundled.js'],
 		['@found-in-space/stellarium-skycultures-western', 'packages/stellarium-skycultures-western/src/index.js'],
+	];
+
+	return packageEntries
+		.map(([find, relativePath]) => ({
+			find,
+			replacement: resolve(workspaceRoot, relativePath),
+		}))
+		.filter((entry) => existsSync(entry.replacement));
+}
+
+function createTouchOsPackageAliases(workspaceRoot) {
+	const packageEntries = [
+		['@found-in-space/touch-os/hosts/three', 'dist/hosts/three.js'],
+		['@found-in-space/touch-os/hosts', 'dist/hosts/index.js'],
+		['@found-in-space/touch-os/services', 'dist/services/index.js'],
+		['@found-in-space/touch-os/containers', 'dist/containers/index.js'],
+		['@found-in-space/touch-os/components', 'dist/components/index.js'],
+		['@found-in-space/touch-os/core', 'dist/core/index.js'],
+		['@found-in-space/touch-os', 'dist/index.js'],
 	];
 
 	return packageEntries

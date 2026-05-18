@@ -1,17 +1,9 @@
 import * as THREE from 'three';
 
 import {
-	loadAnchoredImageManifest,
-	buildAnchoredImageDirectionResolver,
-	icrsDirectionToTargetPc,
-} from '@found-in-space/anchored-image';
-import {
-	createAnchoredImageGroup,
-	disposeAnchoredImageObject,
-} from '@found-in-space/anchored-image/three';
-import {
 	SKYKIT_ACTIONS,
-	createObject3dPlugin,
+	createAnchoredImageCatalog,
+	createAnchoredImageSkyPlugin,
 	createSkykitAnimationLoop,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
@@ -26,13 +18,13 @@ import {
 	createTargetFrustumStrategy,
 } from '@found-in-space/star-octree-provider';
 import { anchoredImageManifest as westernSkycultureAnchoredImageManifest } from '@found-in-space/stellarium-skycultures-western/anchored-image';
-import { computeSpatialLookAtOrientation } from '@found-in-space/spatial';
 import { createThreeStarField } from '@found-in-space/three-star-field';
 
 import { showDeviceOrientationUi } from './device-capabilities.js';
 
 const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
+const DEFAULT_IMAGE_KEY = 'Ori';
 const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 52;
@@ -57,19 +49,19 @@ export async function mountParallaxViewer(mount, options = {}) {
 	const tiltButton = options.tiltButton instanceof HTMLButtonElement ? options.tiltButton : null;
 
 	onStatus('Loading constellation catalog…');
-	const manifest = await loadAnchoredImageManifest({
-		manifest: westernSkycultureAnchoredImageManifest,
-	});
-	const resolver = buildAnchoredImageDirectionResolver(manifest);
-	const constellations = buildConstellationCatalog(resolver);
-	const defaultIau = constellations.some((entry) => entry.iau === 'Ori')
-		? 'Ori'
-		: constellations[0]?.iau ?? null;
-	const initialConstellation = getCatalogEntry(constellations, defaultIau);
-	const initialTargetPc = resolveConstellationTargetPc(initialConstellation);
-	let selectedImageUpIcrs = resolveConstellationUpIcrs(initialConstellation);
+	const catalog = await createAnchoredImageCatalog({ manifest: westernSkycultureAnchoredImageManifest });
+	const constellations = catalog.list().map(({ key, label }) => ({ key, label }));
+	const defaultKey = (catalog.get(DEFAULT_IMAGE_KEY) ?? catalog.list()[0] ?? null)?.key ?? null;
+	const initialLook = defaultKey
+		? catalog.resolveLookAt(defaultKey, {
+				observerPc: ZERO_PC,
+				distancePc: CONSTELLATION_TARGET_DISTANCE_PC,
+			})
+		: null;
+	const initialTargetPc = initialLook?.targetPc ?? ORION_REFERENCE_PC;
+	let selectedImageUpIcrs = initialLook?.upIcrs ?? ICRS_NORTH;
 	const initialAspectRatio = resolveAspectRatio(mount);
-	const initialOrientationIcrs = computeLookAtOrientation(ZERO_PC, initialTargetPc, selectedImageUpIcrs);
+	const initialOrientationIcrs = initialLook?.orientationIcrs ?? { x: 0, y: 0, z: 0, w: 1 };
 
 	onStatus('Creating SkyKit viewer…');
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -80,10 +72,23 @@ export async function mountParallaxViewer(mount, options = {}) {
 		limitingMagnitude: LIMITING_MAGNITUDE,
 		exposure: 2500,
 	});
-	const artRoot = new THREE.Group();
-	artRoot.name = 'selected-constellation-art';
+	const constellationArt = createAnchoredImageSkyPlugin({
+		id: 'selected-constellation-art',
+		catalog,
+		mode: 'fixed',
+		loading: 'lazy',
+		selection: defaultKey ?? undefined,
+		fixedAtInfinity: true,
+		radius: ART_RADIUS,
+		opacity: 0.24,
+		cutoff: 0.05,
+		subdivisions: 5,
+		skipTextureErrors: true,
+		onTextureError({ image, error }) {
+			console.warn('[website:parallax-art]', image.id, error);
+		},
+	});
 
-	let artRequestToken = 0;
 	let disposed = false;
 
 	const viewer = await createSkykitViewer({
@@ -120,11 +125,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 					},
 				},
 			}),
-			createObject3dPlugin({
-				id: 'selected-constellation-art',
-				object3d: artRoot,
-				anchorMode: 'observer-centric',
-			}),
+			constellationArt,
 			createParallaxOffsetInputPlugin({
 				id: 'parallax-pointer-and-tilt',
 				target: mount,
@@ -185,13 +186,16 @@ export async function mountParallaxViewer(mount, options = {}) {
 		dispose,
 	};
 
-	async function setConstellation(iau) {
-		const entry = getCatalogEntry(constellations, iau);
+	async function setConstellation(key) {
+		const entry = catalog.get(key);
 		if (!entry || disposed) return false;
 
-		const targetPc = resolveConstellationTargetPc(entry);
-		selectedImageUpIcrs = resolveConstellationUpIcrs(entry);
-		const orientationIcrs = computeLookAtOrientation(ZERO_PC, targetPc, selectedImageUpIcrs);
+		const look = catalog.resolveLookAt(entry.key, {
+			observerPc: ZERO_PC,
+			distancePc: CONSTELLATION_TARGET_DISTANCE_PC,
+		});
+		if (!look) return false;
+		selectedImageUpIcrs = look.upIcrs;
 
 		onStatus(`Centering ${entry.label}…`);
 		await viewer.actions.invoke(SKYKIT_ACTIONS.observer.recenterParallax, undefined, {
@@ -199,19 +203,11 @@ export async function mountParallaxViewer(mount, options = {}) {
 		});
 		viewer.requestViewState({
 			observerPc: ZERO_PC,
-			targetPc,
-			orientationIcrs,
+			targetPc: look.targetPc,
+			orientationIcrs: look.orientationIcrs,
 			aspectRatio: resolveAspectRatio(mount),
 		}, 'website.parallax.constellation');
-
-		const requestToken = artRequestToken + 1;
-		artRequestToken = requestToken;
-		const group = await createSelectedConstellationArt(manifest, entry.iau);
-		if (disposed || requestToken !== artRequestToken) {
-			disposeAnchoredGroup(group);
-			return false;
-		}
-		replaceArtGroup(artRoot, group);
+		constellationArt.setSelection(entry.key);
 		onStatus(`${entry.label} selected. Stars are streaming through the alpha SkyKit stack.`);
 		return true;
 	}
@@ -237,91 +233,13 @@ export async function mountParallaxViewer(mount, options = {}) {
 	async function dispose() {
 		if (disposed) return;
 		disposed = true;
-		artRequestToken += 1;
 		window.removeEventListener('resize', onResize);
 		tiltButton?.removeEventListener('click', onTiltButtonClick);
 		unsubscribeStatus?.();
 		loop.dispose();
 		await viewer.dispose();
 		provider.dispose?.();
-		disposeAnchoredGroup(artRoot);
 	}
-}
-
-function buildConstellationCatalog(resolver) {
-	return resolver.listImages()
-		.filter((entry) => typeof entry.iau === 'string' && Array.isArray(entry.centroidIcrs))
-		.map((entry) => ({
-			iau: entry.iau,
-			label: resolveConstellationLabel(entry),
-			centroidIcrs: entry.centroidIcrs,
-			imageUpIcrs: vector3FromIcrs(entry.imageUpIcrs),
-		}))
-		.sort((a, b) => a.label.localeCompare(b.label));
-}
-
-function resolveConstellationLabel(entry) {
-	if (entry.name && typeof entry.name === 'object') {
-		return entry.name.native ?? entry.name.english ?? entry.label ?? entry.iau;
-	}
-	return entry.label ?? entry.iau;
-}
-
-function getCatalogEntry(catalog, iau) {
-	return catalog.find((entry) => entry.iau === iau) ?? catalog[0] ?? null;
-}
-
-function resolveConstellationTargetPc(entry) {
-	if (!entry) return { ...ORION_REFERENCE_PC };
-	return icrsDirectionToTargetPc(entry.centroidIcrs, CONSTELLATION_TARGET_DISTANCE_PC, ZERO_PC)
-		?? { ...ORION_REFERENCE_PC };
-}
-
-function resolveConstellationUpIcrs(entry) {
-	return entry?.imageUpIcrs ?? ICRS_NORTH;
-}
-
-function computeLookAtOrientation(position, target, upIcrs = ICRS_NORTH) {
-	return computeSpatialLookAtOrientation({
-		position,
-		target,
-		up: upIcrs ?? ICRS_NORTH,
-	}) ?? { x: 0, y: 0, z: 0, w: 1 };
-}
-
-async function createSelectedConstellationArt(manifest, iau) {
-	const group = await createAnchoredImageGroup({
-		id: `selected-constellation-${iau}`,
-		manifest,
-		iauFilter: [iau],
-		radius: ART_RADIUS,
-		opacity: 0.24,
-		cutoff: 0.05,
-		subdivisions: 5,
-		skipTextureErrors: true,
-		onTextureError({ image, error }) {
-			console.warn('[website:parallax-art]', image.id, error);
-		},
-	});
-	group.name = `selected-constellation-${iau}`;
-	return group;
-}
-
-function replaceArtGroup(root, group) {
-	disposeAnchoredGroup(root);
-	root.clear();
-	root.add(group);
-}
-
-function disposeAnchoredGroup(group) {
-	if (!group) return;
-	group.userData?.anchoredImage?.dispose?.();
-	for (const child of [...group.children]) {
-		disposeAnchoredGroup(child);
-		disposeAnchoredImageObject(child);
-		child.parent?.remove(child);
-	}
-	group.clear?.();
 }
 
 function resizeViewer(viewer, renderer, camera, mount) {
@@ -365,14 +283,4 @@ function resolveAspectRatio(element) {
 
 function vectorLength(value) {
 	return Math.hypot(value.x, value.y, value.z);
-}
-
-function vector3FromIcrs(value) {
-	if (!Array.isArray(value) || value.length < 3) return null;
-	const x = Number(value[0]);
-	const y = Number(value[1]);
-	const z = Number(value[2]);
-	return [x, y, z].every(Number.isFinite) && Math.hypot(x, y, z) > 0
-		? { x, y, z }
-		: null;
 }

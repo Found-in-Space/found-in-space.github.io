@@ -101,20 +101,20 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 			if (!(constellationSelect instanceof HTMLSelectElement)) return;
 
 			constellationSelect.innerHTML = '';
-			for (const { iau, label } of constellations) {
+			for (const { key, label } of constellations) {
 				const option = document.createElement('option');
-				option.value = iau;
+				option.value = key;
 				option.textContent = label;
 				constellationSelect.append(option);
 			}
 
-			const defaultIau = constellations.some((entry) => entry.iau === 'Ori')
+			const defaultKey = constellations.some((entry) => entry.key === 'Ori')
 				? 'Ori'
-				: constellations[0]?.iau;
+				: constellations[0]?.key;
 
-			if (defaultIau) {
-				constellationSelect.value = defaultIau;
-				setConstellation?.(defaultIau);
+			if (defaultKey) {
+				constellationSelect.value = defaultKey;
+				setConstellation?.(defaultKey);
 			}
 
 			constellationSelect.disabled = constellations.length === 0;
