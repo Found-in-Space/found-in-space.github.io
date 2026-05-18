@@ -4,6 +4,7 @@ import {
 	SKYKIT_ACTIONS,
 	createAnchoredImageCatalog,
 	createAnchoredImageSkyPlugin,
+	createManualAnchoredImageController,
 	createSkykitAnimationLoop,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
@@ -67,20 +68,27 @@ export async function mountParallaxViewer(mount, options = {}) {
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(VERTICAL_FOV_DEG, initialAspectRatio, 0.0001, 1000);
-	const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
+	const provider = createStarOctreeProviderService({
+		url: OCTREE_DEFAULT,
+		persistentCache: 'on',
+	});
 	const starField = createThreeStarField({
 		limitingMagnitude: LIMITING_MAGNITUDE,
 		exposure: 2500,
 	});
+	const constellationController = createManualAnchoredImageController({
+		selection: defaultKey ?? undefined,
+	});
 	const constellationArt = createAnchoredImageSkyPlugin({
 		id: 'selected-constellation-art',
 		catalog,
-		mode: 'fixed',
+		controller: constellationController,
 		loading: 'lazy',
-		selection: defaultKey ?? undefined,
 		fixedAtInfinity: true,
 		radius: ART_RADIUS,
 		opacity: 0.24,
+		fadeInSeconds: 0.4,
+		fadeOutSeconds: 0.4,
 		cutoff: 0.05,
 		subdivisions: 5,
 		skipTextureErrors: true,
@@ -207,7 +215,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 			orientationIcrs: look.orientationIcrs,
 			aspectRatio: resolveAspectRatio(mount),
 		}, 'website.parallax.constellation');
-		constellationArt.setSelection(entry.key);
+		constellationController.setSelection?.(entry.key);
 		onStatus(`${entry.label} selected. Stars are streaming through the alpha SkyKit stack.`);
 		return true;
 	}

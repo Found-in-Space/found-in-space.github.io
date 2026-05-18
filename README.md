@@ -28,21 +28,23 @@ The live site should use released `@found-in-space/*` packages from
 `package.json`. Do not deploy with a local package override.
 
 While migrating pages to the alpha SkyKit packages, you can point the Astro dev
-server at sibling SkyKit, skyculture, and touch-os monorepos:
+server at sibling SkyKit and touch-os monorepos:
 
 ```sh
-SKYKIT_LOCAL_PATH=../skykit SKYCULTURES_LOCAL_PATH=../stellarium-skycultures TOUCH_OS_LOCAL_PATH=../touch-os npm run dev
+SKYKIT_LOCAL_PATH=../skykit TOUCH_OS_LOCAL_PATH=../touch-os npm run dev
 ```
 
 With those variables set, `astro.config.mjs` resolves normal package imports
 such as `@found-in-space/skykit`, `@found-in-space/skykit/parallax`,
-`@found-in-space/star-octree-provider`, `@found-in-space/three-star-field`, and
-`@found-in-space/stellarium-skycultures-western/anchored-image` to local
-workspace source, and `@found-in-space/touch-os` to the sibling package build.
+`@found-in-space/star-octree-provider`, and `@found-in-space/three-star-field`
+to local workspace source, and `@found-in-space/touch-os` to the sibling package
+build.
 Page code should still import public package names, not relative paths into
 sibling repositories, so it can switch back to released packages once those
 versions are published.
 
-The parallax page currently needs
-`@found-in-space/stellarium-skycultures-western@0.3.0` or newer because it uses
-the generated `./anchored-image` subpath.
+The parallax and free-roam pages use
+`@found-in-space/stellarium-skycultures-western@0.3.0` from `package.json`
+because they need the generated `./anchored-image` subpath. Set
+`SKYCULTURES_LOCAL_PATH=../stellarium-skycultures` only when testing local
+unreleased skyculture package changes.

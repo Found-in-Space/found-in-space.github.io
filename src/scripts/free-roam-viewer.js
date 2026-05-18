@@ -4,6 +4,7 @@ import {
 	SKYKIT_ACTIONS,
 	createAnchoredImageCatalog,
 	createAnchoredImageSkyPlugin,
+	createViewAnchoredImageController,
 	createKeyboardNavigationPlugin,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
@@ -63,20 +64,20 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 	const initialTargetPc = initialLook?.targetPc ?? ORION_REFERENCE_PC;
 	const initialOrientationIcrs = initialLook?.orientationIcrs ?? { x: 0, y: 0, z: 0, w: 1 };
 	const initialAspectRatio = resolveAspectRatio(mount);
+	const constellationController = createViewAnchoredImageController({ strategy: 'nearest' });
 	const constellationArt = createAnchoredImageSkyPlugin({
 		id: 'free-roam-constellation-art',
 		catalog,
-		mode: 'all',
+		controller: constellationController,
 		loading: 'preload',
 		fixedAtInfinity: true,
 		radius: ART_RADIUS,
-		opacity: 0.18,
-		inactiveOpacity: 0.14,
-		activeOpacity: 0.28,
+		opacity: 0.28,
+		fadeInSeconds: 0.4,
+		fadeOutSeconds: 0.4,
 		cutoff: 0.05,
 		subdivisions: 5,
 		skipTextureErrors: true,
-		active: { enabled: true, maxImages: 2, fadeDeg: 8 },
 		onTextureError({ image, error }) {
 			console.warn('[website:free-roam-art]', image.id, error);
 		},
@@ -86,7 +87,10 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(VERTICAL_FOV_DEG, initialAspectRatio, 0.0001, 1000);
-	const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
+	const provider = createStarOctreeProviderService({
+		url: OCTREE_DEFAULT,
+		persistentCache: 'on',
+	});
 	const starField = createThreeStarField({ limitingMagnitude: LIMITING_MAGNITUDE, exposure: 2500 });
 	let disposed = false;
 
