@@ -10,6 +10,7 @@ import {
 	createSkykitViewer,
 	createStreamingStarsPlugin,
 } from '@found-in-space/skykit';
+import { createJourney } from '@found-in-space/journey';
 import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
@@ -29,42 +30,74 @@ const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
 const HYADES_CENTER_PC = Object.freeze({ x: 17.574, y: 42.316, z: 13.963 });
 const ORION_NEBULA_PC = Object.freeze({ x: 44.371, y: 409.774, z: -38.889 });
 
-const VIEWPOINTS = [
-	{
-		id: 'inside',
-		label: 'Inside the bubble',
-		centerPc: SOLAR_ORIGIN_PC,
-		orbitRadius: 8,
-		angularSpeed: 0.26,
-		flySpeed: 120,
-	},
-	{
-		id: 'outside',
-		label: 'Outside the bubble',
-		centerPc: SOLAR_ORIGIN_PC,
-		orbitRadius: 175,
-		angularSpeed: 0.06,
-		flySpeed: 180,
-	},
-	{
-		id: 'hyades',
-		label: 'The Hyades',
-		centerPc: HYADES_CENTER_PC,
-		orbitRadius: 15,
-		angularSpeed: 0.20,
-		flySpeed: 120,
-	},
-	{
-		id: 'home',
-		label: 'Return home',
-		centerPc: SOLAR_ORIGIN_PC,
-		orbitRadius: 8,
-		angularSpeed: 0.26,
-		flySpeed: 120,
-	},
-];
+const TARGETS = {
+	sun: { positionPc: SOLAR_ORIGIN_PC },
+	hyades: { positionPc: HYADES_CENTER_PC },
+	orion: { positionPc: ORION_NEBULA_PC },
+};
 
-const SCENES = Object.fromEntries(VIEWPOINTS.map((viewpoint) => [viewpoint.id, viewpoint]));
+const SCENES = {
+	inside: {
+		label: 'Inside the bubble',
+		camera: {
+			type: 'orbit',
+			center: 'sun',
+			radiusPc: 8,
+			angularSpeedRadPerSec: 0.26,
+			lookAt: 'orion',
+			normal: ICRS_NORTH,
+			dwellSecs: 5,
+		},
+	},
+	outside: {
+		label: 'Outside the bubble',
+		camera: {
+			type: 'orbit',
+			center: 'sun',
+			radiusPc: 175,
+			angularSpeedRadPerSec: 0.06,
+			lookAt: 'sun',
+			normal: ICRS_NORTH,
+			dwellSecs: 5,
+		},
+	},
+	hyades: {
+		label: 'The Hyades',
+		camera: {
+			type: 'orbit',
+			center: 'hyades',
+			radiusPc: 15,
+			angularSpeedRadPerSec: 0.20,
+			lookAt: 'hyades',
+			normal: ICRS_NORTH,
+			dwellSecs: 5,
+		},
+	},
+	home: {
+		label: 'Return home',
+		camera: {
+			type: 'orbit',
+			center: 'sun',
+			radiusPc: 8,
+			angularSpeedRadPerSec: 0.26,
+			lookAt: 'orion',
+			normal: ICRS_NORTH,
+			dwellSecs: 5,
+		},
+	},
+};
+
+const RADIO_BUBBLE_JOURNEY = createJourney({
+	initial: 'inside',
+	order: ['inside', 'outside', 'hyades', 'home'],
+	targets: TARGETS,
+	scenes: SCENES,
+	travel: { type: 'orbit-transfer', durationSecs: 5 },
+});
+const VIEWPOINTS = RADIO_BUBBLE_JOURNEY.order.map((id) => ({
+	id,
+	label: SCENES[id].label,
+}));
 const VIEWPOINT_BY_ID = new Map(VIEWPOINTS.map((viewpoint) => [viewpoint.id, viewpoint]));
 
 /**
@@ -136,12 +169,10 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 			}),
 			createSkykitJourneyPlugin({
 				id: 'radio-bubble-journey',
-				scenes: SCENES,
-				initialSceneId: 'inside',
-				onScene(scene, context) {
-					void applyJourneyScene(scene, context, onViewpointChange).catch((err) => {
-						console.error('[website:radio-bubble-journey]', err);
-					});
+				journey: RADIO_BUBBLE_JOURNEY,
+				onScene(scene) {
+					const sceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : null;
+					if (sceneId && VIEWPOINT_BY_ID.has(sceneId)) onViewpointChange(sceneId);
 				},
 			}),
 		],
@@ -187,71 +218,6 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	}
 
 	return { viewer, goTo, viewpoints: VIEWPOINTS, radiusPc, radiusLy };
-}
-
-/**
- * @param {import('@found-in-space/journey').JourneySceneSpec | Record<string, unknown> | null} scene
- * @param {import('@found-in-space/skykit').SkykitThreePluginContext} context
- * @param {(id: string|null) => void} onViewpointChange
- * @returns {Promise<void>}
- */
-async function applyJourneyScene(scene, context, onViewpointChange) {
-	const sceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : null;
-	const viewpoint = sceneId ? VIEWPOINT_BY_ID.get(sceneId) : null;
-	if (!viewpoint) return;
-
-	onViewpointChange(viewpoint.id);
-	await context.actions.invoke(SKYKIT_ACTIONS.navigation.cancel, null, {
-		source: 'website.radioBubble.journey',
-	});
-	await context.actions.invoke(SKYKIT_ACTIONS.navigation.lockAt, {
-		...viewpoint.centerPc,
-		up: ICRS_NORTH,
-		dwellSecs: 5,
-		recenterSpeed: 0.06,
-	}, {
-		source: 'website.radioBubble.journey',
-	});
-	await startSceneOrbit(context, viewpoint);
-}
-
-async function startSceneOrbit(context, viewpoint) {
-	const center = viewpoint.centerPc;
-	const radius = viewpoint.orbitRadius;
-	const current = context.getViewState().observerPc;
-	const currentRadius = distanceBetween(current, center);
-	const orbitPayload = {
-		center,
-		radius,
-		orbitNormal: ICRS_NORTH,
-		angularSpeed: viewpoint.angularSpeed,
-	};
-	const metadata = { source: 'website.radioBubble.journey' };
-
-	if (currentRadius <= radius * 1.01) {
-		if (Math.abs(currentRadius - radius) <= radius * 0.03) {
-			await context.actions.invoke(SKYKIT_ACTIONS.navigation.orbit, orbitPayload, metadata);
-			return;
-		}
-
-		const target = pointOnOrbitRadius(center, current, radius);
-		await context.actions.invoke(SKYKIT_ACTIONS.navigation.flyTo, {
-			...target,
-			speed: viewpoint.flySpeed,
-			deceleration: 2.5,
-			arrivalThreshold: 0.1,
-			onArrive() {
-				void context.actions.invoke(SKYKIT_ACTIONS.navigation.orbit, orbitPayload, metadata);
-			},
-		}, metadata);
-		return;
-	}
-
-	await context.actions.invoke(SKYKIT_ACTIONS.navigation.orbitalInsert, {
-		...orbitPayload,
-		approachSpeed: viewpoint.flySpeed,
-		deceleration: 2.5,
-	}, metadata);
 }
 
 function createRadioBubbleMeshes(options = {}) {
@@ -309,25 +275,6 @@ function computeLookAtOrientation(observerPc, targetPc, upIcrs = ICRS_NORTH) {
 		y: scratch.quaternion.y,
 		z: scratch.quaternion.z,
 		w: scratch.quaternion.w,
-	};
-}
-
-function distanceBetween(a, b) {
-	return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
-}
-
-function pointOnOrbitRadius(center, current, radius) {
-	const dx = current.x - center.x;
-	const dy = current.y - center.y;
-	const dz = current.z - center.z;
-	const length = Math.hypot(dx, dy, dz);
-	const nx = length > 1e-6 ? dx / length : 1;
-	const ny = length > 1e-6 ? dy / length : 0;
-	const nz = length > 1e-6 ? dz / length : 0;
-	return {
-		x: center.x + nx * radius,
-		y: center.y + ny * radius,
-		z: center.z + nz * radius,
 	};
 }
 
