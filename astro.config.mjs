@@ -173,7 +173,6 @@ function createFoundInSpaceWorkspaceAliases(workspaceRoot) {
 		['@found-in-space/journey-video', 'packages/journey-video/src/index.js'],
 		['@found-in-space/journey', 'packages/journey/src/index.js'],
 		['@found-in-space/meta-sidecar-provider', 'packages/meta-sidecar-provider/src/index.js'],
-		['@found-in-space/product-stream', 'packages/product-stream/src/index.js'],
 		['@found-in-space/skykit/parallax', 'packages/skykit/src/parallax.js'],
 		['@found-in-space/skykit/touch-os', 'packages/skykit/src/touch-os.js'],
 		['@found-in-space/skykit/xr', 'packages/skykit/src/xr.js'],
@@ -181,7 +180,7 @@ function createFoundInSpaceWorkspaceAliases(workspaceRoot) {
 		['@found-in-space/spatial', 'packages/spatial/src/index.js'],
 		['@found-in-space/star-map-canvas', 'packages/star-map-canvas/src/index.js'],
 		['@found-in-space/star-octree-provider', 'packages/star-octree-provider/src/index.js'],
-		['@found-in-space/star-products', 'packages/star-products/src/index.js'],
+		['@found-in-space/star-trees', 'packages/star-trees/src/index.js'],
 		['@found-in-space/three-star-field', 'packages/three-star-field/src/index.js'],
 	];
 
