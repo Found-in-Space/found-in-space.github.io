@@ -66,7 +66,7 @@ const basePath = import.meta.env.BASE_URL;
 
 		<div class="narrated-tour" data-cluster-tour>
 			<div class="narrated-tour__chapters">
-				<section class="narrated-tour__chapter" data-cluster="home">
+				<section class="narrated-tour__chapter" data-cluster="start">
 					<p class="narrated-tour__chapter-eyebrow">Home · 0 pc</p>
 					<h2 class="narrated-tour__chapter-title">The solar neighbourhood</h2>
 					<p>
@@ -177,7 +177,7 @@ const basePath = import.meta.env.BASE_URL;
 					</p>
 				</section>
 
-				<section class="narrated-tour__chapter" data-cluster="home">
+				<section class="narrated-tour__chapter" data-cluster="return-home">
 					<p class="narrated-tour__chapter-eyebrow">Return · 0 pc</p>
 					<h2 class="narrated-tour__chapter-title">Back to the Sun</h2>
 					<p>
@@ -325,15 +325,10 @@ const basePath = import.meta.env.BASE_URL;
 					return button.dataset.clusterFly;
 				},
 				activate(id) {
-					if (id === 'home') {
-						result.goHome();
-						return;
-					}
-
-					result.flyTo(id);
+					result.goTo(id);
 				},
 				statusEl,
-				initialId: 'home',
+				initialId: 'start',
 			});
 		}).catch((err) => {
 			console.error('[website:cluster-tour]', err);
