@@ -20,9 +20,9 @@ import {
 } from '@found-in-space/skykit/touch-os';
 import {
 	OCTREE_DEFAULT,
-	createObserverShellStrategy,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
+import { createObserverShellStrategy } from '@found-in-space/star-trees';
 import { anchoredImageManifest as westernSkycultureAnchoredImageManifest } from '@found-in-space/stellarium-skycultures-western/anchored-image';
 import { createThreeStarField } from '@found-in-space/three-star-field';
 

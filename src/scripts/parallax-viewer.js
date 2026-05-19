@@ -16,8 +16,8 @@ import {
 import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
-	createTargetFrustumStrategy,
 } from '@found-in-space/star-octree-provider';
+import { createTargetFrustumStrategy } from '@found-in-space/star-trees';
 import { anchoredImageManifest as westernSkycultureAnchoredImageManifest } from '@found-in-space/stellarium-skycultures-western/anchored-image';
 import { createThreeStarField } from '@found-in-space/three-star-field';
 
