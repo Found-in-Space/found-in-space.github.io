@@ -22,6 +22,8 @@ const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 58;
 const LY_PER_PC = 3.2615637775591093;
+const JULIAN_YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+const FIRST_RADIO_SIGNAL_DATE_UTC_MS = Date.UTC(1895, 0, 1);
 const MAX_DEVICE_PIXEL_RATIO = 2;
 const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const SOLAR_ORIGIN_PC = ZERO_PC;
@@ -219,13 +221,13 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 }
 
 function createRadioBubbleMeshes(options = {}) {
-	const epochYear = options.epochYear ?? 1895;
-	const currentYear = options.currentYear ?? 2026;
+	const firstSignalDateMs = resolveDateMs(options.firstSignalDate, FIRST_RADIO_SIGNAL_DATE_UTC_MS);
+	const currentDateMs = resolveDateMs(options.currentDate, Date.now());
 	const fillColor = options.fillColor ?? 0x2299ff;
 	const fillOpacity = options.fillOpacity ?? 0.05;
 	const wireColor = options.wireColor ?? 0x55ccff;
 	const wireOpacity = options.wireOpacity ?? 0.22;
-	const radiusLy = currentYear - epochYear;
+	const radiusLy = Math.max(0, (currentDateMs - firstSignalDateMs) / JULIAN_YEAR_MS);
 	const radiusPc = radiusLy / LY_PER_PC;
 	const radiusScene = radiusPc * UNITS_PER_PARSEC;
 	const group = new THREE.Group();
@@ -254,6 +256,19 @@ function createRadioBubbleMeshes(options = {}) {
 	group.add(new THREE.Mesh(wireGeometry, wireMaterial));
 
 	return { group, radiusPc, radiusLy };
+}
+
+function resolveDateMs(value, fallbackMs) {
+	if (value instanceof Date) {
+		const time = value.getTime();
+		return Number.isFinite(time) ? time : fallbackMs;
+	}
+	if (typeof value === 'string') {
+		const time = Date.parse(value);
+		return Number.isFinite(time) ? time : fallbackMs;
+	}
+	const time = Number(value);
+	return Number.isFinite(time) ? time : fallbackMs;
 }
 
 function computeLookAtOrientation(observerPc, targetPc, upIcrs = ICRS_NORTH) {
