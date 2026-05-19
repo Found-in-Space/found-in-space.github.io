@@ -27,6 +27,8 @@ const STAR_SESSION_ID = 'website-learn-astrophage';
 const STAR_ATTRIBUTES = Object.freeze(['position', 'magAbs', 'teffLog8']);
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
 const IDENTITY_ORIENTATION = Object.freeze({ x: 0, y: 0, z: 0, w: 1 });
+const LINE_DRAW_DURATION_SECS = 0.85;
+const SIRIUS_WISE_SECOND_JUMP_DELAY_SECS = 0.75;
 
 // ICRS parsec positions for the real stars in the fictional infection chain.
 const STARS = {
@@ -58,14 +60,28 @@ const CHAPTER_REVEAL = {
 	'tau-ceti-arrive': { stars: ['sol', 'tauCet'], links: [] },
 	'inner-spread': {
 		stars: ['sol', 'tauCet', 'epsEri', 'keid'],
-		links: [['tauCet', 'epsEri'], ['tauCet', 'keid']],
+		links: [
+			revealLink('tauCet', 'epsEri'),
+			revealLink('tauCet', 'keid'),
+		],
 	},
 	'sirius-wise': {
 		stars: ['sol', 'tauCet', 'epsEri', 'keid', 'sirius', 'wise0855'],
-		links: [['tauCet', 'epsEri'], ['tauCet', 'keid'], ['epsEri', 'sirius'], ['sirius', 'wise0855']],
+		links: [
+			revealLink('tauCet', 'epsEri'),
+			revealLink('tauCet', 'keid'),
+			revealLink('epsEri', 'sirius'),
+			revealLink('sirius', 'wise0855', { delaySecs: SIRIUS_WISE_SECOND_JUMP_DELAY_SECS }),
+		],
 	},
-	'final-spread': { stars: Object.keys(STARS), links: INFECTION_LINKS },
-	'keid-lookback': { stars: Object.keys(STARS), links: INFECTION_LINKS },
+	'final-spread': {
+		stars: Object.keys(STARS),
+		links: INFECTION_LINKS.map(([fromKey, toKey]) => revealLink(fromKey, toKey)),
+	},
+	'keid-lookback': {
+		stars: Object.keys(STARS),
+		links: INFECTION_LINKS.map(([fromKey, toKey]) => revealLink(fromKey, toKey)),
+	},
 };
 
 const SCENES = {
@@ -247,6 +263,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 				anchorMode: 'world-space',
 				disposeObject: true,
 			}),
+			createAstrophageLineAnimationPlugin(annotations),
 			createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 }),
 			createSkyGrabPlugin({
 				target: mount,
@@ -362,7 +379,7 @@ function buildAnnotations() {
 	for (const [fromKey, toKey] of INFECTION_LINKS) {
 		const fromPos = toRenderPosition(STARS[fromKey].pc);
 		const toPos = toRenderPosition(STARS[toKey].pc);
-		const geometry = new THREE.BufferGeometry().setFromPoints([fromPos, toPos]);
+		const geometry = new THREE.BufferGeometry().setFromPoints([fromPos, fromPos]);
 		const material = new THREE.LineBasicMaterial({
 			color: INFECTION_COLOR,
 			transparent: true,
@@ -371,9 +388,22 @@ function buildAnnotations() {
 		});
 		const line = new THREE.Line(geometry, material);
 		line.renderOrder = 899;
+		line.frustumCulled = false;
 		line.visible = false;
 		lineGroup.add(line);
-		lineMeshes.push({ fromKey, toKey, line });
+		lineMeshes.push({
+			key: linkKey(fromKey, toKey),
+			fromKey,
+			toKey,
+			fromPos,
+			toPos,
+			line,
+			geometry,
+			durationSecs: LINE_DRAW_DURATION_SECS,
+			delaySecs: 0,
+			elapsedSecs: 0,
+			targetVisible: false,
+		});
 	}
 	group.add(lineGroup);
 
@@ -383,6 +413,9 @@ function buildAnnotations() {
 function applyChapterVisibility(chapterId, annotations) {
 	const reveal = CHAPTER_REVEAL[chapterId];
 	if (!reveal) return;
+	const revealLinks = new Map(
+		reveal.links.map((entry) => [linkKey(entry.fromKey, entry.toKey), entry]),
+	);
 
 	for (const [key, marker] of Object.entries(annotations.markers)) {
 		const show = reveal.stars.includes(key);
@@ -391,10 +424,113 @@ function applyChapterVisibility(chapterId, annotations) {
 	}
 
 	for (const entry of annotations.lineMeshes) {
-		entry.line.visible = reveal.links.some(
-			([fromKey, toKey]) => fromKey === entry.fromKey && toKey === entry.toKey,
-		);
+		const revealLink = revealLinks.get(entry.key);
+		if (!revealLink) {
+			hideLine(entry);
+			continue;
+		}
+
+		if (entry.targetVisible) {
+			showCompleteLine(entry);
+			continue;
+		}
+
+		startLineAnimation(entry, revealLink);
 	}
+}
+
+function createAstrophageLineAnimationPlugin(annotations) {
+	return {
+		id: 'astrophage-line-animation',
+		setup(context) {
+			context.addPart({
+				id: 'astrophage-line-animation',
+				update(frame) {
+					advanceLineAnimations(annotations, frame.deltaSeconds);
+				},
+				getSnapshot() {
+					return {
+						activeCount: annotations.lineMeshes.filter(isLineAnimating).length,
+						visibleCount: annotations.lineMeshes.filter((entry) => entry.targetVisible).length,
+					};
+				},
+			});
+		},
+	};
+}
+
+function advanceLineAnimations(annotations, deltaSeconds) {
+	const dt = Math.max(0, Number.isFinite(deltaSeconds) ? deltaSeconds : 0);
+	if (dt === 0) return;
+
+	for (const entry of annotations.lineMeshes) {
+		if (!isLineAnimating(entry)) continue;
+		entry.elapsedSecs += dt;
+		if (entry.elapsedSecs < 0) {
+			entry.line.visible = false;
+			continue;
+		}
+
+		entry.line.visible = true;
+		const progress = Math.min(entry.elapsedSecs / entry.durationSecs, 1);
+		setLineProgress(entry, progress);
+	}
+}
+
+function startLineAnimation(entry, revealLink) {
+	entry.targetVisible = true;
+	entry.durationSecs = positiveNumber(revealLink.durationSecs, LINE_DRAW_DURATION_SECS);
+	entry.delaySecs = Math.max(0, positiveNumber(revealLink.delaySecs, 0));
+	entry.elapsedSecs = -entry.delaySecs;
+	entry.line.visible = entry.delaySecs === 0;
+	setLineProgress(entry, 0);
+}
+
+function showCompleteLine(entry) {
+	entry.targetVisible = true;
+	entry.elapsedSecs = entry.durationSecs;
+	entry.line.visible = true;
+	setLineProgress(entry, 1);
+}
+
+function hideLine(entry) {
+	entry.targetVisible = false;
+	entry.elapsedSecs = 0;
+	entry.line.visible = false;
+	setLineProgress(entry, 0);
+}
+
+function isLineAnimating(entry) {
+	return entry.targetVisible && entry.elapsedSecs < entry.durationSecs;
+}
+
+function setLineProgress(entry, progress) {
+	const t = Math.min(Math.max(progress, 0), 1);
+	const x = entry.fromPos.x + (entry.toPos.x - entry.fromPos.x) * t;
+	const y = entry.fromPos.y + (entry.toPos.y - entry.fromPos.y) * t;
+	const z = entry.fromPos.z + (entry.toPos.z - entry.fromPos.z) * t;
+	const position = entry.geometry.getAttribute('position');
+	position.setXYZ(0, entry.fromPos.x, entry.fromPos.y, entry.fromPos.z);
+	position.setXYZ(1, x, y, z);
+	position.needsUpdate = true;
+}
+
+function revealLink(fromKey, toKey, options = {}) {
+	return {
+		fromKey,
+		toKey,
+		delaySecs: positiveNumber(options.delaySecs, 0),
+		durationSecs: positiveNumber(options.durationSecs, LINE_DRAW_DURATION_SECS),
+	};
+}
+
+function linkKey(fromKey, toKey) {
+	return `${fromKey}->${toKey}`;
+}
+
+function positiveNumber(value, fallback) {
+	const number = Number(value);
+	return Number.isFinite(number) && number > 0 ? number : fallback;
 }
 
 function toRenderPosition(pc) {
