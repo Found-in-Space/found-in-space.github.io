@@ -21,6 +21,8 @@ const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 58;
 const LY_PER_PC = 3.2615637775591093;
+const MAX_RENDER_FPS = 30;
+const MAX_DEVICE_PIXEL_RATIO = 2;
 const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const SOLAR_ORIGIN_PC = ZERO_PC;
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
@@ -145,7 +147,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		],
 	});
 
-	const loop = createSkykitAnimationLoop(viewer);
+	const loop = createSkykitAnimationLoop(viewer, { maxFramesPerSecond: MAX_RENDER_FPS });
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
@@ -167,7 +169,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		viewer.resize({
 			width: mount.clientWidth || 1,
 			height: mount.clientHeight || 1,
-			devicePixelRatio: window.devicePixelRatio || 1,
+			devicePixelRatio: Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO),
 		});
 		viewer.requestViewState({ aspectRatio }, 'website.radioBubble.resize');
 	}

@@ -41,6 +41,7 @@ const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 58;
 const ART_RADIUS = 0.13;
+const MAX_RENDER_FPS = 30;
 
 /**
  * Mount the SkyKit alpha free-roam constellation viewer.
@@ -92,6 +93,7 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 		persistentCache: 'on',
 	});
 	const starField = createThreeStarField({ limitingMagnitude: LIMITING_MAGNITUDE, exposure: 2500 });
+	let lastStreamStatus = '';
 	let disposed = false;
 
 	const viewer = await createSkykitViewer({
@@ -151,18 +153,18 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 					const stars = snapshot.parts.find((part) => part.id === 'free-roam-streamed-stars')?.snapshot;
 					const starCount = stars?.renderer?.starCount ?? 0;
 					if (stars?.status === 'streaming') {
-						onStatus(`Streaming stars... ${starCount.toLocaleString()} loaded.`);
+						updateStreamStatus(`Streaming stars... ${starCount.toLocaleString()} loaded.`);
 					} else if (stars?.status === 'current') {
-						onStatus(`Current: ${starCount.toLocaleString()} stars loaded for this view.`);
+						updateStreamStatus(`Current: ${starCount.toLocaleString()} stars loaded for this view.`);
 					} else if (stars?.status === 'failed') {
-						onStatus(stars.lastError ?? 'Star stream failed.');
+						updateStreamStatus(stars.lastError ?? 'Star stream failed.');
 					}
 				},
 			}),
 		],
 	});
 
-	const loop = createSkykitAnimationLoop(viewer);
+	const loop = createSkykitAnimationLoop(viewer, { maxFramesPerSecond: MAX_RENDER_FPS });
 	const onResize = () => resizeViewer(viewer, renderer, camera, mount);
 	window.addEventListener('resize', onResize);
 	onResize();
@@ -206,6 +208,12 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 		loop.dispose();
 		await viewer.dispose();
 		provider.dispose?.();
+	}
+
+	function updateStreamStatus(message) {
+		if (!message || message === lastStreamStatus) return;
+		lastStreamStatus = message;
+		onStatus(message);
 	}
 }
 

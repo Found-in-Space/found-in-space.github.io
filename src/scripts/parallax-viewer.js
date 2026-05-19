@@ -35,6 +35,7 @@ const PARALLAX_OFFSET_PC = 1.0;
 const ART_RADIUS = 0.13;
 const ORION_REFERENCE_PC = Object.freeze({ x: 62.775, y: 602.667, z: -12.713 });
 const CONSTELLATION_TARGET_DISTANCE_PC = vectorLength(ORION_REFERENCE_PC);
+const MAX_RENDER_FPS = 30;
 
 /**
  * Mount the alpha SkyKit parallax viewer used by /explore/parallax/.
@@ -160,7 +161,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 		],
 	});
 
-	const loop = createSkykitAnimationLoop(viewer);
+	const loop = createSkykitAnimationLoop(viewer, { maxFramesPerSecond: MAX_RENDER_FPS });
 	let lastStatusText = '';
 	let lastStatusAt = -Infinity;
 	const unsubscribeStatus = viewer.on('viewer/render', (event) => {
