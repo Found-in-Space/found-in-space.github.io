@@ -27,23 +27,27 @@ const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const SOLAR_ORIGIN_PC = ZERO_PC;
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
 const HYADES_CENTER_PC = Object.freeze({ x: 17.574, y: 42.316, z: 13.963 });
-const ORION_NEBULA_PC = Object.freeze({ x: 44.371, y: 409.774, z: -38.889 });
-
-const TARGETS = {
-	sun: { positionPc: SOLAR_ORIGIN_PC },
-	hyades: { positionPc: HYADES_CENTER_PC },
-	orion: { positionPc: ORION_NEBULA_PC },
-};
+const OUTSIDE_ORBIT_RADIUS_PC = 175;
+const HYADES_ORBIT_RADIUS_PC = 15;
 
 const SCENES = {
 	inside: {
 		label: 'Inside the bubble',
+		view: {
+			observerPc: {
+				x: 0.001,
+				y: 0,
+				z: 0,
+			},
+			targetPc: SOLAR_ORIGIN_PC,
+			orientationIcrs: {x:1, y:1, z:1, w:1},
+		},
 		camera: {
 			type: 'orbit',
-			center: 'sun',
-			radiusPc: 8,
+			center: SOLAR_ORIGIN_PC,
+			radiusPc: 2,
 			angularSpeedRadPerSec: 0.26,
-			lookAt: 'sun',
+			lookAt: SOLAR_ORIGIN_PC,
 			normal: ICRS_NORTH,
 			dwellSecs: 5,
 		},
@@ -52,10 +56,10 @@ const SCENES = {
 		label: 'Outside the bubble',
 		camera: {
 			type: 'orbit',
-			center: 'sun',
-			radiusPc: 175,
+			center: SOLAR_ORIGIN_PC,
+			radiusPc: OUTSIDE_ORBIT_RADIUS_PC,
 			angularSpeedRadPerSec: 0.06,
-			lookAt: 'sun',
+			lookAt: SOLAR_ORIGIN_PC,
 			normal: ICRS_NORTH,
 			dwellSecs: 5,
 		},
@@ -64,10 +68,10 @@ const SCENES = {
 		label: 'The Hyades',
 		camera: {
 			type: 'orbit',
-			center: 'hyades',
-			radiusPc: 15,
+			center: HYADES_CENTER_PC,
+			radiusPc: HYADES_ORBIT_RADIUS_PC,
 			angularSpeedRadPerSec: 0.20,
-			lookAt: 'hyades',
+			lookAt: HYADES_CENTER_PC,
 			normal: ICRS_NORTH,
 			dwellSecs: 5,
 		},
@@ -76,10 +80,10 @@ const SCENES = {
 		label: 'Return home',
 		camera: {
 			type: 'orbit',
-			center: 'sun',
-			radiusPc: 8,
+			center: SOLAR_ORIGIN_PC,
+			radiusPc: 1,
 			angularSpeedRadPerSec: 0.26,
-			lookAt: 'sun',
+			lookAt: SOLAR_ORIGIN_PC,
 			normal: ICRS_NORTH,
 			dwellSecs: 5,
 		},
@@ -87,9 +91,7 @@ const SCENES = {
 };
 
 const RADIO_BUBBLE_JOURNEY = createJourney({
-	initial: 'inside',
 	order: ['inside', 'outside', 'hyades', 'home'],
-	targets: TARGETS,
 	scenes: SCENES,
 	travel: { type: 'orbit-transfer', durationSecs: 5 },
 });
@@ -118,7 +120,6 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 
 	onStatus('Creating SkyKit viewer...');
 	const initialAspectRatio = resolveAspectRatio(mount);
-	const initialOrientationIcrs = computeLookAtOrientation(SOLAR_ORIGIN_PC, ORION_NEBULA_PC, ICRS_NORTH);
 	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(VERTICAL_FOV_DEG, initialAspectRatio, 0.0001, 1000);
@@ -136,9 +137,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		renderer,
 		camera,
 		view: {
-			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: ORION_NEBULA_PC,
-			orientationIcrs: initialOrientationIcrs,
+			...SCENES.inside.view,
 			coordinateUnitsPerParsec: UNITS_PER_PARSEC,
 			limitingMagnitude: LIMITING_MAGNITUDE,
 			verticalFovDeg: VERTICAL_FOV_DEG,
