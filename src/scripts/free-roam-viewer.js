@@ -41,7 +41,6 @@ const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 58;
 const ART_RADIUS = 0.13;
-const MAX_RENDER_FPS = 30;
 
 /**
  * Mount the SkyKit alpha free-roam constellation viewer.
@@ -164,7 +163,7 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 		],
 	});
 
-	const loop = createSkykitAnimationLoop(viewer, { maxFramesPerSecond: MAX_RENDER_FPS });
+	const loop = createSkykitAnimationLoop(viewer);
 	const onResize = () => resizeViewer(viewer, renderer, camera, mount);
 	window.addEventListener('resize', onResize);
 	onResize();

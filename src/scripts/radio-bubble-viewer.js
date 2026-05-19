@@ -22,7 +22,6 @@ const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
 const VERTICAL_FOV_DEG = 58;
 const LY_PER_PC = 3.2615637775591093;
-const MAX_RENDER_FPS = 30;
 const MAX_DEVICE_PIXEL_RATIO = 2;
 const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const SOLAR_ORIGIN_PC = ZERO_PC;
@@ -178,7 +177,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		],
 	});
 
-	const loop = createSkykitAnimationLoop(viewer, { maxFramesPerSecond: MAX_RENDER_FPS });
+	const loop = createSkykitAnimationLoop(viewer);
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
