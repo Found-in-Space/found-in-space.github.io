@@ -292,21 +292,12 @@ const nextTopics = [
 						class="narrated-tour__viewer-shell hr-tour__viewer-shell"
 						data-hr-diagram-viewer
 						data-topic="hr-diagram-lesson"
-						data-show-hr="true"
 					>
-						<section class="hr-tour__pane">
-							<div class="hr-tour__pane-head">
-								<span class="tag">Star view</span>
-							</div>
-							<div class="hr-tour__space-view" data-hr-diagram-viewer-shell></div>
-						</section>
-
-						<section class="hr-tour__pane">
-							<div class="hr-tour__pane-head">
-								<span class="tag">HR diagram</span>
-							</div>
-							<canvas class="hr-tour__canvas" data-hr-diagram-viewer-hr aria-label="Live HR diagram"></canvas>
-						</section>
+						<div
+							class="hr-tour__space-view"
+							data-hr-diagram-viewer-shell
+							aria-label="Interactive star viewer with HR diagram panel"
+						></div>
 					</div>
 
 					<span class="narrated-tour__status" data-hr-tour-status>Loading…</span>
@@ -426,14 +417,7 @@ const nextTopics = [
 </Layout>
 
 <script>
-	import {
-		DEFAULT_HR_MAG_LIMIT,
-		DEFAULT_HR_VOLUME_RADIUS,
-		INNER_GALACTIC_PLANE_TARGET_PC,
-		mountHrDiagramViewer,
-	} from '../../../scripts/hr-diagram-viewer.js';
-	import { createJourney } from '@found-in-space/journey';
-	import { createOrbitTransferRoute } from '@found-in-space/spatial';
+	import { mountHrDiagramViewer } from '../../../scripts/hr-diagram-viewer.js';
 	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
 
 	const tourRoot = document.querySelector('[data-hr-tour]');
@@ -441,359 +425,9 @@ const nextTopics = [
 	const statusEl = document.querySelector('[data-hr-tour-status]');
 	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-step]') ?? [];
 	const navButtons = tourRoot?.querySelectorAll('[data-step-fly]') ?? [];
-	const OFFSET_SAMPLE_PC = { x: 200, y: 0, z: 0 };
-	const LESSON_VOLUME_RADIUS_PC = DEFAULT_HR_VOLUME_RADIUS;
-	const OMEGA_CEN_VOLUME_RADIUS_PC = 100;
-	const PLEIADES_ORBIT_RADIUS_PC = 10;
-	const PLEIADES_ANGULAR_SPEED = 0.22;
-	const PLEIADES_STANDARD_TRAVEL_TIME_SECS = 5;
-	const NGC_752_ORBIT_RADIUS_PC = 10;
-	const NGC_752_ANGULAR_SPEED = 0.22;
-	const NGC_752_STANDARD_TRAVEL_TIME_SECS = 5;
-	const OMEGA_CEN_ORBIT_RADIUS_PC = 60;
-	const OMEGA_CEN_ANGULAR_SPEED = 0.08;
-	const OMEGA_CEN_TRAVEL_TIME_SECS = 15;
-	const OMEGA_CEN_DECELERATION = 2.5;
-	const OMEGA_CEN_ORBIT_NORMAL = [0, 1, 0];
-	const PRELOAD_STARTUP_DELAY_MS = 600;
-	const PRELOAD_STAGGER_MS = 150;
-	const PRELOAD_TIMEOUT_MS = 2_500;
-
-	const SOLAR_ORIGIN_PC = Object.freeze({ x: 0, y: 0, z: 0 });
-	const PLEIADES_CENTER_PC = Object.freeze({ x: 67.379, y: 103.162, z: 55.161 });
-	const OMEGA_CEN_CENTER_PC = Object.freeze({ x: -3290.566, y: -1309.263, z: -3862.073 });
-	const NGC_752_CENTER_PC = { x: 303.7, y: 167.0, z: 269.3 };
-
-	const ARCTURUS_PC = { x: -8.8, y: -5.9, z: 3.7 };
-	const ACRUX_PC = { x: -44.4, y: -5.2, z: -88.0 };
-
-	function getLastPoint(points = [], fallback = null) {
-		return Array.isArray(points) && points.length > 0 ? points[points.length - 1] : fallback;
-	}
-
-	function reversePath(points = []) {
-		return [...points].reverse();
-	}
-
-	function normalVector(input) {
-		return Array.isArray(input)
-			? { x: Number(input[0]), y: Number(input[1]), z: Number(input[2]) }
-			: (input ?? { x: 0, y: 1, z: 0 });
-	}
-
-	function buildOrbitArrivalAction(centerPc, radius, angularSpeed, normal = null) {
-		return {
-			type: 'orbit',
-			center: centerPc,
-			radius,
-			angularSpeedRadPerSec: angularSpeed,
-			normal: normalVector(normal),
-		};
-	}
-
-	function buildCanonicalOrbitalRoute(startObserverPc, {
-		center,
-		radiusPc,
-		angularSpeedRadPerSec,
-		durationSecs,
-		normal = null,
-	} = {}) {
-		return createOrbitTransferRoute({
-			start: startObserverPc,
-			destinationOrbit: {
-				center,
-				radius: radiusPc,
-				angularSpeedRadPerSec,
-				normal: normalVector(normal),
-			},
-			durationSecs,
-			sampleStepSecs: 1 / 24,
-		});
-	}
-
-	function createTransition(fromSceneId, toSceneId, transition = {}) {
-		return {
-			fromSceneId,
-			toSceneId,
-			...transition,
-		};
-	}
-
-	function createPolylineTransition(fromSceneId, toSceneId, {
-		pathPoints,
-		arrivalAction = null,
-		preloadAnchorObserverPc = null,
-		...transition
-	} = {}) {
-		return createTransition(fromSceneId, toSceneId, {
-			travelPathPc: pathPoints,
-			travelPathArrivalAction: arrivalAction,
-			preloadAnchorObserverPc,
-			prependStartObserverToTravelPath: true,
-			...transition,
-		});
-	}
-
-	function reverseRadiusProfile(profile = []) {
-		return [...profile]
-			.map((point) => ({
-				...point,
-				progress: 1 - point.progress,
-			}))
-			.reverse();
-	}
-
-	const AWAY_VOLUME_FORWARD_PATH_PC = [SOLAR_ORIGIN_PC, OFFSET_SAMPLE_PC];
-	const AWAY_VOLUME_REVERSE_PATH_PC = reversePath(AWAY_VOLUME_FORWARD_PATH_PC);
-
-	const PLEIADES_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(OFFSET_SAMPLE_PC, {
-		center: PLEIADES_CENTER_PC,
-		radiusPc: PLEIADES_ORBIT_RADIUS_PC,
-		angularSpeedRadPerSec: PLEIADES_ANGULAR_SPEED,
-		durationSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
-	});
-	const PLEIADES_FORWARD_PATH_PC = PLEIADES_ROUTE_TEMPLATE?.points ?? [];
-	const PLEIADES_ROUTE_ANCHOR_PC = getLastPoint(PLEIADES_FORWARD_PATH_PC, {
-		x: PLEIADES_CENTER_PC.x + PLEIADES_ORBIT_RADIUS_PC,
-		y: PLEIADES_CENTER_PC.y,
-		z: PLEIADES_CENTER_PC.z,
-	});
-	const PLEIADES_REVERSE_PATH_PC = reversePath(PLEIADES_FORWARD_PATH_PC);
-
-	const HYADES_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(PLEIADES_ROUTE_ANCHOR_PC, {
-		center: NGC_752_CENTER_PC,
-		radiusPc: NGC_752_ORBIT_RADIUS_PC,
-		angularSpeedRadPerSec: NGC_752_ANGULAR_SPEED,
-		durationSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
-	});
-	const HYADES_FORWARD_PATH_PC = HYADES_ROUTE_TEMPLATE?.points ?? [];
-	const HYADES_ROUTE_ANCHOR_PC = getLastPoint(HYADES_FORWARD_PATH_PC, {
-		x: NGC_752_CENTER_PC.x + NGC_752_ORBIT_RADIUS_PC,
-		y: NGC_752_CENTER_PC.y,
-		z: NGC_752_CENTER_PC.z,
-	});
-	const HYADES_REVERSE_PATH_PC = reversePath(HYADES_FORWARD_PATH_PC);
-
-	const OMEGA_CEN_ROUTE_TEMPLATE = buildCanonicalOrbitalRoute(HYADES_ROUTE_ANCHOR_PC, {
-		center: OMEGA_CEN_CENTER_PC,
-		radiusPc: OMEGA_CEN_ORBIT_RADIUS_PC,
-		angularSpeedRadPerSec: OMEGA_CEN_ANGULAR_SPEED,
-		durationSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
-		normal: OMEGA_CEN_ORBIT_NORMAL,
-	});
-	const OMEGA_CEN_FORWARD_PATH_PC = OMEGA_CEN_ROUTE_TEMPLATE?.points ?? [];
-	const OMEGA_CEN_ROUTE_ANCHOR_PC = getLastPoint(OMEGA_CEN_FORWARD_PATH_PC, {
-		x: OMEGA_CEN_CENTER_PC.x + OMEGA_CEN_ORBIT_RADIUS_PC,
-		y: OMEGA_CEN_CENTER_PC.y,
-		z: OMEGA_CEN_CENTER_PC.z,
-	});
-	const OMEGA_CEN_REVERSE_PATH_PC = reversePath(OMEGA_CEN_FORWARD_PATH_PC);
-
-	const OMEGA_CEN_TRAVEL_RADIUS_PROFILE = [
-		{ progress: 0, radiusPc: LESSON_VOLUME_RADIUS_PC },
-		{ progress: 0.55, radiusPc: LESSON_VOLUME_RADIUS_PC },
-		{ progress: 0.72, radiusPc: 40 },
-		{ progress: 0.84, radiusPc: 60 },
-		{ progress: 0.93, radiusPc: 80 },
-		{ progress: 1, radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC },
-	];
-	const OMEGA_CEN_RETURN_RADIUS_PROFILE = reverseRadiusProfile(OMEGA_CEN_TRAVEL_RADIUS_PROFILE);
-
-	const SCENES = {
-		'all-stars': {
-			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
-			mode: 0,
-			magLimit: DEFAULT_HR_MAG_LIMIT,
-		},
-		'inner-plane': {
-			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: ACRUX_PC,
-			mode: 2,
-			magLimit: DEFAULT_HR_MAG_LIMIT,
-		},
-		'out-of-plane': {
-			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: ARCTURUS_PC,
-			mode: 2,
-			magLimit: DEFAULT_HR_MAG_LIMIT,
-		},
-		'local-volume': {
-			observerPc: SOLAR_ORIGIN_PC,
-			targetPc: ARCTURUS_PC,
-			mode: 1,
-			radius: LESSON_VOLUME_RADIUS_PC,
-			volumeRenderStrategy: 'strict',
-		},
-		'away-volume': {
-			observerPc: OFFSET_SAMPLE_PC,
-			targetPc: SOLAR_ORIGIN_PC,
-			mode: 1,
-			radius: LESSON_VOLUME_RADIUS_PC,
-			travelTimeSecs: 4,
-			volumeRenderStrategy: 'progressive',
-			dwellMs: 4_000,
-			recenterSpeed: 0.05,
-		},
-		'pleiades': {
-			targetPc: PLEIADES_CENTER_PC,
-			orbitCenter: PLEIADES_CENTER_PC,
-			mode: 1,
-			radius: LESSON_VOLUME_RADIUS_PC,
-			orbitRadius: PLEIADES_ORBIT_RADIUS_PC,
-			angularSpeed: PLEIADES_ANGULAR_SPEED,
-			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
-			volumeRenderStrategy: 'progressive',
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-		},
-		'ngc-752': {
-			targetPc: NGC_752_CENTER_PC,
-			orbitCenter: NGC_752_CENTER_PC,
-			mode: 1,
-			radius: LESSON_VOLUME_RADIUS_PC,
-			orbitRadius: NGC_752_ORBIT_RADIUS_PC,
-			angularSpeed: NGC_752_ANGULAR_SPEED,
-			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
-			volumeRenderStrategy: 'progressive',
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-		},
-		'omega-cen': {
-			targetPc: OMEGA_CEN_CENTER_PC,
-			orbitCenter: OMEGA_CEN_CENTER_PC,
-			mode: 1,
-			radius: OMEGA_CEN_VOLUME_RADIUS_PC,
-			orbitRadius: OMEGA_CEN_ORBIT_RADIUS_PC,
-			angularSpeed: OMEGA_CEN_ANGULAR_SPEED,
-			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
-			deceleration: OMEGA_CEN_DECELERATION,
-			orbitNormal: OMEGA_CEN_ORBIT_NORMAL,
-			volumeRenderStrategy: 'progressive',
-			dwellMs: 6_000,
-			recenterSpeed: 0.04,
-		},
-	};
-
-	const TRANSITIONS = [
-		createTransition('all-stars', 'inner-plane'),
-		createTransition('inner-plane', 'all-stars'),
-		createTransition('inner-plane', 'out-of-plane'),
-		createTransition('out-of-plane', 'inner-plane'),
-		createTransition('out-of-plane', 'local-volume'),
-		createTransition('local-volume', 'out-of-plane'),
-		createPolylineTransition('local-volume', 'away-volume', {
-			pathPoints: AWAY_VOLUME_FORWARD_PATH_PC,
-			travelTimeSecs: 4,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: SOLAR_ORIGIN_PC,
-			dwellMs: 4_000,
-			recenterSpeed: 0.05,
-		}),
-		createPolylineTransition('away-volume', 'local-volume', {
-			pathPoints: AWAY_VOLUME_REVERSE_PATH_PC,
-			travelTimeSecs: 4,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: OFFSET_SAMPLE_PC,
-			dwellMs: 4_000,
-			recenterSpeed: 0.05,
-		}),
-		createPolylineTransition('away-volume', 'pleiades', {
-			pathPoints: PLEIADES_FORWARD_PATH_PC,
-			arrivalAction:
-				PLEIADES_ROUTE_TEMPLATE?.arrivalAction
-				?? buildOrbitArrivalAction(
-					PLEIADES_CENTER_PC,
-					PLEIADES_ORBIT_RADIUS_PC,
-					PLEIADES_ANGULAR_SPEED,
-				),
-			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: OFFSET_SAMPLE_PC,
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-		}),
-		createPolylineTransition('pleiades', 'away-volume', {
-			pathPoints: PLEIADES_REVERSE_PATH_PC,
-			travelTimeSecs: PLEIADES_STANDARD_TRAVEL_TIME_SECS,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: PLEIADES_ROUTE_ANCHOR_PC,
-			dwellMs: 4_000,
-			recenterSpeed: 0.05,
-		}),
-		createPolylineTransition('pleiades', 'ngc-752', {
-			pathPoints: HYADES_FORWARD_PATH_PC,
-			arrivalAction:
-				HYADES_ROUTE_TEMPLATE?.arrivalAction
-				?? buildOrbitArrivalAction(
-					NGC_752_CENTER_PC,
-					NGC_752_ORBIT_RADIUS_PC,
-					NGC_752_ANGULAR_SPEED,
-				),
-			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: PLEIADES_ROUTE_ANCHOR_PC,
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-		}),
-		createPolylineTransition('ngc-752', 'pleiades', {
-			pathPoints: HYADES_REVERSE_PATH_PC,
-			arrivalAction: buildOrbitArrivalAction(
-				PLEIADES_CENTER_PC,
-				PLEIADES_ORBIT_RADIUS_PC,
-				PLEIADES_ANGULAR_SPEED,
-			),
-			travelTimeSecs: NGC_752_STANDARD_TRAVEL_TIME_SECS,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			preloadAnchorObserverPc: HYADES_ROUTE_ANCHOR_PC,
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-		}),
-		createPolylineTransition('ngc-752', 'omega-cen', {
-			pathPoints: OMEGA_CEN_FORWARD_PATH_PC,
-			arrivalAction:
-				OMEGA_CEN_ROUTE_TEMPLATE?.arrivalAction
-					?? buildOrbitArrivalAction(
-						OMEGA_CEN_CENTER_PC,
-						OMEGA_CEN_ORBIT_RADIUS_PC,
-						OMEGA_CEN_ANGULAR_SPEED,
-						OMEGA_CEN_ORBIT_NORMAL,
-					),
-			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
-			travelRadiusPc: LESSON_VOLUME_RADIUS_PC,
-			travelRadiusProfile: OMEGA_CEN_TRAVEL_RADIUS_PROFILE,
-			preloadAnchorObserverPc: HYADES_ROUTE_ANCHOR_PC,
-			dwellMs: 6_000,
-			recenterSpeed: 0.04,
-			deceleration: OMEGA_CEN_DECELERATION,
-		}),
-		createPolylineTransition('omega-cen', 'ngc-752', {
-			pathPoints: OMEGA_CEN_REVERSE_PATH_PC,
-			arrivalAction: buildOrbitArrivalAction(
-				NGC_752_CENTER_PC,
-				NGC_752_ORBIT_RADIUS_PC,
-				NGC_752_ANGULAR_SPEED,
-			),
-			travelTimeSecs: OMEGA_CEN_TRAVEL_TIME_SECS,
-			travelRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
-			travelRadiusProfile: OMEGA_CEN_RETURN_RADIUS_PROFILE,
-			preloadAnchorObserverPc: OMEGA_CEN_ROUTE_ANCHOR_PC,
-			dwellMs: 5_000,
-			recenterSpeed: 0.06,
-			deceleration: OMEGA_CEN_DECELERATION,
-		}),
-	];
-
-	const journey = createJourney({
-		initial: 'all-stars',
-		scenes: SCENES,
-		transitions: TRANSITIONS,
-	});
 
 	if (tourRoot && viewerRoot) {
 		mountHrDiagramViewer(viewerRoot).then((viewer) => {
-			let currentSceneId = journey.initialSceneId;
-
 			setupNarratedTour({
 				root: tourRoot,
 				chapters,
@@ -805,25 +439,16 @@ const nextTopics = [
 					return button.dataset.stepFly;
 				},
 				activate(id) {
-					const scene = journey.resolveSceneSpec(id, { fromSceneId: currentSceneId });
-					if (scene) {
-						currentSceneId = id;
-						viewer.applyScene(scene).catch((err) => {
-							console.error('[website:hr-diagram-tour]', err);
-						});
-					}
+					viewer.goTo(id).catch((err) => {
+						console.error('[website:hr-diagram-tour]', err);
+					});
 				},
 				statusEl,
-				initialId: journey.initialSceneId,
+				initialId: viewer.initialSceneId,
 				desktopStatus: 'Scroll to travel from the Sun to clusters and compare the HR diagram.',
 				phoneStatus: '',
 			});
 
-			viewer.scheduleScenePreloadBatch(journey.listResolvedTransitionSpecs(), {
-				delayMs: PRELOAD_STARTUP_DELAY_MS,
-				staggerMs: PRELOAD_STAGGER_MS,
-				timeoutMs: PRELOAD_TIMEOUT_MS,
-			});
 		}).catch((err) => {
 			console.error('[website:hr-diagram-tour]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
@@ -862,50 +487,21 @@ const nextTopics = [
 	}
 
 	.hr-tour__viewer-shell {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.65rem;
-		padding: 0.75rem;
-		align-items: stretch;
-	}
-
-	.hr-tour__pane {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		min-width: 0;
-		min-height: 0;
-		padding: 0.5rem;
-		border: 1px solid var(--fis-line);
-		border-radius: calc(var(--fis-radius) - 0.3rem);
-		background: var(--fis-panel);
-	}
-
-	.hr-tour__pane-head {
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-	}
-
-	.hr-tour__space-view,
-	.hr-tour__canvas {
-		flex: 1;
-		width: 100%;
-		min-height: 0;
-		border-radius: calc(var(--fis-radius) - 0.55rem);
+		position: relative;
+		padding: 0;
+		overflow: hidden;
 		background: var(--fis-bg-deep);
 	}
 
 	.hr-tour__space-view {
-		position: relative;
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
 		overflow: hidden;
 		touch-action: none;
 		cursor: grab;
-	}
-
-	.hr-tour__canvas {
-		display: block;
-		border: 1px solid var(--fis-line);
+		background: var(--fis-bg-deep);
 	}
 
 	.hr-tour__space-view:active {
@@ -997,27 +593,8 @@ const nextTopics = [
 		}
 
 		.hr-tour__viewer-shell {
-			background: transparent;
 			border-radius: 0;
-			overflow: visible;
-			gap: 0.2rem;
-			padding: 0;
-		}
-
-		.hr-tour__pane {
-			border: none;
-			background: transparent;
-			padding: 0;
-			gap: 0;
-		}
-
-		.hr-tour__pane-head {
-			display: none;
-		}
-
-		.hr-tour__canvas {
-			border: none;
-			border-radius: 0;
+			overflow: hidden;
 		}
 
 		.hr-tour__space-view {

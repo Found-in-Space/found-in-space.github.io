@@ -14,7 +14,7 @@
   "dependencies": {
     "@found-in-space/skykit": "github:Found-in-Space/skykit#6ff219",
     "@found-in-space/stellarium-skycultures-western": "^0.3.0",
-    "@found-in-space/touch-os": "^0.2.0-dev.0",
+    "@found-in-space/touch-os": "^0.2.0-dev.1",
     "astro": "^6.1.1",
     "three": "^0.170.0"
   }
