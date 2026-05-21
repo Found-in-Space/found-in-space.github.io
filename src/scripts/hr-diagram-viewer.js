@@ -8,6 +8,7 @@ import {
 	createSkykitHrDiagramPlugin,
 	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
+	createSkykitStarPreloadRequestsFromSpatialHints,
 	createSkykitStarSourcePlugin,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
@@ -23,7 +24,8 @@ import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
-import { computeSpatialLookAtOrientation } from '@found-in-space/spatial';
+import { computeSpatialLookAtOrientation, createOrbitTransferRoute } from '@found-in-space/spatial';
+import { buildTravelVolumeRequests } from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
 
 export const DEFAULT_HR_MAG_LIMIT = 6.5;
@@ -50,6 +52,13 @@ const OFFSET_SAMPLE_PC = Object.freeze({ x: 200, y: 0, z: 0 });
 const DEFAULT_ORBIT_NORMAL = ICRS_NORTH;
 const LESSON_VOLUME_RADIUS_PC = DEFAULT_HR_VOLUME_RADIUS;
 const OMEGA_CEN_VOLUME_RADIUS_PC = 100;
+const NGC_752_ORBIT_RADIUS_PC = 10;
+const NGC_752_ANGULAR_SPEED_RAD_PER_SEC = 0.22;
+const OMEGA_CEN_ORBIT_RADIUS_PC = 60;
+const OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC = 0.08;
+const OMEGA_CEN_TRAVEL_SECS = 15;
+const OMEGA_CEN_PRELOAD_PADDING_PC = 4;
+const OMEGA_CEN_PRELOAD_QUANTIZE_STEP_PC = 5;
 const PLEIADES_CENTER_PC = Object.freeze({ x: 67.379, y: 103.162, z: 55.161 });
 const NGC_752_CENTER_PC = Object.freeze({ x: 303.7, y: 167.0, z: 269.3 });
 const OMEGA_CEN_CENTER_PC = Object.freeze({ x: -3290.566, y: -1309.263, z: -3862.073 });
@@ -62,6 +71,17 @@ const HR_MODE_TO_LESSON_MODE = Object.freeze({
 	'volume-complete': 1,
 	frustum: 2,
 });
+
+const OMEGA_CEN_TRAVEL_RADIUS_PROFILE = Object.freeze([
+	Object.freeze({ progress: 0, radiusPc: LESSON_VOLUME_RADIUS_PC }),
+	Object.freeze({ progress: 0.55, radiusPc: LESSON_VOLUME_RADIUS_PC }),
+	Object.freeze({ progress: 0.72, radiusPc: 40 }),
+	Object.freeze({ progress: 0.84, radiusPc: 60 }),
+	Object.freeze({ progress: 0.93, radiusPc: 80 }),
+	Object.freeze({ progress: 1, radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC }),
+]);
+
+const OMEGA_CEN_PRELOAD_HINTS = Object.freeze(createOmegaCenPreloadHints());
 
 const HIGHLIGHT_PRESETS = {
 	'white-dwarfs': {
@@ -177,10 +197,11 @@ const HR_JOURNEY = createJourney({
 		}),
 		'ngc-752': createOrbitScene({
 			center: NGC_752_CENTER_PC,
-			radiusPc: 10,
-			angularSpeedRadPerSec: 0.22,
+			radiusPc: NGC_752_ORBIT_RADIUS_PC,
+			angularSpeedRadPerSec: NGC_752_ANGULAR_SPEED_RAD_PER_SEC,
 			normal: DEFAULT_ORBIT_NORMAL,
 			travelDurationSecs: 5,
+			preloadHints: OMEGA_CEN_PRELOAD_HINTS,
 			hr: {
 				mode: 'volume-complete',
 				volumeRadiusPc: LESSON_VOLUME_RADIUS_PC,
@@ -188,10 +209,10 @@ const HR_JOURNEY = createJourney({
 		}),
 		'omega-cen': createOrbitScene({
 			center: OMEGA_CEN_CENTER_PC,
-			radiusPc: 60,
-			angularSpeedRadPerSec: 0.08,
+			radiusPc: OMEGA_CEN_ORBIT_RADIUS_PC,
+			angularSpeedRadPerSec: OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC,
 			normal: OMEGA_CEN_ORBIT_NORMAL,
-			travelDurationSecs: 15,
+			travelDurationSecs: OMEGA_CEN_TRAVEL_SECS,
 			dwellSecs: 6,
 			hr: {
 				mode: 'volume-complete',
@@ -200,6 +221,13 @@ const HR_JOURNEY = createJourney({
 			},
 		}),
 	},
+	transitions: [
+		{
+			fromSceneId: 'ngc-752',
+			toSceneId: 'omega-cen',
+			preloadHints: OMEGA_CEN_PRELOAD_HINTS,
+		},
+	],
 	travel: { type: 'orbit-transfer', durationSecs: 5, sampleStepSecs: 1 / 24 },
 });
 
@@ -247,7 +275,14 @@ export async function mountHrDiagramViewer(root) {
 	let disposed = false;
 	let cachedHudRoot = null;
 	let cachedHudRootKey = '';
+	let viewer = null;
 	let debugViewer = null;
+	const pendingHrSceneStates = [];
+	const completedPreloadKeys = new Set();
+	const inFlightPreloads = new Map();
+	const activePreloadControllers = new Map();
+	let activePreloadKeys = new Set();
+	let preloadQueue = Promise.resolve();
 
 	const hr = createSkykitHrDiagramPlugin({
 		id: `website-hr-diagram-${topicId}`,
@@ -263,7 +298,7 @@ export async function mountHrDiagramViewer(root) {
 		},
 	});
 
-	const viewer = await createSkykitViewer({
+	viewer = await createSkykitViewer({
 		id: `website-hr-diagram-alpha-${topicId}`,
 		host: mount,
 		renderer,
@@ -302,6 +337,7 @@ export async function mountHrDiagramViewer(root) {
 				id: `website-hr-diagram-journey-${topicId}`,
 				journey: HR_JOURNEY,
 				onScene(scene) {
+					updateActivePreloadScope(scene?.preloadHints);
 					activeSceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : activeSceneId;
 					void applyHrSceneState(scene?.hr, 'website.hrDiagram.scene');
 				},
@@ -313,6 +349,9 @@ export async function mountHrDiagramViewer(root) {
 						}, 'website.hrDiagram.arrival');
 					}
 				},
+				onPreloadHints(hints) {
+					queuePreloadHints(hints);
+				},
 			}),
 		],
 	});
@@ -322,6 +361,7 @@ export async function mountHrDiagramViewer(root) {
 		id: 'website-hr-diagram',
 		label: 'Website HR Diagram Lesson',
 	});
+	await flushPendingHrSceneStates();
 
 	function createHudRoot(hrPlugin, host) {
 		const isMobile = host.clientWidth > 0 && host.clientWidth <= HUD_MOBILE_BREAKPOINT_PX;
@@ -366,9 +406,88 @@ export async function mountHrDiagramViewer(root) {
 		});
 	}
 
+	function queuePreloadHints(hints) {
+		const requests = createSkykitStarPreloadRequestsFromSpatialHints(hints);
+		for (const request of requests) {
+			activePreloadKeys.add(createPreloadRequestKey(request));
+		}
+		preloadQueue = preloadQueue
+			.catch(() => null)
+			.then(() => warmPreloadRequests(requests));
+		void preloadQueue.catch((error) => {
+			if (!isAbortError(error)) {
+				console.error('[website:hr-diagram-preload]', error);
+			}
+		});
+	}
+
+	async function warmPreloadRequests(requests) {
+		if (disposed) return;
+		for (const request of requests) {
+			const key = createPreloadRequestKey(request);
+			if (disposed || !activePreloadKeys.has(key)) return;
+			if (completedPreloadKeys.has(key)) continue;
+
+			const existing = inFlightPreloads.get(key);
+			if (existing) {
+				await existing.promise.catch(() => null);
+				if (completedPreloadKeys.has(key)) continue;
+				if (!activePreloadKeys.has(key)) return;
+			}
+
+			const controller = new AbortController();
+			activePreloadControllers.set(key, controller);
+			const promise = provider.warmCells({
+				sessionId,
+				strategy: request.strategy,
+				view: request.view,
+				attributes: STAR_ATTRIBUTES,
+				streaming: { emitCachedFirst: true },
+				signal: controller.signal,
+			})
+				.then((result) => {
+					if (!controller.signal.aborted && activePreloadKeys.has(key)) {
+						completedPreloadKeys.add(key);
+					}
+					return result;
+				})
+				.catch((error) => {
+					if (!isAbortError(error)) throw error;
+					return null;
+				})
+				.finally(() => {
+					if (activePreloadControllers.get(key) === controller) {
+						activePreloadControllers.delete(key);
+					}
+					if (inFlightPreloads.get(key)?.promise === promise) {
+						inFlightPreloads.delete(key);
+					}
+				});
+
+			inFlightPreloads.set(key, { promise });
+			await promise;
+		}
+	}
+
+	function updateActivePreloadScope(hints) {
+		const requests = createSkykitStarPreloadRequestsFromSpatialHints(hints ?? []);
+		const nextKeys = new Set(requests.map(createPreloadRequestKey));
+		activePreloadKeys = nextKeys;
+		for (const [key, controller] of activePreloadControllers) {
+			if (!nextKeys.has(key)) {
+				controller.abort('scene-change');
+				activePreloadControllers.delete(key);
+			}
+		}
+	}
+
 	async function applyHrSceneState(hrState, reason) {
 		const state = hrState && typeof hrState === 'object' ? hrState : null;
 		if (!state) return;
+		if (!viewer) {
+			pendingHrSceneStates.push({ hrState, reason });
+			return;
+		}
 
 		const hrOptions = {};
 		const mode = normalizeHrMode(state.mode);
@@ -393,6 +512,13 @@ export async function mountHrDiagramViewer(root) {
 		}
 	}
 
+	async function flushPendingHrSceneStates() {
+		while (pendingHrSceneStates.length > 0) {
+			const pending = pendingHrSceneStates.shift();
+			await applyHrSceneState(pending.hrState, pending.reason);
+		}
+	}
+
 	function getState() {
 		const snapshot = viewer.getViewState();
 		return {
@@ -409,6 +535,7 @@ export async function mountHrDiagramViewer(root) {
 	async function destroy() {
 		if (disposed) return;
 		disposed = true;
+		updateActivePreloadScope([]);
 		window.removeEventListener('resize', resize);
 		window.removeEventListener('beforeunload', destroy);
 		loop.dispose();
@@ -434,6 +561,53 @@ export async function mountHrDiagramViewer(root) {
 		getState,
 		initialSceneId: HR_JOURNEY.initialSceneId,
 	};
+}
+
+function createOmegaCenPreloadHints() {
+	const start = defaultOrbitPosition(NGC_752_CENTER_PC, NGC_752_ORBIT_RADIUS_PC, DEFAULT_ORBIT_NORMAL);
+	const route = createOrbitTransferRoute({
+		start,
+		sourceOrbit: {
+			center: NGC_752_CENTER_PC,
+			radius: NGC_752_ORBIT_RADIUS_PC,
+			angularSpeedRadPerSec: NGC_752_ANGULAR_SPEED_RAD_PER_SEC,
+			normal: DEFAULT_ORBIT_NORMAL,
+		},
+		destinationOrbit: {
+			center: OMEGA_CEN_CENTER_PC,
+			radius: OMEGA_CEN_ORBIT_RADIUS_PC,
+			angularSpeedRadPerSec: OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC,
+			normal: OMEGA_CEN_ORBIT_NORMAL,
+		},
+		durationSecs: OMEGA_CEN_TRAVEL_SECS,
+		sampleStepSecs: 1 / 24,
+	});
+	const routePointsPc = route?.points?.length >= 2
+		? route.points
+		: [
+			start,
+			defaultOrbitPosition(OMEGA_CEN_CENTER_PC, OMEGA_CEN_ORBIT_RADIUS_PC, OMEGA_CEN_ORBIT_NORMAL),
+		];
+	const pathRequests = buildTravelVolumeRequests({
+		routePointsPc,
+		radiusProfile: OMEGA_CEN_TRAVEL_RADIUS_PROFILE,
+		paddingPc: OMEGA_CEN_PRELOAD_PADDING_PC,
+		quantizeStepPc: OMEGA_CEN_PRELOAD_QUANTIZE_STEP_PC,
+	});
+	const hints = pathRequests.map((request, index) => ({
+		kind: 'path-volume',
+		pointsPc: request.pointsPc,
+		radiusPc: request.radiusPc,
+		priority: 30 - index,
+	}));
+	hints.push({
+		kind: 'sphere-volume',
+		centerPc: OMEGA_CEN_CENTER_PC,
+		radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC + OMEGA_CEN_ORBIT_RADIUS_PC + OMEGA_CEN_PRELOAD_PADDING_PC,
+		timeRangeSecs: [OMEGA_CEN_TRAVEL_SECS, OMEGA_CEN_TRAVEL_SECS + 6],
+		priority: 5,
+	});
+	return hints;
 }
 
 function createLookScene({
@@ -464,6 +638,7 @@ function createOrbitScene({
 	normal = DEFAULT_ORBIT_NORMAL,
 	travelDurationSecs,
 	dwellSecs = 5,
+	preloadHints,
 	hr,
 }) {
 	return {
@@ -481,6 +656,7 @@ function createOrbitScene({
 			sampleStepSecs: 1 / 24,
 			arrivalThreshold: 0.05,
 		},
+		...(Array.isArray(preloadHints) ? { preloadHints } : {}),
 		hr,
 	};
 }
@@ -531,4 +707,81 @@ function resolveAspectRatio(element) {
 function positiveFiniteOrNull(value) {
 	const number = Number(value);
 	return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function defaultOrbitPosition(center, radius, normal) {
+	const axis = Math.abs(normal.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
+	const projected = projectOnPlane(axis, normal);
+	const length = Math.hypot(projected.x, projected.y, projected.z);
+	const direction = length > 1e-9
+		? { x: projected.x / length, y: projected.y / length, z: projected.z / length }
+		: { x: 1, y: 0, z: 0 };
+	return {
+		x: center.x + direction.x * radius,
+		y: center.y + direction.y * radius,
+		z: center.z + direction.z * radius,
+	};
+}
+
+function projectOnPlane(vector, normal) {
+	const normalLength = Math.hypot(normal.x, normal.y, normal.z);
+	if (!(normalLength > 1e-9)) return { ...vector };
+	const unitNormal = {
+		x: normal.x / normalLength,
+		y: normal.y / normalLength,
+		z: normal.z / normalLength,
+	};
+	const dot = vector.x * unitNormal.x + vector.y * unitNormal.y + vector.z * unitNormal.z;
+	return {
+		x: vector.x - unitNormal.x * dot,
+		y: vector.y - unitNormal.y * dot,
+		z: vector.z - unitNormal.z * dot,
+	};
+}
+
+function createPreloadRequestKey(request) {
+	return `${createPreloadHintKey(request.sourceHint)}|view:${hashString(JSON.stringify(request.view ?? null))}`;
+}
+
+function createPreloadHintKey(hint) {
+	if (hint?.kind === 'path-volume') {
+		return [
+			'path',
+			roundKey(hint.radiusPc),
+			roundKey(hint.priority ?? 0),
+			Array.isArray(hint.pointsPc) ? hint.pointsPc.length : 0,
+			hashString((hint.pointsPc ?? []).map(pointKey).join('|')),
+		].join(':');
+	}
+	if (hint?.kind === 'sphere-volume') {
+		return [
+			'sphere',
+			pointKey(hint.centerPc),
+			roundKey(hint.radiusPc),
+			roundKey(hint.priority ?? 0),
+		].join(':');
+	}
+	return hashString(JSON.stringify(hint ?? null));
+}
+
+function pointKey(point) {
+	return `${roundKey(point?.x)},${roundKey(point?.y)},${roundKey(point?.z)}`;
+}
+
+function roundKey(value) {
+	const number = Number(value);
+	return Number.isFinite(number) ? String(Math.round(number * 1000) / 1000) : 'null';
+}
+
+function hashString(input) {
+	let hash = 2166136261;
+	for (let index = 0; index < input.length; index += 1) {
+		hash ^= input.charCodeAt(index);
+		hash = Math.imul(hash, 16777619);
+	}
+	return (hash >>> 0).toString(36);
+}
+
+function isAbortError(error) {
+	return error?.name === 'AbortError';
 }
