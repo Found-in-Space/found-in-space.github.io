@@ -4,10 +4,12 @@ import {
 	SKYKIT_ACTIONS,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
+	createSkykitDebugBridge,
 	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
+	installSkykitDebugGlobal,
 } from '@found-in-space/skykit';
 import { createJourney } from '@found-in-space/journey';
 import {
@@ -174,7 +176,10 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		persistentCache: 'on',
 	});
 	const starField = createThreeStarField({ limitingMagnitude: LIMITING_MAGNITUDE, exposure: 2500 });
+	const debug = createSkykitDebugBridge();
+	const uninstallDebugGlobal = installSkykitDebugGlobal(debug);
 	let disposed = false;
+	let debugViewer = null;
 
 	const viewer = await createSkykitViewer({
 		id: 'website-cluster-tour-alpha',
@@ -216,6 +221,10 @@ export async function mountClusterTourViewer(mount, options = {}) {
 	});
 
 	const loop = createSkykitAnimationLoop(viewer);
+	debugViewer = debug.registerViewer(viewer, {
+		id: 'website-cluster-tour',
+		label: 'Website Cluster Tour',
+	});
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
@@ -248,6 +257,8 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		window.removeEventListener('resize', resize);
 		window.removeEventListener('beforeunload', destroy);
 		loop.dispose();
+		debugViewer?.unregister?.();
+		uninstallDebugGlobal?.();
 		void viewer.dispose().catch((err) => {
 			console.error('[website:cluster-tour-cleanup]', err);
 		});

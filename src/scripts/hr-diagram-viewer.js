@@ -25,8 +25,20 @@ import {
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
 import { computeSpatialLookAtOrientation, createOrbitTransferRoute } from '@found-in-space/spatial';
-import { buildTravelVolumeRequests } from '@found-in-space/star-trees';
+import {
+	buildTravelVolumeRequests,
+	combineStrategies,
+	createPathVolumeStrategy,
+	createSphereVolumeStrategy,
+} from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
+import {
+	createCanonicalOmegaCenRoute,
+	createOmegaCenPreloadHints,
+	createOmegaReturnRoutePoints,
+	createOrbitAnchorPoint,
+	OMEGA_CEN_MEMORY_LEASE_KEY,
+} from './hr-diagram-omega-route.js';
 
 export const DEFAULT_HR_MAG_LIMIT = 6.5;
 export const DEFAULT_HR_VOLUME_RADIUS = 25;
@@ -57,8 +69,10 @@ const NGC_752_ANGULAR_SPEED_RAD_PER_SEC = 0.22;
 const OMEGA_CEN_ORBIT_RADIUS_PC = 60;
 const OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC = 0.08;
 const OMEGA_CEN_TRAVEL_SECS = 15;
+const OMEGA_CEN_RETURN_TO_INNER_TRAVEL_SECS = 20;
 const OMEGA_CEN_PRELOAD_PADDING_PC = 4;
 const OMEGA_CEN_PRELOAD_QUANTIZE_STEP_PC = 5;
+const OMEGA_CEN_MEMORY_LEASE_TTL_MS = 5 * 60 * 1000;
 const PLEIADES_CENTER_PC = Object.freeze({ x: 67.379, y: 103.162, z: 55.161 });
 const NGC_752_CENTER_PC = Object.freeze({ x: 303.7, y: 167.0, z: 269.3 });
 const OMEGA_CEN_CENTER_PC = Object.freeze({ x: -3290.566, y: -1309.263, z: -3862.073 });
@@ -81,7 +95,43 @@ const OMEGA_CEN_TRAVEL_RADIUS_PROFILE = Object.freeze([
 	Object.freeze({ progress: 1, radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC }),
 ]);
 
-const OMEGA_CEN_PRELOAD_HINTS = Object.freeze(createOmegaCenPreloadHints());
+const OMEGA_CEN_ROUTE = createCanonicalOmegaCenRoute({
+	createOrbitTransferRoute,
+	ngc752CenterPc: NGC_752_CENTER_PC,
+	ngc752OrbitRadiusPc: NGC_752_ORBIT_RADIUS_PC,
+	ngc752AngularSpeedRadPerSec: NGC_752_ANGULAR_SPEED_RAD_PER_SEC,
+	omegaCenCenterPc: OMEGA_CEN_CENTER_PC,
+	omegaCenOrbitRadiusPc: OMEGA_CEN_ORBIT_RADIUS_PC,
+	omegaCenAngularSpeedRadPerSec: OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC,
+	omegaCenTravelSecs: OMEGA_CEN_TRAVEL_SECS,
+	defaultOrbitNormal: DEFAULT_ORBIT_NORMAL,
+	omegaCenOrbitNormal: OMEGA_CEN_ORBIT_NORMAL,
+});
+const OMEGA_CEN_PRELOAD_HINTS = Object.freeze(createOmegaCenPreloadHints({
+	routePointsPc: OMEGA_CEN_ROUTE.forwardPointsPc,
+	buildTravelVolumeRequests,
+	radiusProfile: OMEGA_CEN_TRAVEL_RADIUS_PROFILE,
+	paddingPc: OMEGA_CEN_PRELOAD_PADDING_PC,
+	quantizeStepPc: OMEGA_CEN_PRELOAD_QUANTIZE_STEP_PC,
+	omegaCenCenterPc: OMEGA_CEN_CENTER_PC,
+	omegaCenVolumeRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
+	omegaCenOrbitRadiusPc: OMEGA_CEN_ORBIT_RADIUS_PC,
+	omegaCenTravelSecs: OMEGA_CEN_TRAVEL_SECS,
+}));
+const OMEGA_CEN_DESTINATION_DEMAND_STRATEGY = createSphereVolumeStrategy({
+	centerPc: OMEGA_CEN_CENTER_PC,
+	radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC + OMEGA_CEN_ORBIT_RADIUS_PC + OMEGA_CEN_PRELOAD_PADDING_PC,
+});
+const OMEGA_CEN_ROUTE_DEMAND_STRATEGY = createOmegaCenRouteDemandStrategy();
+const PLEIADES_RETURN_ANCHOR_PC = Object.freeze(
+	createOrbitAnchorPoint(PLEIADES_CENTER_PC, 10, DEFAULT_ORBIT_NORMAL),
+);
+const OMEGA_RETURN_ROUTES = Object.freeze({
+	'ngc-752': OMEGA_CEN_ROUTE.reversePointsPc,
+	pleiades: Object.freeze(createOmegaReturnRoutePoints(OMEGA_CEN_ROUTE.reversePointsPc, PLEIADES_RETURN_ANCHOR_PC)),
+	'away-volume': Object.freeze(createOmegaReturnRoutePoints(OMEGA_CEN_ROUTE.reversePointsPc, OFFSET_SAMPLE_PC)),
+	'local-volume': Object.freeze(createOmegaReturnRoutePoints(OMEGA_CEN_ROUTE.reversePointsPc, SOLAR_ORIGIN_PC)),
+});
 
 const HIGHLIGHT_PRESETS = {
 	'white-dwarfs': {
@@ -222,14 +272,118 @@ const HR_JOURNEY = createJourney({
 		}),
 	},
 	transitions: [
-		{
-			fromSceneId: 'ngc-752',
-			toSceneId: 'omega-cen',
-			preloadHints: OMEGA_CEN_PRELOAD_HINTS,
-		},
+		createOmegaForwardTransition(),
+		createOmegaReturnTransition('ngc-752', OMEGA_RETURN_ROUTES['ngc-752'], {
+			durationSecs: OMEGA_CEN_TRAVEL_SECS,
+			arrivalAction: OMEGA_CEN_ROUTE.reverseArrivalAction,
+		}),
+		createOmegaReturnTransition('pleiades', OMEGA_RETURN_ROUTES.pleiades),
+		createOmegaReturnTransition('away-volume', OMEGA_RETURN_ROUTES['away-volume']),
+		createOmegaReturnTransition('local-volume', OMEGA_RETURN_ROUTES['local-volume']),
 	],
 	travel: { type: 'orbit-transfer', durationSecs: 5, sampleStepSecs: 1 / 24 },
 });
+
+function createOmegaForwardTransition() {
+	return {
+		fromSceneId: 'ngc-752',
+		toSceneId: 'omega-cen',
+		preloadHints: OMEGA_CEN_PRELOAD_HINTS,
+		travel: {
+			type: 'orbit-transfer',
+			durationSecs: OMEGA_CEN_TRAVEL_SECS,
+			sampleStepSecs: 1 / 24,
+			arrivalThreshold: 0.05,
+			pointsPc: OMEGA_CEN_ROUTE.forwardPointsPc,
+			arrivalAction: OMEGA_CEN_ROUTE.forwardArrivalAction,
+		},
+	};
+}
+
+function createOmegaReturnTransition(toSceneId, pointsPc, {
+	durationSecs = OMEGA_CEN_RETURN_TO_INNER_TRAVEL_SECS,
+	arrivalAction = null,
+} = {}) {
+	return {
+		fromSceneId: 'omega-cen',
+		toSceneId,
+		preloadHints: OMEGA_CEN_PRELOAD_HINTS,
+		travel: {
+			type: 'orbit-transfer',
+			durationSecs,
+			sampleStepSecs: 1 / 24,
+			arrivalThreshold: 0.05,
+			pointsPc,
+			...(arrivalAction ? { arrivalAction } : {}),
+		},
+	};
+}
+
+function createOmegaCenRouteDemandStrategy() {
+	const strategies = OMEGA_CEN_PRELOAD_HINTS
+		.map(createStrategyFromPreloadHint)
+		.filter(Boolean);
+	strategies.push(createSphereVolumeStrategy({
+		centerPc: OMEGA_CEN_ROUTE.startAnchorPc,
+		radiusPc: LESSON_VOLUME_RADIUS_PC + NGC_752_ORBIT_RADIUS_PC + OMEGA_CEN_PRELOAD_PADDING_PC,
+	}));
+	strategies.push(OMEGA_CEN_DESTINATION_DEMAND_STRATEGY);
+	return strategies.length === 1 ? strategies[0] : combineStrategies(strategies);
+}
+
+function createStrategyFromPreloadHint(hint) {
+	if (hint?.kind === 'path-volume' && Array.isArray(hint.pointsPc) && hint.pointsPc.length >= 2) {
+		return createPathVolumeStrategy({
+			pointsPc: hint.pointsPc,
+			radiusPc: hint.radiusPc,
+		});
+	}
+	if (hint?.kind === 'sphere-volume') {
+		return createSphereVolumeStrategy({
+			centerPc: hint.centerPc,
+			radiusPc: hint.radiusPc,
+		});
+	}
+	return null;
+}
+
+function createRouteAwareHrState(scene, { arrival = false } = {}) {
+	const state = {
+		...(scene?.hr && typeof scene.hr === 'object' ? scene.hr : {}),
+	};
+	const sceneId = typeof scene?.sceneId === 'string'
+		? scene.sceneId
+		: (typeof scene?.toSceneId === 'string' ? scene.toSceneId : null);
+	if (arrival) {
+		state.demandStrategy = sceneId === 'omega-cen'
+			? useOmegaCenDestinationDemandStrategy
+			: null;
+		return state;
+	}
+	if (isOmegaTransferScene(scene)) {
+		state.demandStrategy = useOmegaCenRouteDemandStrategy;
+	} else if (sceneId === 'omega-cen') {
+		state.demandStrategy = useOmegaCenDestinationDemandStrategy;
+	} else {
+		state.demandStrategy = null;
+	}
+	return state;
+}
+
+function isOmegaTransferScene(scene) {
+	const fromSceneId = typeof scene?.fromSceneId === 'string' ? scene.fromSceneId : null;
+	const toSceneId = typeof scene?.toSceneId === 'string' ? scene.toSceneId : null;
+	return (fromSceneId === 'ngc-752' && toSceneId === 'omega-cen') ||
+		(fromSceneId === 'omega-cen' && Object.hasOwn(OMEGA_RETURN_ROUTES, toSceneId));
+}
+
+function useOmegaCenRouteDemandStrategy() {
+	return OMEGA_CEN_ROUTE_DEMAND_STRATEGY;
+}
+
+function useOmegaCenDestinationDemandStrategy() {
+	return OMEGA_CEN_DESTINATION_DEMAND_STRATEGY;
+}
 
 export async function mountHrDiagramViewer(root) {
 	const mount = root.querySelector('[data-hr-diagram-viewer-shell]');
@@ -253,6 +407,10 @@ export async function mountHrDiagramViewer(root) {
 		id: `website-hr-diagram-source-${topicId}`,
 		provider,
 		session: { id: sessionId },
+		retainCellsOnRestart: {
+			until: 'current',
+			maxAgeMs: 20_000,
+		},
 	});
 	const starField = createThreeStarField({
 		limitingMagnitude: DEFAULT_HR_MAG_LIMIT,
@@ -281,6 +439,7 @@ export async function mountHrDiagramViewer(root) {
 	const completedPreloadKeys = new Set();
 	const inFlightPreloads = new Map();
 	const activePreloadControllers = new Map();
+	const pinnedPreloadKeys = new Set();
 	let activePreloadKeys = new Set();
 	let preloadQueue = Promise.resolve();
 
@@ -339,15 +498,15 @@ export async function mountHrDiagramViewer(root) {
 				onScene(scene) {
 					updateActivePreloadScope(scene?.preloadHints);
 					activeSceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : activeSceneId;
-					void applyHrSceneState(scene?.hr, 'website.hrDiagram.scene');
+					void applyHrSceneState(createRouteAwareHrState(scene), 'website.hrDiagram.scene');
 				},
 				onSceneArrive(scene) {
 					const arrivalVolumeRadiusPc = positiveFiniteOrNull(scene?.hr?.arrivalVolumeRadiusPc);
+					const hrState = createRouteAwareHrState(scene, { arrival: true });
 					if (arrivalVolumeRadiusPc !== null) {
-						void applyHrSceneState({
-							volumeRadiusPc: arrivalVolumeRadiusPc,
-						}, 'website.hrDiagram.arrival');
+						hrState.volumeRadiusPc = arrivalVolumeRadiusPc;
 					}
+					void applyHrSceneState(hrState, 'website.hrDiagram.arrival');
 				},
 				onPreloadHints(hints) {
 					queuePreloadHints(hints);
@@ -361,6 +520,7 @@ export async function mountHrDiagramViewer(root) {
 		id: 'website-hr-diagram',
 		label: 'Website HR Diagram Lesson',
 	});
+	queuePreloadHints(OMEGA_CEN_PRELOAD_HINTS, { pin: true });
 	await flushPendingHrSceneStates();
 
 	function createHudRoot(hrPlugin, host) {
@@ -406,10 +566,12 @@ export async function mountHrDiagramViewer(root) {
 		});
 	}
 
-	function queuePreloadHints(hints) {
+	function queuePreloadHints(hints, { pin = false } = {}) {
 		const requests = createSkykitStarPreloadRequestsFromSpatialHints(hints);
 		for (const request of requests) {
-			activePreloadKeys.add(createPreloadRequestKey(request));
+			const key = createPreloadRequestKey(request);
+			if (pin) pinnedPreloadKeys.add(key);
+			activePreloadKeys.add(key);
 		}
 		preloadQueue = preloadQueue
 			.catch(() => null)
@@ -442,6 +604,12 @@ export async function mountHrDiagramViewer(root) {
 				strategy: request.strategy,
 				view: request.view,
 				attributes: STAR_ATTRIBUTES,
+				cache: {
+					decodedMemoryLease: {
+						key: OMEGA_CEN_MEMORY_LEASE_KEY,
+						ttlMs: OMEGA_CEN_MEMORY_LEASE_TTL_MS,
+					},
+				},
 				streaming: { emitCachedFirst: true },
 				signal: controller.signal,
 			})
@@ -471,7 +639,10 @@ export async function mountHrDiagramViewer(root) {
 
 	function updateActivePreloadScope(hints) {
 		const requests = createSkykitStarPreloadRequestsFromSpatialHints(hints ?? []);
-		const nextKeys = new Set(requests.map(createPreloadRequestKey));
+		const nextKeys = new Set(pinnedPreloadKeys);
+		for (const request of requests) {
+			nextKeys.add(createPreloadRequestKey(request));
+		}
 		activePreloadKeys = nextKeys;
 		for (const [key, controller] of activePreloadControllers) {
 			if (!nextKeys.has(key)) {
@@ -507,6 +678,11 @@ export async function mountHrDiagramViewer(root) {
 			activeRadius = volumeRadiusPc;
 			hrOptions.volumeRadiusPc = activeRadius;
 		}
+		if ('demandStrategy' in state) {
+			hrOptions.demandStrategy = typeof state.demandStrategy === 'function'
+				? state.demandStrategy
+				: null;
+		}
 		if (Object.keys(hrOptions).length > 0) {
 			await hr.setOptions(hrOptions);
 		}
@@ -535,6 +711,7 @@ export async function mountHrDiagramViewer(root) {
 	async function destroy() {
 		if (disposed) return;
 		disposed = true;
+		pinnedPreloadKeys.clear();
 		updateActivePreloadScope([]);
 		window.removeEventListener('resize', resize);
 		window.removeEventListener('beforeunload', destroy);
@@ -561,53 +738,6 @@ export async function mountHrDiagramViewer(root) {
 		getState,
 		initialSceneId: HR_JOURNEY.initialSceneId,
 	};
-}
-
-function createOmegaCenPreloadHints() {
-	const start = defaultOrbitPosition(NGC_752_CENTER_PC, NGC_752_ORBIT_RADIUS_PC, DEFAULT_ORBIT_NORMAL);
-	const route = createOrbitTransferRoute({
-		start,
-		sourceOrbit: {
-			center: NGC_752_CENTER_PC,
-			radius: NGC_752_ORBIT_RADIUS_PC,
-			angularSpeedRadPerSec: NGC_752_ANGULAR_SPEED_RAD_PER_SEC,
-			normal: DEFAULT_ORBIT_NORMAL,
-		},
-		destinationOrbit: {
-			center: OMEGA_CEN_CENTER_PC,
-			radius: OMEGA_CEN_ORBIT_RADIUS_PC,
-			angularSpeedRadPerSec: OMEGA_CEN_ANGULAR_SPEED_RAD_PER_SEC,
-			normal: OMEGA_CEN_ORBIT_NORMAL,
-		},
-		durationSecs: OMEGA_CEN_TRAVEL_SECS,
-		sampleStepSecs: 1 / 24,
-	});
-	const routePointsPc = route?.points?.length >= 2
-		? route.points
-		: [
-			start,
-			defaultOrbitPosition(OMEGA_CEN_CENTER_PC, OMEGA_CEN_ORBIT_RADIUS_PC, OMEGA_CEN_ORBIT_NORMAL),
-		];
-	const pathRequests = buildTravelVolumeRequests({
-		routePointsPc,
-		radiusProfile: OMEGA_CEN_TRAVEL_RADIUS_PROFILE,
-		paddingPc: OMEGA_CEN_PRELOAD_PADDING_PC,
-		quantizeStepPc: OMEGA_CEN_PRELOAD_QUANTIZE_STEP_PC,
-	});
-	const hints = pathRequests.map((request, index) => ({
-		kind: 'path-volume',
-		pointsPc: request.pointsPc,
-		radiusPc: request.radiusPc,
-		priority: 30 - index,
-	}));
-	hints.push({
-		kind: 'sphere-volume',
-		centerPc: OMEGA_CEN_CENTER_PC,
-		radiusPc: OMEGA_CEN_VOLUME_RADIUS_PC + OMEGA_CEN_ORBIT_RADIUS_PC + OMEGA_CEN_PRELOAD_PADDING_PC,
-		timeRangeSecs: [OMEGA_CEN_TRAVEL_SECS, OMEGA_CEN_TRAVEL_SECS + 6],
-		priority: 5,
-	});
-	return hints;
 }
 
 function createLookScene({
@@ -707,36 +837,6 @@ function resolveAspectRatio(element) {
 function positiveFiniteOrNull(value) {
 	const number = Number(value);
 	return Number.isFinite(number) && number > 0 ? number : null;
-}
-
-function defaultOrbitPosition(center, radius, normal) {
-	const axis = Math.abs(normal.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
-	const projected = projectOnPlane(axis, normal);
-	const length = Math.hypot(projected.x, projected.y, projected.z);
-	const direction = length > 1e-9
-		? { x: projected.x / length, y: projected.y / length, z: projected.z / length }
-		: { x: 1, y: 0, z: 0 };
-	return {
-		x: center.x + direction.x * radius,
-		y: center.y + direction.y * radius,
-		z: center.z + direction.z * radius,
-	};
-}
-
-function projectOnPlane(vector, normal) {
-	const normalLength = Math.hypot(normal.x, normal.y, normal.z);
-	if (!(normalLength > 1e-9)) return { ...vector };
-	const unitNormal = {
-		x: normal.x / normalLength,
-		y: normal.y / normalLength,
-		z: normal.z / normalLength,
-	};
-	const dot = vector.x * unitNormal.x + vector.y * unitNormal.y + vector.z * unitNormal.z;
-	return {
-		x: vector.x - unitNormal.x * dot,
-		y: vector.y - unitNormal.y * dot,
-		z: vector.z - unitNormal.z * dot,
-	};
 }
 
 function createPreloadRequestKey(request) {
