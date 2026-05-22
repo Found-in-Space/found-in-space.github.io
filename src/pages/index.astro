@@ -502,6 +502,10 @@ const aboutPath = `${basePath}about/`;
 	/* ── Responsive ────────────────────────────────── */
 
 	@media (max-width: 900px) {
+		.section-grid {
+			grid-template-columns: 1fr;
+		}
+
 		.ways-in__grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}

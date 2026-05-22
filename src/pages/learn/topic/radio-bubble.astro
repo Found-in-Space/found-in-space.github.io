@@ -24,9 +24,10 @@ const basePath = import.meta.env.BASE_URL;
 			<p class="eyebrow">Learn</p>
 			<h1>The radio bubble</h1>
 			<p class="lede">
-				In 1895, Guglielmo Marconi transmitted the first radio signals. Those electromagnetic
-				waves have been expanding outward at the speed of light ever since — a growing sphere
-				centred on Earth. It sounds impressive. It is not.
+				In summer 1895, Guglielmo Marconi took wireless telegraphy outdoors at Villa
+				Griffone near Bologna. Those electromagnetic waves have been expanding outward
+				at the speed of light ever since — a growing sphere centred on Earth. It sounds
+				impressive. It is not.
 			</p>
 		</section>
 
@@ -35,8 +36,10 @@ const basePath = import.meta.env.BASE_URL;
 			<p>
 				Every radio broadcast, every television transmission, every radar pulse ever emitted
 				by humanity is still out there, propagating through space at 300,000 kilometres per
-				second. After 131 years the wavefront has reached a radius of about 131 light-years —
-				roughly 40 parsecs.
+				second. Using 1 July 1895 as an approximate marker for Marconi's outdoor tests, the
+				wavefront has reached a radius of about
+				<span data-radio-bubble-radius-ly>131</span> light-years — roughly
+				<span data-radio-bubble-radius-pc>40</span> parsecs.
 			</p>
 			<p>
 				That sphere, sometimes called the <em>radio bubble</em>, defines the volume of space
@@ -45,8 +48,8 @@ const basePath = import.meta.env.BASE_URL;
 				outside it has no electromagnetic evidence that we exist.
 			</p>
 			<p>
-				Scroll through the tour below to see the bubble from inside, from outside, and from
-				the nearest star cluster just beyond its edge.
+				Scroll through the tour below to see the bubble begin, grow, and reach toward the
+				nearest star cluster just beyond its edge.
 			</p>
 		</section>
 
@@ -54,44 +57,62 @@ const basePath = import.meta.env.BASE_URL;
 
 		<div class="narrated-tour" data-radio-bubble-tour>
 			<div class="narrated-tour__chapters">
-				<section class="narrated-tour__chapter" data-viewpoint="inside">
-					<p class="narrated-tour__chapter-eyebrow">Sun orbit · inside the shell</p>
-					<h2 class="narrated-tour__chapter-title">Inside the bubble</h2>
+				<section class="narrated-tour__chapter" data-viewpoint="before-radio">
+					<p class="narrated-tour__chapter-eyebrow">Earth orbit · before radio</p>
+					<h2 class="narrated-tour__chapter-title">Before the bubble</h2>
 					<p>
-						From inside, there is nothing to see — the bubble is invisible. You are
-						surrounded by stars, many of which have been bathed in our radio signals for
-						decades. The faint blue shell marks the wavefront's current position at roughly
-						40 parsecs.
+						Before wireless telegraphy, there is no radio bubble. From Earth, the stars
+						look exactly as they always did: distant, quiet, and unaware of us. At this
+						scale, Earth and the Sun share the same point — the solar origin.
 					</p>
 					<p>
-						The stars inside this sphere are mostly nearby dwarfs — dim red and orange
-						stars too faint to see with the naked eye. A few brighter ones stand out:
-						Sirius at 2.6 parsecs, Vega at 7.7, Arcturus at 11. All of them have been
-						receiving our broadcasts since the mid-twentieth century.
+						Nothing has crossed interstellar space yet. No broadcast, no radar pulse,
+						no carrier wave. The story begins with a signal too local to matter to the
+						stars — until time gives it distance.
+					</p>
+				</section>
+
+				<section class="narrated-tour__chapter" data-viewpoint="marconi">
+					<p class="narrated-tour__chapter-eyebrow">Summer 1895 · Villa Griffone</p>
+					<h2 class="narrated-tour__chapter-title">Marconi starts the clock</h2>
+					<p>
+						<strong>Summer 1895 — Marconi’s outdoor wireless telegraphy experiments,
+						Villa Griffone, Pontecchio, Italy.</strong> The historical record does not
+						give us a precise day, so the tour uses 1 July 1895 as an approximate
+						calculation marker.
+					</p>
+					<p>
+						As the chapter begins, the shell grows from Earth at light speed. The camera
+						rides just outside the wavefront, turning a century of radio history into a
+						few seconds of motion. By the time it settles, the radio bubble has reached
+						its present radius.
 					</p>
 				</section>
 
 				<section class="narrated-tour__chapter" data-viewpoint="outside">
-					<p class="narrated-tour__chapter-eyebrow">65 pc from the Sun · outside the shell</p>
+					<p class="narrated-tour__chapter-eyebrow">175 pc from the Sun · outside the shell</p>
 					<h2 class="narrated-tour__chapter-title">Seeing the shell</h2>
 					<p>
-						Pull back far enough and the bubble becomes visible — a faint sphere centred
-						on the Sun, threading through the local stars. At 40 parsecs radius it
-						contains roughly a thousand stellar systems. That sounds like a lot until you
-						see how small it is against the backdrop of the galaxy.
+						Pull much farther back and the bubble becomes visible as a small, faint
+						sphere centred on the Sun, threaded through the local stars. At about
+						<span data-radio-bubble-radius-pc>40</span> parsecs radius, it contains
+						roughly a thousand stellar systems. That sounds like a lot until you compare
+						it with the Milky Way.
 					</p>
 					<p>
-						The Milky Way is about 30,000 parsecs across. Our radio bubble is a millionth
-						of that diameter. If the galaxy were the size of a football pitch, the radio
-						bubble would be smaller than a grain of sand.
+						The galaxy is about 30,000 parsecs across. An
+						<span data-radio-bubble-diameter-pc>80</span>-parsec-wide radio bubble is
+						large enough to matter locally, but tiny on a galactic scale. From this
+						distance, it starts to feel less like a frontier and more like a small
+						neighbourhood around one ordinary star.
 					</p>
 					<p>
 						And the signals themselves are weakening. Broadcast-strength radio waves
 						follow the inverse-square law: double the distance, quarter the power.
-						At 40 parsecs, an ordinary television broadcast is billions of times too
-						faint to detect with any technology we currently possess. Only a civilisation
-						with an extraordinarily sensitive receiver — or one specifically pointed at
-						us — would notice.
+						At <span data-radio-bubble-radius-pc>40</span> parsecs, an ordinary
+						television broadcast is billions of times too faint to detect with any
+						technology we currently possess. Only a civilisation with an extraordinarily
+						sensitive receiver — or one specifically pointed at us — would notice.
 					</p>
 				</section>
 
@@ -101,8 +122,9 @@ const basePath = import.meta.env.BASE_URL;
 					<p>
 						The Hyades — the nearest open star cluster to the Sun — sit at about
 						48 parsecs. That puts them just outside the radio bubble. Our earliest
-						signals are roughly 8 parsecs short. At the speed of light, they will
-						arrive in about 25 years.
+						signals are roughly <span data-radio-bubble-hyades-gap-pc>8</span> parsecs
+						short. At the speed of light, they will arrive in about
+						<span data-radio-bubble-hyades-arrival-years>25</span> years.
 					</p>
 					<p>
 						Could anything be listening? The Hyades are about 680 million years old —
@@ -148,12 +170,21 @@ const basePath = import.meta.env.BASE_URL;
 			<div class="narrated-tour__viewer-col">
 				<div class="narrated-tour__viewer-sticky">
 					<div class="narrated-tour__nav">
-						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="inside">Inside</button>
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="before-radio">Before</button>
+						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="marconi">Marconi</button>
 						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="outside">Outside</button>
 						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="hyades">Hyades</button>
 						<button type="button" class="narrated-tour__nav-button" data-viewpoint-fly="home">Home</button>
 					</div>
-					<div class="narrated-tour__viewer-shell" data-radio-bubble-shell></div>
+					<div class="radio-bubble-viewer-frame">
+						<div class="narrated-tour__viewer-shell" data-radio-bubble-shell></div>
+						<span
+							class="radio-bubble-timeline"
+							data-radio-bubble-timeline
+							aria-live="off"
+							hidden
+						></span>
+					</div>
 					<span class="narrated-tour__status" data-radio-bubble-status>Loading…</span>
 				</div>
 			</div>
@@ -232,15 +263,32 @@ const basePath = import.meta.env.BASE_URL;
 	const tourRoot = document.querySelector('[data-radio-bubble-tour]');
 	const mount = document.querySelector('[data-radio-bubble-shell]');
 	const statusEl = document.querySelector('[data-radio-bubble-status]');
+	const timelineEl = document.querySelector('[data-radio-bubble-timeline]');
 	const chapters = tourRoot?.querySelectorAll('.narrated-tour__chapter[data-viewpoint]') ?? [];
 	const navButtons = tourRoot?.querySelectorAll('[data-viewpoint-fly]') ?? [];
+	const HYADES_DISTANCE_PC = Math.hypot(17.574, 42.316, 13.963);
+	const LY_PER_PC = 3.2615637775591093;
+	const JULIAN_YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+	const FIRST_RADIO_SIGNAL_DATE_UTC_MS = Date.UTC(1895, 6, 1);
 
 	if (mount && tourRoot) {
 		mountRadioBubbleViewer(mount, {
 			onStatus(msg) {
 				if (statusEl) statusEl.textContent = msg;
 			},
+			onTimelineDateChange(label) {
+				if (!timelineEl) return;
+				if (label) {
+					timelineEl.textContent = label;
+					timelineEl.hidden = false;
+					return;
+				}
+				timelineEl.textContent = '';
+				timelineEl.hidden = true;
+			},
 		}).then((result) => {
+			updateComputedCopy(result);
+			window.setInterval(() => updateComputedCopy(result), 1000);
 			setupNarratedTour({
 				root: tourRoot,
 				chapters,
@@ -255,12 +303,45 @@ const basePath = import.meta.env.BASE_URL;
 					result.goTo(id);
 				},
 				statusEl,
-				initialId: 'inside',
+				initialId: 'before-radio',
 			});
 		}).catch((err) => {
 			console.error('[website:radio-bubble]', err);
 			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
 		});
+	}
+
+	function updateComputedCopy(result) {
+		const liveRadiusLy = Math.max(
+			0,
+			(Date.now() - FIRST_RADIO_SIGNAL_DATE_UTC_MS) / JULIAN_YEAR_MS,
+		);
+		const radiusLy = liveRadiusLy || Math.max(0, Number(result.radiusLy) || 0);
+		const radiusPc = radiusLy / LY_PER_PC;
+		const hyadesGapPc = Math.max(0, HYADES_DISTANCE_PC - radiusPc);
+
+		setCopyValue('[data-radio-bubble-radius-ly]', formatWholeNumber(radiusLy));
+		setCopyValue('[data-radio-bubble-radius-pc]', formatWholeNumber(radiusPc));
+		setCopyValue('[data-radio-bubble-diameter-pc]', formatWholeNumber(radiusPc * 2));
+		setCopyValue('[data-radio-bubble-hyades-gap-pc]', formatWholeNumber(hyadesGapPc));
+		setCopyValue(
+			'[data-radio-bubble-hyades-arrival-years]',
+			formatPreciseYears(hyadesGapPc * LY_PER_PC),
+		);
+	}
+
+	function setCopyValue(selector, value) {
+		document.querySelectorAll(selector).forEach((el) => {
+			el.textContent = value;
+		});
+	}
+
+	function formatWholeNumber(value) {
+		return String(Math.max(0, Math.round(Number(value) || 0)));
+	}
+
+	function formatPreciseYears(value) {
+		return Math.max(0, Number(value) || 0).toFixed(6);
 	}
 </script>
 
@@ -324,6 +405,35 @@ const basePath = import.meta.env.BASE_URL;
 		padding: 2.5rem 0 1rem;
 	}
 
+	/* ── Viewer overlay ───────────────────────────── */
+
+	.radio-bubble-viewer-frame {
+		position: relative;
+	}
+
+	.radio-bubble-timeline {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
+		z-index: 2;
+		padding: 0.28rem 0.62rem;
+		border: 1px solid rgba(141, 183, 255, 0.28);
+		border-radius: 999px;
+		background: rgba(2, 4, 11, 0.72);
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+		color: var(--fis-text);
+		font-size: 0.82rem;
+		font-weight: 600;
+		line-height: 1.15;
+		letter-spacing: 0;
+		pointer-events: none;
+		backdrop-filter: blur(10px);
+	}
+
+	.radio-bubble-timeline[hidden] {
+		display: none;
+	}
+
 	/* ── Explore section ──────────────────────────── */
 
 	.explore-section {
@@ -380,6 +490,13 @@ const basePath = import.meta.env.BASE_URL;
 
 		h1 {
 			font-size: clamp(2.2rem, 12vw, 3.6rem);
+		}
+
+		.radio-bubble-timeline {
+			top: 0.55rem;
+			right: 0.55rem;
+			padding: 0.24rem 0.52rem;
+			font-size: 0.76rem;
 		}
 	}
 </style>
