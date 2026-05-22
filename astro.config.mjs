@@ -44,7 +44,11 @@ const skyculturePackageAliases = resolvedSkyculturesRoot
 const touchOsPackageAliases = resolvedTouchOsRoot
 	? createTouchOsPackageAliases(resolvedTouchOsRoot)
 	: [];
-const localPackageAliases = [...skykitPackageAliases, ...skyculturePackageAliases, ...touchOsPackageAliases]
+const localPackageAliases = [
+	...skykitPackageAliases,
+	...skyculturePackageAliases,
+	...touchOsPackageAliases,
+]
 	.sort((a, b) => b.find.length - a.find.length);
 const legacySkykitEntry = resolvedSkykitRoot
 	? resolve(resolvedSkykitRoot, 'src/index.js')
@@ -167,10 +171,6 @@ function createFoundInSpaceWorkspaceAliases(workspaceRoot) {
 		['@found-in-space/anchored-image', 'packages/anchored-image/src/index.js'],
 		['@found-in-space/hr-diagram/touch-os', 'packages/hr-diagram/src/touch-os.js'],
 		['@found-in-space/hr-diagram', 'packages/hr-diagram/src/index.js'],
-		['@found-in-space/journey-video/editor', 'packages/journey-video/src/editor.js'],
-		['@found-in-space/journey-video/export/node', 'packages/journey-video/src/export-node.js'],
-		['@found-in-space/journey-video/export', 'packages/journey-video/src/export.js'],
-		['@found-in-space/journey-video', 'packages/journey-video/src/index.js'],
 		['@found-in-space/journey', 'packages/journey/src/index.js'],
 		['@found-in-space/meta-sidecar-provider', 'packages/meta-sidecar-provider/src/index.js'],
 		['@found-in-space/skykit/parallax', 'packages/skykit/src/parallax.js'],

@@ -27,8 +27,8 @@ Astro's dev server will start at `http://localhost:4321/` (or the next available
 The live site should use released `@found-in-space/*` packages from
 `package.json`. Do not deploy with a local package override.
 
-While migrating pages to the alpha SkyKit packages, you can point the Astro dev
-server at sibling SkyKit and touch-os monorepos:
+For local development against unreleased alpha package sources, you can point
+the Astro dev server at sibling SkyKit and touch-os projects:
 
 ```sh
 SKYKIT_LOCAL_PATH=../skykit TOUCH_OS_LOCAL_PATH=../touch-os npm run dev
@@ -37,8 +37,8 @@ SKYKIT_LOCAL_PATH=../skykit TOUCH_OS_LOCAL_PATH=../touch-os npm run dev
 With those variables set, `astro.config.mjs` resolves normal package imports
 such as `@found-in-space/skykit`, `@found-in-space/skykit/parallax`,
 `@found-in-space/star-octree-provider`, and `@found-in-space/three-star-field`
-to local workspace source, and `@found-in-space/touch-os` to the sibling package
-build.
+to local workspace source, and `@found-in-space/touch-os` to the sibling
+package build.
 Page code should still import public package names, not relative paths into
 sibling repositories, so it can switch back to released packages once those
 versions are published.
