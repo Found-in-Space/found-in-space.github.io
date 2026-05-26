@@ -68,7 +68,7 @@ const questions = [
 
 <Layout
 	title="Teach | Found in Space"
-	description="Use Found in Space in lessons, workshops, and outreach with real astronomical data, guided visualisations, classroom prompts, and inquiry projects."
+	description="Use Found in Space in activities, workshops, and outreach with real astronomical data, guided visualisations, classroom prompts, and inquiry projects."
 >
 	<SiteHeader section="Teach with real data" />
 
@@ -82,7 +82,7 @@ const questions = [
 				Most activities need no coding; every one can become a deeper project.
 			</p>
 			<div class="hero__actions">
-				<a class="button button--primary" href="#ready-made-lessons">Start with a lesson</a>
+				<a class="button button--primary" href="#ready-to-use-activities">Start with an activity</a>
 				<a class="button button--ghost" href="#inquiry">Run an inquiry activity</a>
 				<a class="button button--ghost" href={`${basePath}learn-build/`}>Create or adapt</a>
 			</div>
@@ -93,7 +93,7 @@ const questions = [
 				<p class="panel__eyebrow">Use it quickly</p>
 				<h2>Can I use this in a lesson?</h2>
 				<p>
-					Yes. Start with a guided viewer or lesson page, then use the prompts below for
+					Yes. Start with a guided viewer or activity page, then use the prompts below for
 					discussion, worksheet questions, or small-group investigation.
 				</p>
 			</article>
@@ -101,7 +101,7 @@ const questions = [
 				<p class="panel__eyebrow">Choose a level</p>
 				<h2>What age or stage is it for?</h2>
 				<p>
-					Activities work best from secondary school upward. Each lesson lists the suggested
+					Activities work best from secondary school upward. Each activity lists the suggested
 					level, timing, astronomy idea, and data idea so you can pick the right depth.
 				</p>
 			</article>
@@ -109,18 +109,18 @@ const questions = [
 				<p class="panel__eyebrow">Extend it</p>
 				<h2>Do students need coding?</h2>
 				<p>
-					No for the visual lessons. Optional extensions use starter data, notebooks, the open
-					pipeline, or student-made visualisations when you want a project layer.
+					No for the visual activities. Optional extensions use starter data guides, notebooks,
+					the open pipeline, or student-made visualisations when you want a project layer.
 				</p>
 			</article>
 		</section>
 
-		<section class="lesson-section" id="ready-made-lessons" aria-label="Ready-made lessons">
+		<section class="lesson-section" id="ready-to-use-activities" aria-label="Ready-to-use activities">
 			<div class="section-heading">
-				<p class="eyebrow">Ready-made lessons</p>
+				<p class="eyebrow">Ready-to-use activities</p>
 				<h2>Start with a guided visualisation.</h2>
 				<p>
-					Each lesson pairs an astronomy idea with a data idea. That pairing is the heart of
+					Each activity pairs an astronomy idea with a data idea. That pairing is the heart of
 					Found in Space: students learn what the universe is doing and how the evidence is built.
 				</p>
 			</div>
@@ -150,7 +150,7 @@ const questions = [
 								<dd>{lesson.data}</dd>
 							</div>
 						</dl>
-						<span class="lesson-card__cta">Open lesson</span>
+						<span class="lesson-card__cta">Open activity</span>
 					</a>
 				))}
 			</div>
@@ -159,11 +159,11 @@ const questions = [
 		<section class="inquiry" id="inquiry" aria-label="Inquiry activities">
 			<div class="inquiry__intro">
 				<p class="eyebrow">Investigations</p>
-				<h2>Use questions that do not collapse into a single fact.</h2>
+				<h2>Ask questions students can investigate, not just answer.</h2>
 				<p>
-					Real data is not a neutral photograph of reality. It carries uncertainty, selection
-					effects, coordinate choices, and measurement limits. That is exactly why it is useful
-					in a classroom.
+					Real data carries uncertainty, selection effects, coordinate choices, and measurement
+					limits. That is exactly why it is useful in a classroom: students can test whether a
+					pattern comes from the stars, the sample, or the way the data is shown.
 				</p>
 			</div>
 			<div class="panel panel--accent inquiry__panel">
@@ -184,14 +184,14 @@ const questions = [
 			</div>
 			<div class="adapt__body">
 				<p>
-					Students can begin with a prepared dataset, make a chart or simple 3D scene, then move
-					toward the full open pipeline if they want to understand how Gaia and Hipparcos become a
-					browser-ready star map.
+					Students can begin with a small bright-star data guide, make a chart or simple 3D
+					scene, then move toward the full open pipeline if they want to understand how Gaia
+					and Hipparcos become a browser-ready star map.
 				</p>
 				<div class="adapt__actions">
 					<a class="button button--primary" href={`${basePath}learn-build/`}>Learn &amp; build</a>
 					<a class="button button--ghost" href={`${basePath}build/download-the-star-data/`}>
-						Get starter data
+						Use the starter guide
 					</a>
 				</div>
 			</div>

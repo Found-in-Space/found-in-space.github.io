@@ -27,29 +27,28 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 
 		<article class="body prose">
 
-			<section class="section">
-				<h2>Why two catalogues?</h2>
-				<p>
-					ESA's <strong>Gaia</strong> mission (launched 2013, Data Release 3 in 2022) surveyed
-					roughly 1.8 billion sources with sub-milliarcsecond astrometry — an unprecedented map of
-					the Milky Way. But Gaia's CCDs saturate on the brightest stars. For sources brighter
-					than about G&nbsp;~&nbsp;3–6, the astrometric solutions are often incomplete, degraded,
-					or missing entirely. These are exactly the stars that people recognise when they look up:
-					Sirius, Vega, Betelgeuse, the Southern Cross.
-				</p>
-				<p>
-					<strong>Hipparcos</strong> (ESA, 1989–1993; revised by van Leeuwen 2007) was
-					purpose-built for bright-star astrometry. Its catalogue of around 118,000 stars covers
-					the naked-eye sky reliably, including many objects where Gaia struggles. The trade-off is
-					that Hipparcos is shallow — it has nothing useful to say about the vast majority of
-					the galaxy.
-				</p>
-				<p>
-					For a complete 3D star map you need both: Gaia for depth and completeness, Hipparcos for
-					the bright-star anchors. But roughly 100,000 stars appear in both catalogues, and the
-					pipeline must produce exactly <em>one canonical row</em> per physical star.
-				</p>
-			</section>
+				<section class="section">
+					<h2>Why two catalogues?</h2>
+					<p>
+						ESA's <strong>Gaia</strong> mission (launched 2013, Data Release 3 in 2022) surveyed
+						roughly 1.8 billion sources with sub-milliarcsecond astrometry — an unprecedented map of
+						the Milky Way. But the very brightest objects can require special handling in Gaia:
+						their astrometric solutions may be incomplete, degraded, or missing entirely. These are
+						often exactly the stars that people recognise when they look up: Sirius, Vega,
+						Betelgeuse, the Southern Cross.
+					</p>
+					<p>
+						<strong>Hipparcos</strong> (ESA, 1989–1993; revised by van Leeuwen 2007) was
+						purpose-built for bright-star astrometry. Its catalogue of around 118,000 stars gives
+						the pipeline a compact, high-quality bright-star backbone. The trade-off is that
+						Hipparcos is shallow — it has nothing useful to say about the vast majority of the galaxy.
+					</p>
+					<p>
+						For a usable 3D star map you need both: Gaia for depth and scale, Hipparcos for
+						the bright-star anchors. But roughly 100,000 stars appear in both catalogues, and the
+						pipeline must produce exactly <em>one canonical row</em> per physical star.
+					</p>
+				</section>
 
 			<section class="section">
 				<h2>Why deduplication is hard</h2>
@@ -255,7 +254,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 					</li>
 				</ul>
 				<p>
-					Cross-catalog identifiers (for example, the Gaia DR3 source ID of a Hipparcos star)
+					Cross-catalogue identifiers (for example, the Gaia DR3 source ID of a Hipparcos star)
 					are stored in a separate identifiers sidecar keyed by the same compound key —
 					they are not duplicated on every row of the dense output table.
 				</p>

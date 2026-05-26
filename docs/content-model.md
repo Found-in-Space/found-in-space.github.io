@@ -205,7 +205,7 @@ Primary job:
 Core sections:
 
 - practical teacher questions answered
-- ready-made lesson list
+- ready-to-use activity list
 - inquiry prompts
 - create-or-adapt route into starter data and build work
 
@@ -217,7 +217,7 @@ Primary job:
 
 Core sections:
 
-- three doors: use the data, learn concepts, run the machinery
+- three doors: use the data, learn concepts, inspect the machinery
 - astronomy idea / data idea map
 - beginner, pipeline, and machinery build layers
 - investigations as next project prompts

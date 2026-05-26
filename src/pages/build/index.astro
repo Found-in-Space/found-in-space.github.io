@@ -9,7 +9,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 
 <Layout
 	title="Build | Found in Space"
-	description="Over a billion stars from ESA's Gaia mission and the Hipparcos survey, merged, spatially indexed, and navigable in a browser. The full open pipeline."
+	description="Astronomical catalogue data from Gaia, Hipparcos, and distance estimates, merged, spatially indexed, and navigable in a browser. The full open pipeline."
 >
 	<SiteHeader section="Build" />
 
@@ -18,9 +18,10 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 			<p class="eyebrow">Build with the data</p>
 			<h1>Use the same star data behind the viewer.</h1>
 			<p class="intro">
-				Start with a small prepared dataset, run the open pipeline when you are ready, or read
+				Start with a small bright-star query, run the open pipeline when you are ready, or read
 				the technical notes that explain how Gaia and Hipparcos become a browser-ready 3D star
-				map. Every step is open: catalogues, code, spatial index, and viewer.
+				map. The project code is open: the data pipeline, spatial index, and viewer can all be
+				inspected and built on.
 			</p>
 		</section>
 
@@ -29,10 +30,10 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 				<p class="panel__eyebrow">Use the data</p>
 				<h2>Start with a small sample</h2>
 				<p>
-					Not ready to run the full pipeline? Begin with a prepared bright-star dataset and
-					build something visible: a chart, classroom prompt, notebook, or simple 3D scene.
+					Not ready to run the full pipeline? Begin with a starter bright-star query and build
+					something visible: a chart, classroom prompt, notebook, or simple 3D scene.
 				</p>
-				<a class="step__link" href={`${basePath}build/download-the-star-data/`}>Get starter data →</a>
+				<a class="step__link" href={`${basePath}build/download-the-star-data/`}>Use the starter guide →</a>
 			</article>
 			<article class="panel">
 				<p class="panel__eyebrow">Run the pipeline</p>
@@ -59,21 +60,22 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 		<section class="pipeline">
 			<article class="panel panel--accent step">
 				<p class="panel__eyebrow">Step one</p>
-				<h2>Two surveys, one star map</h2>
+				<h2>Two catalogues, one star map</h2>
 				<p>
-					Gaia DR3 measured over a billion stars with sub-milliarcsecond precision — positions,
-					parallaxes, proper motions, colours. But Gaia's detectors saturate on the brightest
-					stars: Sirius, Vega, Betelgeuse. These are exactly the stars people recognise.
+					Gaia DR3 gives Found in Space its foundation: a vast modern catalogue with positions,
+					brightnesses, parallaxes, proper motions, and colours for an unprecedented number of
+					sources. But a public star map also needs the familiar bright stars people recognise
+					by eye.
 				</p>
 				<p>
-					The Hipparcos mission (ESA, 1989–1993) was purpose-built for bright-star astrometry.
-					Its 118,000 stars anchor the naked-eye sky that Gaia cannot reliably reach.
+					The very brightest objects can require special handling in Gaia, so Found in Space
+					combines Gaia with Hipparcos and curated overrides to keep the naked-eye sky usable,
+					recognisable, and well documented.
 				</p>
 				<p>
-					About 100,000 stars appear in both catalogues. The pipeline produces exactly one
-					canonical row per physical star — choosing the better measurement for each, handling
-					binary systems, and manually curating the handful of cases that defeat automation
-					entirely (including the Sun, which does not appear in either catalogue).
+					About 100,000 stars appear in both catalogues. The pipeline produces one canonical
+					row per object wherever possible, choosing the best available measurement, handling
+					duplicate catalogue entries, and documenting special cases such as the Sun.
 				</p>
 				<a class="step__link" href={`${basePath}build/gaia-and-hipparcos-star-catalogues/`}>
 					How the merge works →
@@ -84,7 +86,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 				<p class="panel__eyebrow">Step two</p>
 				<h2>Cleaned, corrected, and positioned</h2>
 				<p>
-					Each star gets a distance — from the catalog parallax where reliable, from
+					Each star gets a working distance estimate: from catalogue parallax where reliable, from
 					Bailer-Jones probabilistic estimates where not, from photometric modelling where
 					those fail, and from a conservative prior as a last resort. Each tier is flagged.
 				</p>
@@ -108,8 +110,8 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 					spatial octree — a tree structure that divides 3D space into nested cells across
 					fourteen levels. Each star is placed into a level based on its brightness: the
 					brightest stars sit in the shallowest, largest cells, while fainter stars go into
-					progressively deeper, smaller ones. The threshold at each level is tuned to how
-					the human eye perceives starlight.
+					progressively deeper, smaller ones. The threshold at each level is derived from an
+					apparent-magnitude limit, by default roughly the naked-eye limit.
 				</p>
 				<p>
 					When you navigate the viewer, it loads cells level by level. Bright-star cells
@@ -137,7 +139,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 				<a class="link-card" href={`${basePath}build/download-the-star-data/`}>
 					<h3>Download and run the pipeline yourself</h3>
 					<p>
-						The pipeline is open source. Start with a 16 MB sample of the brightest stars,
+						The pipeline is open source. Create a 16 MB sample of the brightest stars,
 						or build the full dataset from scratch using the Gaia Archive.
 					</p>
 					<span class="link-card__cta">Read →</span>

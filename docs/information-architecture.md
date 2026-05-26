@@ -114,7 +114,7 @@ Include:
   - explore the stars
   - teach with real data
   - learn and build with the data
-- minimal proof points: real catalogues, 3D visualisations, lessons, open pipeline, starter datasets
+- minimal proof points: real catalogues, 3D visualisations, guided activities, open pipeline, starter data guides
 - a few suggested first steps
 
 ### Explore
@@ -168,11 +168,11 @@ Possible child pages:
 Purpose:
 
 - support educators directly with classroom-ready routes through the material
-- make lesson fit, timing, level, and learning outcomes clear
+- make activity fit, timing, level, and learning outcomes clear
 
 Include:
 
-- ready-made lessons
+- ready-to-use activities
 - suggested levels and timings
 - classroom prompts
 - inquiry questions
@@ -188,7 +188,7 @@ Purpose:
 Include:
 
 - three doors:
-  - use a small prepared dataset
+  - use a small bright-star data guide
   - run the full pipeline
   - understand the technical machinery
 - data flow from source catalogues to browser
@@ -201,7 +201,7 @@ Include:
 Purpose:
 
 - give students, pupils, curious coders, and independent learners a gentler route into data work
-- connect the lesson catalogue to starter datasets and the open pipeline
+- connect the lesson catalogue to starter data guides and the open pipeline
 
 Include:
 
@@ -265,7 +265,7 @@ This section is optional at launch.
 
 1. Land on `Home` or `Teach`
 2. Identify age level or teaching context
-3. Pick a ready-made lesson or guided exploration
+3. Pick a ready-to-use activity or guided exploration
 4. Use classroom prompts or an investigation
 5. Optionally consult background material in `Learn & Build`, `Build`, or `About`
 
@@ -273,7 +273,7 @@ This section is optional at launch.
 
 1. Land on `Home` or `Learn & Build`
 2. Start with a lesson or visual experience
-3. Download a small prepared dataset
+3. Create a small bright-star dataset from the starter guide
 4. Build a chart, notebook, visualisation, or game-like experience
 5. Move into the full pipeline only when ready
 

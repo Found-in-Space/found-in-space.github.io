@@ -15,18 +15,19 @@ const aboutPath = `${basePath}about/`;
 
 <Layout
 	title="Found in Space"
-	description="Found in Space helps people learn through real space data with interactive 3D experiences, teaching material, and open datasets and code."
+	description="Found in Space helps people learn through real astronomical catalogue data with interactive 3D experiences, teaching material, starter data guides, and open code."
 >
 	<SiteHeader section="Learning through data" />
 
 	<main class="page">
 		<section class="hero home-hero">
 			<p class="eyebrow">Learning through data</p>
-			<h1>Explore the nearby stars. Learn how data makes them visible.</h1>
+			<h1>Explore the nearby stars. Learn from the data behind the view.</h1>
 			<p class="lede">
 				Found in Space turns open astronomical catalogues into interactive 3D experiences,
-				lessons, and code. Fly through real stars, teach with guided investigations, or build
-				your own data-driven visualisations from the same data.
+				classroom activities, and code. Fly through real stars, teach with guided
+				investigations, or build your own data-driven visualisations from the same open
+				measurements.
 			</p>
 			<div class="hero__actions" aria-label="Primary routes">
 				<a class="button button--primary" href={explorePath}>Explore the stars</a>
@@ -36,16 +37,16 @@ const aboutPath = `${basePath}about/`;
 		</section>
 
 		<section class="route-grid" aria-label="Choose a route">
-			<a class="panel panel--accent route-card" href={explorePath}>
-				<p class="panel__eyebrow">Explore the stars</p>
-				<h2>Start with wonder.</h2>
-				<p>
-					For anyone who wants to see the sky differently. Begin with familiar constellations,
-					then move through real 3D star positions and watch the flat night sky open into depth.
-				</p>
-				<p class="route-card__meta">Best for: first-time visitors, visual exploration, public engagement</p>
-				<span class="route-card__cta">Start with the Orion fly-through</span>
-			</a>
+				<a class="panel panel--accent route-card" href={explorePath}>
+					<p class="panel__eyebrow">Explore the stars</p>
+					<h2>Start with wonder.</h2>
+					<p>
+						For anyone who wants to see the sky differently. Begin with familiar constellations,
+						then move through real 3D star positions and watch the flat night sky open into depth.
+					</p>
+					<p class="route-card__meta">Best for: first-time visitors, visual exploration, public engagement</p>
+					<span class="route-card__cta">Browse the visual journeys</span>
+				</a>
 
 			<a class="panel route-card" href={teachPath}>
 				<p class="panel__eyebrow">Teach with real data</p>
@@ -54,7 +55,7 @@ const aboutPath = `${basePath}about/`;
 					For teachers, lecturers, and workshop leaders. Use guided visualisations, classroom
 					prompts, and open-ended investigations built from real astronomical measurements.
 				</p>
-				<p class="route-card__meta">Best for: lessons, workshops, outreach, student projects</p>
+				<p class="route-card__meta">Best for: activities, workshops, outreach, student projects</p>
 				<span class="route-card__cta">Open the teacher hub</span>
 			</a>
 
@@ -84,18 +85,18 @@ const aboutPath = `${basePath}about/`;
 					Real data is powerful because it can surprise you, and because it teaches you to ask what
 					the data can and cannot show.
 				</p>
-			</div>
-		</section>
+				</div>
+			</section>
 
-		<section class="proof" aria-label="What the project includes">
-			<ul class="proof__list">
-				<li>Real Gaia and Hipparcos star data</li>
-				<li>Interactive 3D browser visualisations</li>
-				<li>Guided lessons and investigations</li>
-				<li>Open pipeline and source code</li>
-				<li>Starter datasets for experiments and projects</li>
-			</ul>
-		</section>
+			<section class="proof" aria-label="What the project includes">
+				<ul class="proof__list">
+					<li>Real astronomical catalogue data</li>
+					<li>Interactive 3D browser visualisations</li>
+					<li>Guided activities and investigations</li>
+					<li>Open pipeline, spatial index, and viewer code</li>
+					<li>Starter data guides for experiments and projects</li>
+				</ul>
+			</section>
 
 		<section class="start-points" aria-label="Suggested first steps">
 			<article class="panel">
@@ -103,7 +104,7 @@ const aboutPath = `${basePath}about/`;
 				<h2>Constellations and 3D space</h2>
 				<p>
 					Start with Orion and see how a familiar sky pattern changes when each star is placed at
-					its measured distance.
+					its estimated distance.
 				</p>
 				<a class="link--gold" href={constellationFlyThroughPath}>Open the fly-through</a>
 			</article>
@@ -120,10 +121,10 @@ const aboutPath = `${basePath}about/`;
 				<p class="panel__eyebrow">Starter data</p>
 				<h2>Build something visible</h2>
 				<p>
-					Begin with a small prepared star dataset before deciding whether to run the full Gaia
+					Begin with a small bright-star data guide before deciding whether to run the full
 					pipeline yourself.
 				</p>
-				<a class="link--gold" href={starterDataPath}>Get the data</a>
+				<a class="link--gold" href={starterDataPath}>Open the guide</a>
 			</article>
 		</section>
 

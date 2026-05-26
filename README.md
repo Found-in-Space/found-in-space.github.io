@@ -8,7 +8,7 @@ This repository is the public-facing website at [foundin.space](https://foundin.
 
 The site is organised around four main sections:
 
-- **Explore** — guided interactive experiences using real Gaia data. Fly through the solar neighbourhood, feel parallax by moving the observer, and see the depth hiding behind familiar constellations. No prior knowledge needed.
+- **Explore** — guided interactive experiences using real astronomical catalogue data. Fly through the solar neighbourhood, feel parallax by moving the observer, and see the depth hiding behind familiar constellations. No prior knowledge needed.
 - **Learn** — structured lessons built on the 3D viewer and real measurements. The first lesson covers the Hertzsprung–Russell diagram. A **Next Steps** subsection poses open research questions for students — starting points for genuine investigation, not exercises with known answers.
 - **Build** — technical documentation for the open data pipeline: how the Gaia and Hipparcos catalogues are merged, how the spatial index works, and how to download and run the pipeline yourself.
 - **About** — project background, motivation, and the person behind it.

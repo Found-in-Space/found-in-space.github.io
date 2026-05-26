@@ -10,7 +10,7 @@ const kajUrl = 'https://www.k-si.com/';
 
 <Layout
 	title="About | Found in Space"
-	description="Why Found in Space exists: teaching astronomy through data, exploration, and open code built on ESA's Gaia mission and beyond."
+	description="Why Found in Space exists: teaching astronomy through data, exploration, and open code built on Gaia, Hipparcos, and other astronomical catalogues."
 >
 	<SiteHeader section="About the project" />
 
@@ -32,15 +32,16 @@ const kajUrl = 'https://www.k-si.com/';
 					At its heart, Found in Space is an educational project. It takes real astronomical
 					data — starting with ESA's extraordinary
 					<a href="https://www.cosmos.esa.int/web/gaia" rel="noopener noreferrer">Gaia mission</a>,
-					but reaching into many other catalogues too — and tries to make that data come alive
-					through interactive visualisations, guided explorations, and clear explanations.
+					and adding other catalogues where they help complete the story — and tries to make that
+					data come alive through interactive visualisations, guided explorations, and clear
+					explanations.
 				</p>
 				<p>
 					But it doesn't stop at showing you a pretty picture. The whole pipeline is on display:
 					how to find and download stellar catalogues, how to clean and process them, how to
 					analyse and index them for the browser, and how to turn them into something you can
-					actually explore. Every step is shared, every line of code is
-					<a href={githubUrl}>open on GitHub</a>.
+					actually explore. The project code is <a href={githubUrl}>open on GitHub</a>: the data
+					pipeline, spatial indexing, viewer runtime, and website can all be inspected and built on.
 				</p>
 				<p>
 					The site is part exhibit, part classroom, part lab. It might show you a constellation
@@ -53,16 +54,15 @@ const kajUrl = 'https://www.k-si.com/';
 			<div class="panel">
 				<h2>Why Gaia?</h2>
 				<p>
-					The Gaia spacecraft has measured the positions, distances, motions, and colours of
-					nearly two billion stars with astonishing precision. It is one of the richest scientific
-					datasets ever assembled, and almost all of it is publicly available. That combination —
-					depth, precision, and openness — makes it an ideal foundation for teaching and
-					exploration.
+					Gaia has mapped around 1.8 billion astronomical sources, giving positions and
+					brightnesses across the sky, and parallaxes and proper motions for a huge subset of
+					them. That scale, precision, and openness make it an extraordinary foundation for
+					teaching and exploration.
 				</p>
 				<p>
 					Gaia is the starting point, but not the boundary. Found in Space pulls in data from
-					other missions and surveys wherever it helps tell a richer story, from photometric
-					catalogues to exoplanet databases.
+					other missions and surveys wherever they help tell a richer story, from bright-star
+					catalogues to distance estimates and carefully documented manual overrides.
 				</p>
 			</div>
 
@@ -107,12 +107,9 @@ const kajUrl = 'https://www.k-si.com/';
 					working on projects that try to make complex systems more legible and more humane.
 				</p>
 				<p>
-					But astronomy never really went away. The PhD might be a long time ago, but the
-					fascination with what's out there, and the belief that data is a beautiful way to
-					get closer to it, stuck around. Found in Space is what happens when that thread
-					finally gets pulled properly: a return to the stars, armed with everything learned
-					along the way about data, code, visualisation, and — maybe most importantly — how
-					people actually learn.
+					Kaj trained as an astrophysicist before spending two decades in data science and
+					technology. Found in Space brings those threads back together: astronomy, data, code,
+					visualisation, and a long-standing interest in how people actually learn.
 				</p>
 				<p>
 					Kaj has spent the last decade running science outreach with CERN through
@@ -149,7 +146,7 @@ const kajUrl = 'https://www.k-si.com/';
 	h1,
 	h2 {
 		font-weight: 600;
-		letter-spacing: -0.03em;
+		letter-spacing: 0;
 	}
 
 	h1 {
