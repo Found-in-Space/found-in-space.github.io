@@ -77,59 +77,67 @@ const parallaxPath = `${basePath}explore/parallax/`;
 </Layout>
 
 <script>
-	import { mountFreeRoamViewer } from '../../scripts/free-roam-viewer.js';
+	import { mountWhenNearViewport } from '../../scripts/lazy-viewer.js';
 
 	const mount = document.querySelector('[data-constellation-viewer]');
 	const statusEl = document.querySelector('[data-viewer-status]');
 	const constellationSelect = document.querySelector('[data-freefly-constellation]');
 
 	if (mount) {
-		mountFreeRoamViewer(mount, {
-			onStatus: (msg) => {
-				if (statusEl) statusEl.textContent = msg;
-			},
-		})
-			.then(({ canvas, constellations = [], setConstellation } = {}) => {
-				if (!(constellationSelect instanceof HTMLSelectElement)) return;
+		mountWhenNearViewport(mount, async () => {
+			const { mountFreeRoamViewer } = await import('../../scripts/free-roam-viewer.js');
+			const { canvas, constellations = [], setConstellation } = await mountFreeRoamViewer(mount, {
+				onStatus: (msg) => {
+					if (statusEl) statusEl.textContent = msg;
+				},
+			});
+			if (!(constellationSelect instanceof HTMLSelectElement)) return;
 
+			if (canvas instanceof HTMLCanvasElement) {
+				canvas.tabIndex = -1;
+			}
+
+			constellationSelect.innerHTML = '';
+			for (const { key, label } of constellations) {
+				const option = document.createElement('option');
+				option.value = key;
+				option.textContent = label;
+				constellationSelect.append(option);
+			}
+
+			const defaultKey = constellations.some((entry) => entry.key === 'Ori')
+				? 'Ori'
+				: constellations[0]?.key;
+
+			// Initial aim uses ORION_CENTER_PC; skip lookAt here so the view does not tween on load.
+			if (defaultKey) {
+				constellationSelect.value = defaultKey;
+			}
+
+			constellationSelect.disabled = constellations.length === 0;
+			constellationSelect.addEventListener('change', () => {
+				setConstellation?.(constellationSelect.value);
+				constellationSelect.blur();
 				if (canvas instanceof HTMLCanvasElement) {
-					canvas.tabIndex = -1;
+					canvas.focus({ preventScroll: true });
 				}
-
-				constellationSelect.innerHTML = '';
-				for (const { key, label } of constellations) {
-					const option = document.createElement('option');
-					option.value = key;
-					option.textContent = label;
-					constellationSelect.append(option);
-				}
-
-				const defaultKey = constellations.some((entry) => entry.key === 'Ori')
-					? 'Ori'
-					: constellations[0]?.key;
-
-				// Initial aim uses ORION_CENTER_PC; skip lookAt here so the view does not tween on load.
-				if (defaultKey) {
-					constellationSelect.value = defaultKey;
-				}
-
-				constellationSelect.disabled = constellations.length === 0;
-				constellationSelect.addEventListener('change', () => {
-					setConstellation?.(constellationSelect.value);
-					constellationSelect.blur();
-					if (canvas instanceof HTMLCanvasElement) {
-						canvas.focus({ preventScroll: true });
-					}
-				});
-			})
-			.catch((err) => {
+			});
+		}, {
+			onWaiting() {
+				if (statusEl) statusEl.textContent = 'The 3D viewer will load as you reach it.';
+			},
+			onStart() {
+				if (statusEl) statusEl.textContent = 'Loading the Orion fly-through...';
+			},
+			onError(err) {
 				console.error('[website:constellation-mount]', err);
 				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
 				if (constellationSelect instanceof HTMLSelectElement) {
 					constellationSelect.disabled = true;
 					constellationSelect.innerHTML = '<option value="">Unable to load constellations</option>';
 				}
-			});
+			},
+		});
 	}
 </script>
 

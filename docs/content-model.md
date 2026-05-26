@@ -277,12 +277,8 @@ Best order for implementation:
 
 ## Notes for Astro implementation
 
-This content model will fit well with Astro content collections later, for example:
+For the current site, keep the learning pages as hand-authored route files. The interactive
+lessons are too bespoke for a shared lesson metadata layer to pay for itself yet.
 
-- `src/content/journeys`
-- `src/content/concepts`
-- `src/content/activities`
-- `src/content/build-guides`
-- `src/content/notes`
-
-That will allow pages to stay simple while content remains structured and reusable.
+If the catalogue grows enough to need structure later, introduce the smallest possible data
+source for the specific index that needs it instead of rebuilding a general metadata system.

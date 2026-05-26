@@ -84,7 +84,7 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 </Layout>
 
 <script>
-	import { mountParallaxViewer } from '../../scripts/parallax-viewer.js';
+	import { mountWhenNearViewport } from '../../scripts/lazy-viewer.js';
 
 	const mount = document.querySelector('[data-constellation-viewer]');
 	const statusEl = document.querySelector('[data-viewer-status]');
@@ -92,12 +92,14 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 	const tiltButton = document.querySelector('[data-enable-parallax-tilt]');
 
 	if (mount) {
-		mountParallaxViewer(mount, {
-			tiltButton: tiltButton instanceof HTMLButtonElement ? tiltButton : null,
-			onStatus: (msg) => {
-				if (statusEl) statusEl.textContent = msg;
-			},
-		}).then(({ constellations = [], setConstellation } = {}) => {
+		mountWhenNearViewport(mount, async () => {
+			const { mountParallaxViewer } = await import('../../scripts/parallax-viewer.js');
+			const { constellations = [], setConstellation } = await mountParallaxViewer(mount, {
+				tiltButton: tiltButton instanceof HTMLButtonElement ? tiltButton : null,
+				onStatus: (msg) => {
+					if (statusEl) statusEl.textContent = msg;
+				},
+			});
 			if (!(constellationSelect instanceof HTMLSelectElement)) return;
 
 			constellationSelect.innerHTML = '';
@@ -121,17 +123,25 @@ const constellationPath = `${basePath}explore/constellations-and-3d-space/`;
 			constellationSelect.addEventListener('change', () => {
 				setConstellation?.(constellationSelect.value);
 			});
-		}).catch((err) => {
-			console.error('[website:parallax-mount]', err);
-			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
-			if (constellationSelect instanceof HTMLSelectElement) {
-				constellationSelect.disabled = true;
-				constellationSelect.innerHTML = '<option value="">Unable to load constellations</option>';
-			}
-			if (tiltButton instanceof HTMLButtonElement) {
-				tiltButton.hidden = true;
-				tiltButton.disabled = true;
-			}
+		}, {
+			onWaiting() {
+				if (statusEl) statusEl.textContent = 'The parallax viewer will load as you reach it.';
+			},
+			onStart() {
+				if (statusEl) statusEl.textContent = 'Loading the parallax example...';
+			},
+			onError(err) {
+				console.error('[website:parallax-mount]', err);
+				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+				if (constellationSelect instanceof HTMLSelectElement) {
+					constellationSelect.disabled = true;
+					constellationSelect.innerHTML = '<option value="">Unable to load constellations</option>';
+				}
+				if (tiltButton instanceof HTMLButtonElement) {
+					tiltButton.hidden = true;
+					tiltButton.disabled = true;
+				}
+			},
 		});
 	}
 </script>

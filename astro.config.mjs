@@ -114,6 +114,46 @@ export default defineConfig({
 				'@found-in-space/stellarium-skycultures-western/bundled',
 			],
 		},
+		build: {
+			// Three.js is a lazy-loaded viewer dependency; keep the threshold above that chunk
+			// so warnings continue to mean "unexpectedly large" rather than "the WebGL runtime exists".
+			chunkSizeWarningLimit: 700,
+			rollupOptions: {
+				output: {
+					manualChunks(id) {
+						const normalized = id.replaceAll('\\', '/');
+						if (normalized.includes('/node_modules/three/')) {
+							return 'vendor-three';
+						}
+						if (
+							normalized.includes('/node_modules/@found-in-space/touch-os/')
+							|| normalized.includes('/packages/touch-os/')
+						) {
+							return 'fis-touch';
+						}
+						if (
+							normalized.includes('/node_modules/@found-in-space/stellarium-skycultures-western/')
+							|| normalized.includes('/packages/stellarium-skycultures-western/')
+						) {
+							return 'fis-skyculture';
+						}
+						if (
+							normalized.includes('/node_modules/@found-in-space/')
+							|| normalized.includes('/packages/skykit/')
+							|| normalized.includes('/packages/journey/')
+							|| normalized.includes('/packages/spatial/')
+							|| normalized.includes('/packages/star-octree-provider/')
+							|| normalized.includes('/packages/star-trees/')
+							|| normalized.includes('/packages/three-star-field/')
+							|| normalized.includes('/packages/anchored-image/')
+							|| normalized.includes('/packages/hr-diagram/')
+						) {
+							return 'fis-viewer';
+						}
+					},
+				},
+			},
+		},
 		server: {
 			host: true,
 			fs: {

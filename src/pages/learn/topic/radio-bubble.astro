@@ -257,8 +257,7 @@ const basePath = import.meta.env.BASE_URL;
 </Layout>
 
 <script>
-	import { mountRadioBubbleViewer } from '../../../scripts/radio-bubble-viewer.js';
-	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
+	import { mountWhenNearViewport } from '../../../scripts/lazy-viewer.js';
 
 	const tourRoot = document.querySelector('[data-radio-bubble-tour]');
 	const mount = document.querySelector('[data-radio-bubble-shell]');
@@ -272,21 +271,26 @@ const basePath = import.meta.env.BASE_URL;
 	const FIRST_RADIO_SIGNAL_DATE_UTC_MS = Date.UTC(1895, 6, 1);
 
 	if (mount && tourRoot) {
-		mountRadioBubbleViewer(mount, {
-			onStatus(msg) {
-				if (statusEl) statusEl.textContent = msg;
-			},
-			onTimelineDateChange(label) {
-				if (!timelineEl) return;
-				if (label) {
-					timelineEl.textContent = label;
-					timelineEl.hidden = false;
-					return;
-				}
-				timelineEl.textContent = '';
-				timelineEl.hidden = true;
-			},
-		}).then((result) => {
+		mountWhenNearViewport(mount, async () => {
+			const [{ mountRadioBubbleViewer }, { setupNarratedTour }] = await Promise.all([
+				import('../../../scripts/radio-bubble-viewer.js'),
+				import('../../../scripts/narrated-tour.js'),
+			]);
+			const result = await mountRadioBubbleViewer(mount, {
+				onStatus(msg) {
+					if (statusEl) statusEl.textContent = msg;
+				},
+				onTimelineDateChange(label) {
+					if (!timelineEl) return;
+					if (label) {
+						timelineEl.textContent = label;
+						timelineEl.hidden = false;
+						return;
+					}
+					timelineEl.textContent = '';
+					timelineEl.hidden = true;
+				},
+			});
 			updateComputedCopy(result);
 			window.setInterval(() => updateComputedCopy(result), 1000);
 			setupNarratedTour({
@@ -305,9 +309,17 @@ const basePath = import.meta.env.BASE_URL;
 				statusEl,
 				initialId: 'before-radio',
 			});
-		}).catch((err) => {
-			console.error('[website:radio-bubble]', err);
-			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+		}, {
+			onWaiting() {
+				if (statusEl) statusEl.textContent = 'The radio bubble viewer will load as you reach it.';
+			},
+			onStart() {
+				if (statusEl) statusEl.textContent = 'Loading the radio bubble viewer...';
+			},
+			onError(err) {
+				console.error('[website:radio-bubble]', err);
+				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+			},
 		});
 	}
 

@@ -417,8 +417,7 @@ const nextTopics = [
 </Layout>
 
 <script>
-	import { mountHrDiagramViewer } from '../../../scripts/hr-diagram-viewer.js';
-	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
+	import { mountWhenNearViewport } from '../../../scripts/lazy-viewer.js';
 
 	const tourRoot = document.querySelector('[data-hr-tour]');
 	const viewerRoot = document.querySelector('[data-hr-diagram-viewer]');
@@ -427,7 +426,12 @@ const nextTopics = [
 	const navButtons = tourRoot?.querySelectorAll('[data-step-fly]') ?? [];
 
 	if (tourRoot && viewerRoot) {
-		mountHrDiagramViewer(viewerRoot).then((viewer) => {
+		mountWhenNearViewport(viewerRoot, async () => {
+			const [{ mountHrDiagramViewer }, { setupNarratedTour }] = await Promise.all([
+				import('../../../scripts/hr-diagram-viewer.js'),
+				import('../../../scripts/narrated-tour.js'),
+			]);
+			const viewer = await mountHrDiagramViewer(viewerRoot);
 			setupNarratedTour({
 				root: tourRoot,
 				chapters,
@@ -448,10 +452,17 @@ const nextTopics = [
 				desktopStatus: 'Scroll to travel from the Sun to clusters and compare the HR diagram.',
 				phoneStatus: '',
 			});
-
-		}).catch((err) => {
-			console.error('[website:hr-diagram-tour]', err);
-			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+		}, {
+			onWaiting() {
+				if (statusEl) statusEl.textContent = 'The HR diagram viewer will load as you reach it.';
+			},
+			onStart() {
+				if (statusEl) statusEl.textContent = 'Loading the HR diagram viewer...';
+			},
+			onError(err) {
+				console.error('[website:hr-diagram-tour]', err);
+				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+			},
 		});
 	}
 </script>

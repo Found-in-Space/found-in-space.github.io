@@ -325,8 +325,7 @@ const basePath = import.meta.env.BASE_URL;
 </Layout>
 
 <script>
-	import { mountAstrophageViewer } from '../../../scripts/astrophage-viewer.js';
-	import { setupNarratedTour } from '../../../scripts/narrated-tour.js';
+	import { mountWhenNearViewport } from '../../../scripts/lazy-viewer.js';
 
 	const tourRoot = document.querySelector('[data-astrophage-tour]');
 	const mount = document.querySelector('[data-astrophage-shell]');
@@ -335,11 +334,16 @@ const basePath = import.meta.env.BASE_URL;
 	const navButtons = tourRoot?.querySelectorAll('[data-chapter-fly]') ?? [];
 
 	if (mount && tourRoot) {
-		mountAstrophageViewer(mount, {
-			onStatus(msg) {
-				if (statusEl) statusEl.textContent = msg;
-			},
-		}).then((result) => {
+		mountWhenNearViewport(mount, async () => {
+			const [{ mountAstrophageViewer }, { setupNarratedTour }] = await Promise.all([
+				import('../../../scripts/astrophage-viewer.js'),
+				import('../../../scripts/narrated-tour.js'),
+			]);
+			const result = await mountAstrophageViewer(mount, {
+				onStatus(msg) {
+					if (statusEl) statusEl.textContent = msg;
+				},
+			});
 			setupNarratedTour({
 				root: tourRoot,
 				chapters,
@@ -356,9 +360,17 @@ const basePath = import.meta.env.BASE_URL;
 				statusEl,
 				initialId: 'sol-dimming',
 			});
-		}).catch((err) => {
-			console.error('[website:astrophage]', err);
-			if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+		}, {
+			onWaiting() {
+				if (statusEl) statusEl.textContent = 'The 3D tour will load as you reach it.';
+			},
+			onStart() {
+				if (statusEl) statusEl.textContent = 'Loading the astrophage tour...';
+			},
+			onError(err) {
+				console.error('[website:astrophage]', err);
+				if (statusEl) statusEl.textContent = err instanceof Error ? err.message : String(err);
+			},
 		});
 	}
 </script>

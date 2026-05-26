@@ -1,13 +1,36 @@
 ---
-import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
 import SiteHeader from '../../../components/SiteHeader.astro';
 import MadeByKaj from '../../../components/MadeByKaj.astro';
 
 const basePath = import.meta.env.BASE_URL;
 
-const topics = (await getCollection('topics'))
-	.sort((a, b) => a.data.topic_number - b.data.topic_number);
+const topics = [
+	{
+		slug: 'hr-diagram',
+		title: 'The Hertzsprung-Russell diagram',
+		summary:
+			"The HR diagram is one of astronomy's most powerful maps, revealing how stars are grouped by temperature, brightness, and stage of life.",
+	},
+	{
+		slug: 'star-clusters',
+		title: 'Star clusters: families of stars',
+		summary:
+			'Stars are born in groups. Some hold together for billions of years; others drift apart within millions. Fly between real clusters to see how age, gravity, and the galaxy shape stellar families.',
+	},
+	{
+		slug: 'radio-bubble',
+		title: 'The radio bubble',
+		summary:
+			"How far have Earth's radio signals travelled? Fly outside humanity's electromagnetic footprint and see how small it really is.",
+	},
+	{
+		slug: 'astrophage',
+		title: 'The astrophage infestation',
+		summary:
+			'Trace the spread of a fictional alien organism through real stars, from Tau Ceti to the Sun, using positions from the Gaia catalogue.',
+	},
+];
 ---
 
 <Layout
@@ -33,9 +56,9 @@ const topics = (await getCollection('topics'))
 						<article class="topic-card">
 							<span class="topic-number">{String(index + 1).padStart(2, '0')}</span>
 							<div class="topic-card__content">
-								<h3>{topic.data.title}</h3>
-								<p>{topic.data.summary}</p>
-								<a href={`${basePath}learn/topic/${topic.id}/`} class="topic-card__link">
+								<h3>{topic.title}</h3>
+								<p>{topic.summary}</p>
+								<a href={`${basePath}learn/topic/${topic.slug}/`} class="topic-card__link">
 									Read topic
 								</a>
 							</div>
