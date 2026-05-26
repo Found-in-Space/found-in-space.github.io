@@ -1,6 +1,5 @@
 ---
 import '../../styles/live-code.css';
-import liveNotebookScript from '../../scripts/live-notebook.js?url';
 
 interface NotebookCell {
 	id: string;
@@ -50,4 +49,6 @@ const safeJson = JSON.stringify({ cells }).replace(/</g, '\\u003c');
 	<script type="application/json" data-live-notebook-initial set:html={safeJson}></script>
 </section>
 
-<script type="module" src={liveNotebookScript}></script>
+<script>
+	import '../../scripts/live-notebook.js';
+</script>

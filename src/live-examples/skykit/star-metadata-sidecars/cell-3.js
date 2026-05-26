@@ -1,17 +1,35 @@
 if (!metaProvider) throw new Error('Run cell 1 first.');
 if (!rows.length) throw new Error('Run cell 2 first.');
 
-const star = rows.find((row) => row.ref);
-if (!star) throw new Error('No StarObjectRef was found in the streamed rows.');
+const candidates = rows.filter((row) => row.ref);
+if (!candidates.length) throw new Error('No StarObjectRef was found in the streamed rows.');
+
+let star = null;
+let entry = null;
+let cellEntries = null;
+
+for (const candidate of candidates) {
+  const candidateEntry = await metaProvider.getMeta(candidate.ref);
+  const candidateCellEntries = await metaProvider.getMetaCell({
+    datasetId: candidate.ref.datasetId,
+    level: candidate.ref.level,
+    mortonCode: candidate.ref.mortonCode,
+  });
+
+  if (candidateEntry || candidateCellEntries?.some(Boolean)) {
+    star = candidate;
+    entry = candidateEntry;
+    cellEntries = candidateCellEntries;
+    break;
+  }
+}
+
+if (!star) {
+  throw new Error('No metadata rows were found for the streamed visible stars.');
+}
 
 const fallback = `cell ${star.cellKey} / ${star.ordinal}`;
-const entry = await metaProvider.getMeta(star.ref);
 const label = formatLabel(entry, fallback);
-const cellEntries = await metaProvider.getMetaCell({
-  datasetId: star.ref.datasetId,
-  level: star.ref.level,
-  mortonCode: star.ref.mortonCode,
-});
 
 metadataRows = (cellEntries ?? [])
   .map((meta, ordinal) => ({

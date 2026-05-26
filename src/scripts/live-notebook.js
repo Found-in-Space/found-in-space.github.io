@@ -1,39 +1,34 @@
+import {
+	createMetaSidecarProviderService,
+	deriveMetaSidecarUrlFromRenderUrl,
+} from '@found-in-space/meta-sidecar-provider';
+import {
+	OCTREE_DEFAULT,
+	createStarOctreeProviderService,
+} from '@found-in-space/star-octree-provider';
+import {
+	createObserverShellStrategy,
+	createStarCellKey,
+	decodeTemperatureK,
+	temperatureToRgb,
+} from '@found-in-space/star-trees';
+
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 const instances = new Set();
-let skykitDataModulePromise = null;
-let skykitRuntime = null;
 
-void initLiveNotebooks();
+initLiveNotebooks();
 
-async function initLiveNotebooks() {
-	let skykit;
-	try {
-		skykit = await loadSkykitDataModule();
-	} catch (error) {
-		for (const root of document.querySelectorAll('[data-live-notebook]:not([data-live-notebook-ready])')) {
-			root.setAttribute('data-live-notebook-ready', 'true');
-			const status = root.querySelector('[data-live-notebook-status]');
-			if (status) {
-				status.textContent = [
-					'The SkyKit browser modules could not be loaded. The lesson text is still available, but the live preview needs the browser ESM endpoint.',
-					formatError(error),
-				].join(' ');
-			}
-		}
-		return;
-	}
-	skykitRuntime = skykit;
-
+function initLiveNotebooks() {
 	for (const root of document.querySelectorAll('[data-live-notebook]:not([data-live-notebook-ready])')) {
 		root.setAttribute('data-live-notebook-ready', 'true');
-		instances.add(initNotebook(root, skykit));
+		instances.add(initNotebook(root));
 	}
 }
 
 window.addEventListener('pagehide', disposeAll);
 window.addEventListener('beforeunload', disposeAll);
 
-function initNotebook(root, skykit) {
+function initNotebook(root) {
 	const initialScript = root.querySelector('[data-live-notebook-initial]');
 	const cellsRoot = root.querySelector('[data-live-notebook-cells]');
 	const statusEl = root.querySelector('[data-live-notebook-status]');
@@ -46,14 +41,14 @@ function initNotebook(root, skykit) {
 	const cellState = new Map();
 
 	const context = {
-		OCTREE_DEFAULT: skykit.OCTREE_DEFAULT,
-		createMetaSidecarProviderService: skykit.createMetaSidecarProviderService,
-		createObserverShellStrategy: skykit.createObserverShellStrategy,
-		createStarCellKey: skykit.createStarCellKey,
-		createStarOctreeProviderService: skykit.createStarOctreeProviderService,
-		decodeTemperatureK: skykit.decodeTemperatureK,
-		deriveMetaSidecarUrlFromRenderUrl: skykit.deriveMetaSidecarUrlFromRenderUrl,
-		temperatureToRgb: skykit.temperatureToRgb,
+		OCTREE_DEFAULT,
+		createMetaSidecarProviderService,
+		createObserverShellStrategy,
+		createStarCellKey,
+		createStarOctreeProviderService,
+		decodeTemperatureK,
+		deriveMetaSidecarUrlFromRenderUrl,
+		temperatureToRgb,
 		provider: null,
 		metaProvider: null,
 		cells: [],
@@ -329,47 +324,18 @@ function rowsFromCell(cell) {
 		const ordinal = ref?.ordinal ?? index;
 		return {
 			index,
-			cellKey: ref ? skykitRuntime.createStarCellKey(ref) : cell.cellKey,
+			cellKey: ref ? createStarCellKey(ref) : cell.cellKey,
 			ordinal,
 			xPc: positions[index * 3],
 			yPc: positions[index * 3 + 1],
 			zPc: positions[index * 3 + 2],
 			magAbs: magAbs[index],
-			temperatureK: teffLog8 ? skykitRuntime.decodeTemperatureK(teffLog8[index]) : null,
+			temperatureK: teffLog8 ? decodeTemperatureK(teffLog8[index]) : null,
 			hasObjectRef: Boolean(ref),
 			ref,
 			cell,
 		};
 	});
-}
-
-function loadSkykitDataModule() {
-	if (!skykitDataModulePromise) {
-		const esmBase = browserEsmBase();
-		skykitDataModulePromise = Promise.all([
-			import(packageUrl(esmBase, '@found-in-space/star-octree-provider@0.2.0-alpha.0')),
-			import(packageUrl(esmBase, '@found-in-space/meta-sidecar-provider@0.2.0-alpha.0')),
-			import(packageUrl(esmBase, '@found-in-space/star-trees@0.2.0-alpha.0')),
-		]).then(([octreeProvider, metaSidecarProvider, starTrees]) => ({
-			...octreeProvider,
-			...metaSidecarProvider,
-			...starTrees,
-		}));
-	}
-	return skykitDataModulePromise;
-}
-
-function browserEsmBase() {
-	const params = new URLSearchParams(window.location.search);
-	return normalizeBaseUrl(params.get('skykitEsmBase') || params.get('skykitCdnBase') || 'https://esm.sh/');
-}
-
-function packageUrl(base, specifier) {
-	return `${base}${specifier}`;
-}
-
-function normalizeBaseUrl(value) {
-	return value.endsWith('/') ? value : `${value}/`;
 }
 
 function defaultStarColumns() {
