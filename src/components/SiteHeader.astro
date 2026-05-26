@@ -3,7 +3,7 @@ interface Props {
 	section?: string;
 }
 
-const { section = 'Explore the nearby stars' } = Astro.props;
+const { section = 'Learning through data' } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
 ---
 
@@ -37,8 +37,8 @@ const basePath = import.meta.env.BASE_URL;
 		<nav class="site-nav" id="site-nav-primary" aria-label="Primary">
 			<a href={basePath}>Home</a>
 			<a href={`${basePath}explore/`}>Explore</a>
-			<a href={`${basePath}learn/`}>Learn</a>
-			<a href={`${basePath}build/`}>Build</a>
+			<a href={`${basePath}teach/`}>Teach</a>
+			<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
 			<a href={`${basePath}about/`}>About</a>
 		</nav>
 	</div>

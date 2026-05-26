@@ -4,115 +4,152 @@ import SiteHeader from '../../components/SiteHeader.astro';
 import MadeByKaj from '../../components/MadeByKaj.astro';
 
 const basePath = import.meta.env.BASE_URL;
-const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
-const starClustersPath = `${basePath}learn/topic/star-clusters/`;
-const radioBubblePath = `${basePath}learn/topic/radio-bubble/`;
-const astrophagePath = `${basePath}learn/topic/astrophage/`;
-const nextStepsPath = `${basePath}learn/next-steps/`;
+
+const lessons = [
+	{
+		label: 'First lesson',
+		title: 'The Hertzsprung-Russell diagram',
+		href: `${basePath}learn/topic/hr-diagram/`,
+		summary:
+			"One of astronomy's most powerful maps, built from real star data: temperature, luminosity, stellar populations, and the limits of what a sample can show.",
+		bestFor: 'upper secondary, undergraduate, curious adults',
+		time: '20-40 minutes',
+		astronomy: 'stellar evolution',
+		data: 'selection effects, absolute vs apparent quantities',
+		uses: 'interactive HR diagram and 3D viewer',
+		extension: 'compare samples, distance cuts, or missing faint stars',
+	},
+	{
+		label: 'Lesson',
+		title: 'Star clusters: families of stars',
+		href: `${basePath}learn/topic/star-clusters/`,
+		summary:
+			'Fly between real clusters, from stellar nurseries to ancient globulars, and see how age, gravity, and the galaxy shape stellar families.',
+		bestFor: 'upper secondary, undergraduate',
+		time: '20-35 minutes',
+		astronomy: 'stellar age and formation',
+		data: 'natural laboratories and controlled comparisons',
+		uses: 'guided 3D cluster tour',
+		extension: 'compare cluster shapes, ages, and distances',
+	},
+	{
+		label: 'Lesson',
+		title: 'The radio bubble',
+		href: `${basePath}learn/topic/radio-bubble/`,
+		summary:
+			"Fly outside humanity's electromagnetic footprint to see how small it is, and discover which nearby stars and clusters our signals have reached.",
+		bestFor: 'secondary, outreach, discussion sessions',
+		time: '15-30 minutes',
+		astronomy: 'scale and light-speed limits',
+		data: 'model assumptions and detectability',
+		uses: '3D radio-sphere visualisation',
+		extension: 'change assumptions about signal strength or detectability',
+	},
+	{
+		label: 'Fiction meets real data',
+		title: 'The astrophage infestation',
+		href: `${basePath}learn/topic/astrophage/`,
+		summary:
+			"Trace a fictional alien organism through real stars, from Tau Ceti to the Sun, inspired by Andy Weir's Project Hail Mary.",
+		bestFor: 'public engagement, secondary upward',
+		time: '15-30 minutes',
+		astronomy: 'local stellar geography',
+		data: 'nearest-neighbour paths through real data',
+		uses: 'story-led guided tour',
+		extension: 'design a route or game mechanic using real star positions',
+	},
+];
 ---
 
 <Layout
 	title="Learn | Found in Space"
-	description="Turn curiosity into understanding with clear astronomical explainers and structured learning journeys."
+	description="Learn astronomy and data concepts through guided visual lessons built on real Gaia measurements."
 >
 	<SiteHeader section="Learn" />
 
 	<main class="page">
-		<header class="hero">
-			<p class="eyebrow">Classroom Mode</p>
-			<h1>Learn the nearby stars</h1>
+		<header class="hero learn-hero">
+			<p class="eyebrow">Learning catalogue</p>
+			<h1>Learn astronomy by questioning the data.</h1>
 			<p class="lede">
-				Found in Space is designed as a structured educational platform. Here you can find
-				concise astronomical concepts and guided journeys that connect what you see in the night
-				sky to the real 3D structure of the galaxy.
+				Each lesson connects what you can see in the viewer to the measurements behind it.
+				The aim is not just to name a concept, but to learn how real data makes that concept
+				visible and where the data needs care.
 			</p>
+			<div class="hero__actions">
+				<a class="button button--primary" href={`${basePath}learn/topic/hr-diagram/`}>Start with the HR diagram</a>
+				<a class="button button--ghost" href={`${basePath}teach/`}>Teaching this?</a>
+				<a class="button button--ghost" href={`${basePath}learn-build/`}>Learn &amp; build path</a>
+			</div>
 		</header>
 
-		<section class="section-grid">
-			<article class="panel panel--featured">
-				<div class="panel__content">
-					<p class="panel__eyebrow">First lesson</p>
-					<h2>The Hertzsprung-Russell diagram</h2>
-					<p>
-						One of astronomy's most powerful maps — plotting temperature against luminosity to
-						reveal how stars are grouped, how they age, and what the solar neighbourhood is
-						actually made of. Built on a live 3D star viewer using real Gaia data.
-					</p>
-					<a href={hrDiagramPath} class="button button--primary">Open the lesson</a>
-				</div>
-			</article>
-
-			<article class="panel panel--featured">
-				<div class="panel__content">
-					<p class="panel__eyebrow">Lesson</p>
-					<h2>Star clusters: families of stars</h2>
-					<p>
-						Stars are born in groups. Fly between real clusters — from stellar nurseries
-						to ancient globulars — to see how age, gravity, and the galaxy shape stellar
-						families.
-					</p>
-					<a href={starClustersPath} class="button button--primary">Open the lesson</a>
-				</div>
-			</article>
-
-			<article class="panel panel--featured">
-				<div class="panel__content">
-					<p class="panel__eyebrow">Lesson</p>
-					<h2>The radio bubble</h2>
-					<p>
-						How far have Earth's radio signals travelled? Fly outside humanity's
-						electromagnetic footprint to see how small it really is — and discover
-						that our signals are about to reach the nearest star cluster.
-					</p>
-					<a href={radioBubblePath} class="button button--primary">Open the lesson</a>
-				</div>
-			</article>
-
-			<article class="panel panel--featured">
-				<div class="panel__content">
-					<p class="panel__eyebrow">Fiction meets real data</p>
-					<h2>The astrophage infestation</h2>
-					<p>
-						Trace the spread of a fictional alien organism through real stars —
-						from Tau Ceti to the Sun — inspired by Andy Weir's
-						<em>Project Hail Mary</em>. Every star position comes from the Gaia
-						catalogue.
-					</p>
-					<a href={astrophagePath} class="button button--primary">Open the lesson</a>
-				</div>
-			</article>
+		<section class="lesson-list" aria-label="Lessons">
+			{lessons.map((lesson) => (
+				<a class="panel lesson-card" href={lesson.href}>
+					<div class="lesson-card__main">
+						<p class="panel__eyebrow">{lesson.label}</p>
+						<h2>{lesson.title}</h2>
+						<p>{lesson.summary}</p>
+						<span class="lesson-card__cta">Open the lesson</span>
+					</div>
+					<dl class="lesson-card__meta">
+						<div>
+							<dt>Best for</dt>
+							<dd>{lesson.bestFor}</dd>
+						</div>
+						<div>
+							<dt>Time</dt>
+							<dd>{lesson.time}</dd>
+						</div>
+						<div>
+							<dt>Astronomy idea</dt>
+							<dd>{lesson.astronomy}</dd>
+						</div>
+						<div>
+							<dt>Data idea</dt>
+							<dd>{lesson.data}</dd>
+						</div>
+						<div>
+							<dt>Uses</dt>
+							<dd>{lesson.uses}</dd>
+						</div>
+						<div>
+							<dt>Build extension</dt>
+							<dd>{lesson.extension}</dd>
+						</div>
+					</dl>
+				</a>
+			))}
 		</section>
 
-		<section class="next-steps-section">
-			<article class="panel panel--accent">
-				<div class="panel__content">
-					<p class="panel__eyebrow">For students and the curious</p>
-					<h2>Next steps</h2>
-					<p>
-						Once you've worked through the lessons, these are the questions that come
-						after — open research topics you can investigate using real Gaia data, the
-						tools on this site, and your own analysis. Each one is a starting point, not
-						an answer.
-					</p>
-					<a href={nextStepsPath} class="button button--ghost">Browse research topics →</a>
-				</div>
-			</article>
+		<section class="investigations panel panel--accent">
+			<div>
+				<p class="panel__eyebrow">Research questions</p>
+				<h2>After the lessons, ask what the data might be hiding.</h2>
+				<p>
+					Open investigations turn observations into testable questions. They are designed for
+					students and independent learners who are ready to compare views, check assumptions,
+					and treat uncertainty as part of the work.
+				</p>
+			</div>
+			<a class="button button--ghost" href={`${basePath}learn/next-steps/`}>Browse investigations</a>
 		</section>
 
 		<section class="notes">
 			<div class="notes__intro">
 				<p class="eyebrow">Our approach</p>
-				<h2>Questions over answers.</h2>
+				<h2>Real data, carefully questioned.</h2>
 			</div>
 			<div class="notes__body">
 				<p>
-					Every lesson in the Learn section is built on real measurements from ESA's Gaia mission.
-					The aim is clarity without sacrificing precision — moving from simple visual metaphors
-					to the actual data astronomers use to map our corner of the Milky Way.
+					Gaia gives the site its foundation: positions, distances, motions, colours, and many
+					ways to ask better questions. But real data is not perfect truth. It has gaps, errors,
+					selection effects, and assumptions.
 				</p>
 				<p>
-					More lessons are in development. The HR diagram is a working example of the format:
-					a short explainer, a live 3D viewer, and a guided tour of what the data shows.
+					The strongest lessons use those limits as teaching material. A feature in the viewer is
+					most interesting when you can ask whether it comes from the stars, from the sample, or
+					from the way the data is being shown.
 				</p>
 			</div>
 		</section>
@@ -122,82 +159,178 @@ const nextStepsPath = `${basePath}learn/next-steps/`;
 </Layout>
 
 <style>
-	.hero {
-		padding: 2rem 0 3rem;
+	.learn-hero {
+		max-width: 58rem;
+		padding-top: 3.5rem;
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-weight: 600;
+		letter-spacing: 0;
 	}
 
 	h1 {
-		font-size: clamp(2.8rem, 7vw, 5.2rem);
-		line-height: 0.94;
+		max-width: 14ch;
 		margin: 0;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-	}
-
-	.lede {
-		max-width: 44rem;
-		font-size: 1.18rem;
-	}
-
-	.section-grid {
-		grid-template-columns: 1fr;
-		gap: 1.5rem;
-		max-width: 52rem;
-	}
-
-	.panel {
-		display: flex;
-		flex-direction: column;
-		padding: 2rem;
+		font-size: 4.4rem;
+		line-height: 1;
 	}
 
 	h2 {
-		margin: 0 0 1rem;
-		font-size: 1.85rem;
-		line-height: 1.1;
-		font-weight: 600;
-		letter-spacing: -0.02em;
+		margin: 0 0 0.85rem;
+		font-size: 1.8rem;
+		line-height: 1.12;
+		color: var(--fis-text);
 	}
 
-	.panel p {
-		margin: 0 0 1.5rem;
+	p {
+		margin: 0;
 		line-height: 1.7;
 		color: var(--fis-text-soft);
 	}
 
-	.next-steps-section {
-		max-width: 52rem;
-		margin-bottom: 2rem;
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		margin-top: 2rem;
+	}
+
+	.button--ghost {
+		background: var(--fis-panel);
+	}
+
+	.lesson-list {
+		display: grid;
+		gap: 1rem;
+		max-width: 62rem;
+		margin-bottom: 4rem;
+	}
+
+	.lesson-card {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.85fr);
+		gap: 1.5rem;
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.lesson-card:hover {
+		border-color: var(--fis-line-strong);
+		transform: translateY(-3px);
+	}
+
+	.lesson-card__main {
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+	}
+
+	.lesson-card__cta {
+		display: block;
+		margin-top: auto;
+		padding-top: 1.25rem;
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		font-size: 0.94rem;
+	}
+
+	.lesson-card__meta {
+		display: grid;
+		gap: 0.7rem;
+		margin: 0;
+		padding: 0;
+	}
+
+	.lesson-card__meta div {
+		padding-bottom: 0.7rem;
+		border-bottom: 1px solid var(--fis-line);
+	}
+
+	.lesson-card__meta div:last-child {
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+
+	.lesson-card__meta dt {
+		margin-bottom: 0.15rem;
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		font-size: 0.74rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+	}
+
+	.lesson-card__meta dd {
+		margin: 0;
+		color: var(--fis-text-muted);
+		line-height: 1.45;
+	}
+
+	.investigations {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		max-width: 62rem;
+		margin-bottom: 4rem;
+	}
+
+	.investigations div {
+		max-width: 42rem;
 	}
 
 	.notes {
 		display: grid;
-		grid-template-columns: 1fr 1.2fr;
+		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
 		gap: 3rem;
 		padding: 4rem 0;
 		border-top: 1px solid var(--fis-line);
 	}
 
 	.notes__intro h2 {
-		font-size: 2.2rem;
-		line-height: 1.05;
-		max-width: 12ch;
+		margin: 0;
+		font-size: 2.3rem;
+		line-height: 1.08;
 	}
 
 	.notes__body p + p {
 		margin-top: 1.25rem;
 	}
 
-	.notes__body p {
-		line-height: 1.75;
-		font-size: 1.1rem;
-		color: var(--fis-text-soft);
-	}
-
 	@media (max-width: 960px) {
+		h1 {
+			font-size: 3.6rem;
+		}
+
+		.lesson-card,
 		.notes {
 			grid-template-columns: 1fr;
-			gap: 2rem;
+		}
+
+		.investigations {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+
+	@media (max-width: 720px) {
+		h1 {
+			font-size: 2.9rem;
+		}
+
+		.hero__actions {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.hero__actions .button,
+		.investigations .button {
+			width: 100%;
 		}
 	}
 </style>

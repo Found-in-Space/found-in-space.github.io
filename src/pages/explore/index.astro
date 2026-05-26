@@ -17,10 +17,11 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	<main class="page">
 		<header class="hero">
 			<p class="eyebrow">Explore</p>
-			<h1>See the nearby stars in three dimensions.</h1>
+			<h1>Start with wonder. Learn what the data reveals.</h1>
 			<p class="lede">
-				Guided experiences built on real measurements from ESA's Gaia mission. No prior knowledge
-				needed — just a sense of curiosity about what's out there.
+				Guided experiences built on real measurements from ESA's Gaia mission. No prior
+				knowledge needed: begin by noticing what changes, then follow the data into the idea
+				behind it.
 			</p>
 		</header>
 
@@ -34,6 +35,20 @@ const parallaxPath = `${basePath}explore/parallax/`;
 						local stars and watch how quickly the familiar pattern breaks apart once each star is
 						placed at its real distance from Earth.
 					</p>
+					<dl class="experience-card__guide">
+						<div>
+							<dt>What you are seeing</dt>
+							<dd>A flat sky pattern opened into measured 3D positions.</dd>
+						</div>
+						<div>
+							<dt>What to try</dt>
+							<dd>Keep Orion in view while moving sideways and inward.</dd>
+						</div>
+						<div>
+							<dt>What this teaches</dt>
+							<dd>Constellations are perspective effects, not physical groups.</dd>
+						</div>
+					</dl>
 					<span class="experience-card__cta">Open the fly-through →</span>
 				</div>
 				<div class="experience-card__tags">
@@ -51,6 +66,20 @@ const parallaxPath = `${basePath}explore/parallax/`;
 						Move the observer's position while keeping Orion in view. Nearby stars slide more
 						than distant ones, making visible the depth that a flat night-sky picture hides.
 					</p>
+					<dl class="experience-card__guide">
+						<div>
+							<dt>What you are seeing</dt>
+							<dd>Nearby and distant stars responding differently to a changed viewpoint.</dd>
+						</div>
+						<div>
+							<dt>What to try</dt>
+							<dd>Compare a small movement with a larger one and watch which stars move most.</dd>
+						</div>
+						<div>
+							<dt>What this teaches</dt>
+							<dd>Parallax turns viewpoint shift into a way of measuring distance.</dd>
+						</div>
+					</dl>
 					<span class="experience-card__cta">Open the parallax demo →</span>
 				</div>
 				<div class="experience-card__tags">
@@ -64,13 +93,12 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		<section class="notes">
 			<div class="notes__intro">
 				<p class="eyebrow">What to expect</p>
-				<h2>Real data. No commentary required.</h2>
+				<h2>Notice first. Then ask what the data is telling you.</h2>
 			</div>
 			<div class="notes__body">
 				<p>
-					Each experience puts you directly in contact with the data — no animation or
-					simulation, just real star positions computed from Gaia parallax measurements.
-					The goal is to let the geometry do the explaining.
+					Each experience puts you directly in contact with the data: real star positions
+					computed from Gaia parallax measurements, arranged so the geometry becomes visible.
 				</p>
 				<p>
 					If you want to understand the physics behind what you're seeing, the
@@ -90,11 +118,11 @@ const parallaxPath = `${basePath}explore/parallax/`;
 	}
 
 	h1 {
-		font-size: clamp(2.8rem, 7vw, 5.2rem);
+		font-size: 4.6rem;
 		line-height: 0.94;
 		margin: 0 0 1.5rem;
 		font-weight: 600;
-		letter-spacing: -0.03em;
+		letter-spacing: 0;
 		max-width: 14ch;
 	}
 
@@ -103,7 +131,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		font-size: 1.75rem;
 		font-weight: 600;
 		line-height: 1.1;
-		letter-spacing: -0.02em;
+		letter-spacing: 0;
 		color: var(--fis-text);
 	}
 
@@ -173,6 +201,33 @@ const parallaxPath = `${basePath}explore/parallax/`;
 		text-decoration-color: var(--fis-gold-subtle);
 	}
 
+	.experience-card__guide {
+		display: grid;
+		gap: 0.75rem;
+		margin: 1.25rem 0 0;
+		padding: 1rem 0 0;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.experience-card__guide div {
+		display: grid;
+		gap: 0.15rem;
+	}
+
+	.experience-card__guide dt {
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		font-size: 0.74rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+	}
+
+	.experience-card__guide dd {
+		margin: 0;
+		color: var(--fis-text-muted);
+		line-height: 1.5;
+	}
+
 	.experience-card__tags {
 		display: flex;
 		flex-wrap: wrap;
@@ -227,7 +282,7 @@ const parallaxPath = `${basePath}explore/parallax/`;
 
 	@media (max-width: 720px) {
 		h1 {
-			font-size: clamp(2.4rem, 13vw, 4rem);
+			font-size: 3rem;
 		}
 	}
 </style>

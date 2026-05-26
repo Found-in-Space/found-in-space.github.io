@@ -15,14 +15,45 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 
 	<main class="page">
 		<section class="hero">
-			<p class="eyebrow">Build</p>
-			<h1>Over a billion stars. Each placed in three-dimensional space.</h1>
+			<p class="eyebrow">Build with the data</p>
+			<h1>Use the same star data behind the viewer.</h1>
 			<p class="intro">
-				Not a simulation. Not a model. Real distance measurements from ESA's Gaia spacecraft,
-				combined with data from the historic Hipparcos survey, processed into a single navigable
-				dataset. Every step is open — the catalogues, the pipeline code, the spatial index, and
-				the viewer.
+				Start with a small prepared dataset, run the open pipeline when you are ready, or read
+				the technical notes that explain how Gaia and Hipparcos become a browser-ready 3D star
+				map. Every step is open: catalogues, code, spatial index, and viewer.
 			</p>
+		</section>
+
+		<section class="build-doors" aria-label="Build starting points">
+			<article class="panel panel--accent">
+				<p class="panel__eyebrow">Use the data</p>
+				<h2>Start with a small sample</h2>
+				<p>
+					Not ready to run the full pipeline? Begin with a prepared bright-star dataset and
+					build something visible: a chart, classroom prompt, notebook, or simple 3D scene.
+				</p>
+				<a class="step__link" href={`${basePath}build/download-the-star-data/`}>Get starter data →</a>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Run the pipeline</p>
+				<h2>Rebuild the catalogue</h2>
+				<p>
+					Install the open tools, download source catalogues, merge Gaia with Hipparcos, and
+					produce the Parquet outputs used by the site.
+				</p>
+				<a class="step__link" href={`${basePath}build/download-the-star-data/`}>Follow the guide →</a>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Understand the machinery</p>
+				<h2>Read the technical notes</h2>
+				<p>
+					See how source catalogues are merged, how distances are chosen, and why a spatial
+					index lets a browser explore a dataset far too large to download at once.
+				</p>
+				<a class="step__link" href={`${basePath}build/gaia-and-hipparcos-star-catalogues/`}>
+					Start with the catalogue merge →
+				</a>
+			</article>
 		</section>
 
 		<section class="pipeline">
@@ -139,10 +170,10 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 
 	h1 {
 		margin: 0;
-		font-size: clamp(2.6rem, 6vw, 4.4rem);
+		font-size: 4.2rem;
 		font-weight: 600;
 		line-height: 0.97;
-		letter-spacing: -0.03em;
+		letter-spacing: 0;
 	}
 
 	h2 {
@@ -150,7 +181,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 		font-size: 1.55rem;
 		font-weight: 600;
 		line-height: 1.1;
-		letter-spacing: -0.02em;
+		letter-spacing: 0;
 		color: var(--fis-text);
 	}
 
@@ -159,6 +190,7 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 		font-size: 1.25rem;
 		font-weight: 600;
 		line-height: 1.2;
+		letter-spacing: 0;
 		color: var(--fis-text);
 	}
 
@@ -170,7 +202,25 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 		color: var(--fis-text-soft);
 	}
 
-	/* Pipeline steps */
+	/* Build doors and pipeline steps */
+
+	.build-doors {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 4rem;
+	}
+
+	.build-doors .panel {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.build-doors p {
+		margin: 0 0 1rem;
+		line-height: 1.75;
+		color: var(--fis-text-soft);
+	}
 
 	.pipeline {
 		display: grid;
@@ -281,6 +331,11 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 	}
 
 	@media (max-width: 960px) {
+		h1 {
+			font-size: 3.4rem;
+		}
+
+		.build-doors,
 		.pipeline {
 			grid-template-columns: 1fr;
 		}
@@ -288,6 +343,12 @@ const githubUrl = 'https://github.com/Found-in-Space/pipeline';
 		.links-section {
 			grid-template-columns: 1fr;
 			gap: 2rem;
+		}
+	}
+
+	@media (max-width: 720px) {
+		h1 {
+			font-size: 2.8rem;
 		}
 	}
 </style>

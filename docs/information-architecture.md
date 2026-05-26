@@ -2,7 +2,7 @@
 
 ## Platform promise
 
-`foundin.space` should help people explore, understand, and build with Gaia-based data of the solar neighbourhood.
+`foundin.space` should help people learn through real space data: explore the nearby stars, teach with interactive visualisations, and build data-driven experiences from open catalogues and code.
 
 This site is not a personal portfolio and not only a project documentation site. It should work as a focused educational platform with a public-facing identity of its own while still linking back to `k-si.com`.
 
@@ -86,8 +86,8 @@ Recommended primary navigation:
 
 - `Home`
 - `Explore`
-- `Learn`
-- `Build`
+- `Teach`
+- `Learn & Build`
 - `About`
 
 Recommended utility links:
@@ -109,17 +109,13 @@ Purpose:
 Include:
 
 - hero statement with plain-language promise
-- short explanation of Gaia and the solar neighbourhood
-- a three-part overview of the stack:
-  - data pipeline
-  - spatial/octree layer
-  - viewer/experience layer
-- a "choose your path" section:
-  - explore
-  - learn
-  - build
-- featured journey or interactive launch
-- short statement about educational philosophy
+- one short explanation of Found in Space as part planetarium, classroom, and open data lab
+- three audience routes:
+  - explore the stars
+  - teach with real data
+  - learn and build with the data
+- minimal proof points: real catalogues, 3D visualisations, lessons, open pipeline, starter datasets
+- a few suggested first steps
 
 ### Explore
 
@@ -147,15 +143,15 @@ Possible child pages:
 
 Purpose:
 
-- provide structured educational material
-- support both self-directed learning and teaching
+- provide structured self-directed educational material
+- help learners connect astronomy ideas to data ideas
 
 Include:
 
 - concise concept explainers
 - learning pathways by level or audience
-- downloadable or reusable activities
-- prompts for discussion and investigation
+- metadata for each lesson: level, time, astronomy idea, data idea, classroom use, build extension
+- prompts for investigation and further building
 
 Possible child pages:
 
@@ -167,6 +163,21 @@ Possible child pages:
 - `Learn/Uncertainty and Data Limits`
 - `Learn/Classroom Activities`
 
+### Teach
+
+Purpose:
+
+- support educators directly with classroom-ready routes through the material
+- make lesson fit, timing, level, and learning outcomes clear
+
+Include:
+
+- ready-made lessons
+- suggested levels and timings
+- classroom prompts
+- inquiry questions
+- routes into starter data and build extensions
+
 ### Build
 
 Purpose:
@@ -176,11 +187,29 @@ Purpose:
 
 Include:
 
-- overview of the three codebases
+- three doors:
+  - use a small prepared dataset
+  - run the full pipeline
+  - understand the technical machinery
 - data flow from source catalogues to browser
 - architectural explanation in human language
 - links to source repositories and deeper docs
 - practical build guides or recipes
+
+### Learn & Build
+
+Purpose:
+
+- give students, pupils, curious coders, and independent learners a gentler route into data work
+- connect the lesson catalogue to starter datasets and the open pipeline
+
+Include:
+
+- astronomy idea / data idea map
+- starter data route
+- pipeline route
+- technical-note route
+- research questions and extensions
 
 Possible child pages:
 
@@ -234,15 +263,23 @@ This section is optional at launch.
 
 ### Educator journey
 
-1. Land on `Home` or `Learn`
+1. Land on `Home` or `Teach`
 2. Identify age level or teaching context
-3. Review a concept page
-4. Pick an activity or guided exploration
-5. Optionally consult background material in `Build` or `About`
+3. Pick a ready-made lesson or guided exploration
+4. Use classroom prompts or an investigation
+5. Optionally consult background material in `Learn & Build`, `Build`, or `About`
+
+### Student or curious builder journey
+
+1. Land on `Home` or `Learn & Build`
+2. Start with a lesson or visual experience
+3. Download a small prepared dataset
+4. Build a chart, notebook, visualisation, or game-like experience
+5. Move into the full pipeline only when ready
 
 ### Technical journey
 
-1. Land on `Home` or `Build`
+1. Land on `Home`, `Learn & Build`, or `Build`
 2. Understand the three-part architecture
 3. Follow links to the pipeline, octree, and viewer
 4. Use build guides and provenance notes

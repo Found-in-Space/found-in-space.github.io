@@ -1,0 +1,411 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+
+const lessons = [
+	{
+		title: 'The Hertzsprung-Russell diagram',
+		href: `${basePath}learn/topic/hr-diagram/`,
+		summary:
+			'Use a real stellar sample to connect colour, temperature, luminosity, stellar evolution, and observational bias.',
+		bestFor: 'upper secondary, undergraduate, curious adults',
+		time: '20-40 minutes',
+		astronomy: 'stellar evolution',
+		data: 'absolute vs apparent quantities, sample limits',
+	},
+	{
+		title: 'Constellations and 3D space',
+		href: `${basePath}explore/constellations-and-3d-space/`,
+		summary:
+			'Start from Orion, then move through the local star field to show how perspective turns 3D space into sky patterns.',
+		bestFor: 'lower secondary upward, outreach',
+		time: '10-25 minutes',
+		astronomy: 'constellations and distance',
+		data: 'projection, viewpoint, parallax',
+	},
+	{
+		title: 'Parallax',
+		href: `${basePath}explore/parallax/`,
+		summary:
+			'Move the observer and watch nearby stars slide more than distant ones, making distance measurement visible.',
+		bestFor: 'secondary, first-year undergraduate',
+		time: '10-20 minutes',
+		astronomy: 'measuring stellar distance',
+		data: 'triangulation and uncertainty',
+	},
+	{
+		title: 'Star clusters',
+		href: `${basePath}learn/topic/star-clusters/`,
+		summary:
+			'Compare real stellar families and ask why clusters are useful natural laboratories for understanding stars.',
+		bestFor: 'upper secondary, undergraduate',
+		time: '20-35 minutes',
+		astronomy: 'stellar age and formation',
+		data: 'controlled comparisons in messy data',
+	},
+	{
+		title: 'The radio bubble',
+		href: `${basePath}learn/topic/radio-bubble/`,
+		summary:
+			'Use the scale of radio signals leaving Earth to discuss distance, detectability, and the size of the local neighbourhood.',
+		bestFor: 'secondary, outreach, discussion sessions',
+		time: '15-30 minutes',
+		astronomy: 'scale and light-travel time',
+		data: 'model assumptions and detectability',
+	},
+];
+
+const questions = [
+	'Do the brightest stars have to be the closest?',
+	'Why do Orion and the Pleiades look elongated in some 3D views?',
+	'What changes when students move from apparent brightness to true luminosity?',
+	'Which features in a star map are physical, and which come from measurement limits?',
+];
+---
+
+<Layout
+	title="Teach | Found in Space"
+	description="Use Found in Space in lessons, workshops, and outreach with real astronomical data, guided visualisations, classroom prompts, and inquiry projects."
+>
+	<SiteHeader section="Teach with real data" />
+
+	<main class="page">
+		<header class="hero teach-hero">
+			<p class="eyebrow">Teach with real astronomical data</p>
+			<h1>Help students investigate the universe through data they can see.</h1>
+			<p class="lede">
+				Found in Space gives you interactive visualisations, guided questions, and open
+				investigations for teaching astronomy, data, uncertainty, coding, and critical thinking.
+				Most activities need no coding; every one can become a deeper project.
+			</p>
+			<div class="hero__actions">
+				<a class="button button--primary" href="#ready-made-lessons">Start with a lesson</a>
+				<a class="button button--ghost" href="#inquiry">Run an inquiry activity</a>
+				<a class="button button--ghost" href={`${basePath}learn-build/`}>Create or adapt</a>
+			</div>
+		</header>
+
+		<section class="teacher-answers" aria-label="Teacher questions answered">
+			<article class="panel">
+				<p class="panel__eyebrow">Use it quickly</p>
+				<h2>Can I use this in a lesson?</h2>
+				<p>
+					Yes. Start with a guided viewer or lesson page, then use the prompts below for
+					discussion, worksheet questions, or small-group investigation.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Choose a level</p>
+				<h2>What age or stage is it for?</h2>
+				<p>
+					Activities work best from secondary school upward. Each lesson lists the suggested
+					level, timing, astronomy idea, and data idea so you can pick the right depth.
+				</p>
+			</article>
+			<article class="panel">
+				<p class="panel__eyebrow">Extend it</p>
+				<h2>Do students need coding?</h2>
+				<p>
+					No for the visual lessons. Optional extensions use starter data, notebooks, the open
+					pipeline, or student-made visualisations when you want a project layer.
+				</p>
+			</article>
+		</section>
+
+		<section class="lesson-section" id="ready-made-lessons" aria-label="Ready-made lessons">
+			<div class="section-heading">
+				<p class="eyebrow">Ready-made lessons</p>
+				<h2>Start with a guided visualisation.</h2>
+				<p>
+					Each lesson pairs an astronomy idea with a data idea. That pairing is the heart of
+					Found in Space: students learn what the universe is doing and how the evidence is built.
+				</p>
+			</div>
+
+			<div class="lesson-list">
+				{lessons.map((lesson) => (
+					<a class="panel lesson-card" href={lesson.href}>
+						<div class="lesson-card__body">
+							<h3>{lesson.title}</h3>
+							<p>{lesson.summary}</p>
+						</div>
+						<dl class="lesson-card__meta">
+							<div>
+								<dt>Best for</dt>
+								<dd>{lesson.bestFor}</dd>
+							</div>
+							<div>
+								<dt>Time</dt>
+								<dd>{lesson.time}</dd>
+							</div>
+							<div>
+								<dt>Astronomy idea</dt>
+								<dd>{lesson.astronomy}</dd>
+							</div>
+							<div>
+								<dt>Data idea</dt>
+								<dd>{lesson.data}</dd>
+							</div>
+						</dl>
+						<span class="lesson-card__cta">Open lesson</span>
+					</a>
+				))}
+			</div>
+		</section>
+
+		<section class="inquiry" id="inquiry" aria-label="Inquiry activities">
+			<div class="inquiry__intro">
+				<p class="eyebrow">Investigations</p>
+				<h2>Use questions that do not collapse into a single fact.</h2>
+				<p>
+					Real data is not a neutral photograph of reality. It carries uncertainty, selection
+					effects, coordinate choices, and measurement limits. That is exactly why it is useful
+					in a classroom.
+				</p>
+			</div>
+			<div class="panel panel--accent inquiry__panel">
+				<h3>Good starting questions</h3>
+				<ul>
+					{questions.map((question) => <li>{question}</li>)}
+				</ul>
+				<a class="button button--ghost" href={`${basePath}learn/next-steps/`}>
+					Browse research questions
+				</a>
+			</div>
+		</section>
+
+		<section class="adapt" aria-label="Create or adapt a visualisation">
+			<div>
+				<p class="eyebrow">Create or adapt</p>
+				<h2>Move from using the visuals to building with the data.</h2>
+			</div>
+			<div class="adapt__body">
+				<p>
+					Students can begin with a prepared dataset, make a chart or simple 3D scene, then move
+					toward the full open pipeline if they want to understand how Gaia and Hipparcos become a
+					browser-ready star map.
+				</p>
+				<div class="adapt__actions">
+					<a class="button button--primary" href={`${basePath}learn-build/`}>Learn &amp; build</a>
+					<a class="button button--ghost" href={`${basePath}build/download-the-star-data/`}>
+						Get starter data
+					</a>
+				</div>
+			</div>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.teach-hero {
+		max-width: 58rem;
+		padding-top: 3.5rem;
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-weight: 600;
+		letter-spacing: 0;
+	}
+
+	h1 {
+		max-width: 15ch;
+		margin: 0;
+		font-size: 4.4rem;
+		line-height: 1;
+	}
+
+	h2 {
+		margin: 0 0 0.8rem;
+		font-size: 1.8rem;
+		line-height: 1.12;
+		color: var(--fis-text);
+	}
+
+	h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.35rem;
+		line-height: 1.18;
+		color: var(--fis-text);
+	}
+
+	p {
+		margin: 0;
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.hero__actions,
+	.adapt__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.85rem;
+		margin-top: 2rem;
+	}
+
+	.button--ghost {
+		background: var(--fis-panel);
+	}
+
+	.teacher-answers {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+		margin-bottom: 4rem;
+	}
+
+	.lesson-section {
+		display: grid;
+		grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+		gap: 3rem;
+		padding-top: 4rem;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.section-heading {
+		position: sticky;
+		top: 6.5rem;
+		align-self: start;
+	}
+
+	.section-heading h2,
+	.inquiry__intro h2,
+	.adapt h2 {
+		font-size: 2.3rem;
+		line-height: 1.08;
+	}
+
+	.lesson-list {
+		display: grid;
+		gap: 1rem;
+	}
+
+	.lesson-card {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.8fr);
+		gap: 1.5rem;
+		text-decoration: none;
+		transition:
+			border-color 160ms ease,
+			transform 160ms ease;
+	}
+
+	.lesson-card:hover {
+		border-color: var(--fis-line-strong);
+		transform: translateY(-3px);
+	}
+
+	.lesson-card__meta {
+		display: grid;
+		gap: 0.75rem;
+		margin: 0;
+		padding: 0;
+	}
+
+	.lesson-card__meta div {
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid var(--fis-line);
+	}
+
+	.lesson-card__meta div:last-child {
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+
+	.lesson-card__meta dt {
+		margin-bottom: 0.2rem;
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		font-size: 0.76rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+	}
+
+	.lesson-card__meta dd {
+		margin: 0;
+		color: var(--fis-text-soft);
+		line-height: 1.45;
+	}
+
+	.lesson-card__cta {
+		grid-column: 1 / -1;
+		color: var(--fis-gold);
+		font-family: var(--fis-font-ui);
+		font-size: 0.94rem;
+	}
+
+	.inquiry,
+	.adapt {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+		gap: 3rem;
+		padding: 4rem 0;
+		border-top: 1px solid var(--fis-line);
+	}
+
+	.inquiry {
+		margin-top: 4rem;
+	}
+
+	.inquiry__panel {
+		padding: 2rem;
+	}
+
+	.inquiry__panel ul {
+		display: grid;
+		gap: 0.75rem;
+		margin: 1rem 0 1.5rem;
+		padding-left: 1.2rem;
+		color: var(--fis-text-soft);
+		line-height: 1.65;
+	}
+
+	.adapt {
+		margin-bottom: 4rem;
+	}
+
+	.adapt__body {
+		max-width: 42rem;
+	}
+
+	@media (max-width: 960px) {
+		h1 {
+			font-size: 3.6rem;
+		}
+
+		.teacher-answers,
+		.lesson-section,
+		.lesson-card,
+		.inquiry,
+		.adapt {
+			grid-template-columns: 1fr;
+		}
+
+		.section-heading {
+			position: static;
+		}
+	}
+
+	@media (max-width: 720px) {
+		h1 {
+			font-size: 2.9rem;
+		}
+
+		.hero__actions,
+		.adapt__actions {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.hero__actions .button,
+		.adapt__actions .button {
+			width: 100%;
+		}
+	}
+</style>

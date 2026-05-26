@@ -187,25 +187,50 @@ Core sections:
 
 Primary job:
 
-- organize educational material by concept and audience
+- organize educational material for self-directed learners
 
 Core sections:
 
 - what you can learn here
-- pathways by audience or level
-- featured concepts
-- featured activities
+- sequenced lessons
+- metadata for level, time, astronomy idea, data idea, classroom use, and build extensions
+- investigations after the lessons
+
+### Teach landing
+
+Primary job:
+
+- help teachers, lecturers, and workshop leaders use the material without reverse-engineering it
+
+Core sections:
+
+- practical teacher questions answered
+- ready-made lesson list
+- inquiry prompts
+- create-or-adapt route into starter data and build work
+
+### Learn & Build landing
+
+Primary job:
+
+- connect learning, starter data, and open technical machinery for students and curious builders
+
+Core sections:
+
+- three doors: use the data, learn concepts, run the machinery
+- astronomy idea / data idea map
+- beginner, pipeline, and machinery build layers
+- investigations as next project prompts
 
 ### Build landing
 
 Primary job:
 
-- explain the architecture simply and direct people to deeper material
+- explain the architecture simply and direct people to starter data or deeper technical material
 
 Core sections:
 
-- overview diagram
-- three project layers
+- three doors: use the data, run the pipeline, understand the machinery
 - source and provenance
 - start here for developers or collaborators
 
@@ -230,8 +255,8 @@ Recommended launch set:
 
 - `Home`
 - `Explore`
-- `Learn`
-- `Build`
+- `Teach`
+- `Learn & Build`
 - `About`
 - 3 journeys
 - 4 concepts
