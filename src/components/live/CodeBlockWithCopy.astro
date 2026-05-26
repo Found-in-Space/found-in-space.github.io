@@ -1,0 +1,42 @@
+---
+import '../../styles/live-code.css';
+
+interface Props {
+	code: string;
+	label?: string;
+	language?: string;
+}
+
+const { code, label = 'Code example', language = 'text' } = Astro.props;
+const id = `copy-code-${Math.random().toString(36).slice(2)}`;
+---
+
+<figure class="code-copy" data-code-copy>
+	<figcaption>
+		<span>{label}</span>
+		<button type="button" data-code-copy-button aria-describedby={id}>Copy</button>
+	</figcaption>
+	<pre id={id}><code class={`language-${language}`}>{code}</code></pre>
+</figure>
+
+<script>
+	for (const root of document.querySelectorAll('[data-code-copy]:not([data-code-copy-ready])')) {
+		root.setAttribute('data-code-copy-ready', 'true');
+		const button = root.querySelector('[data-code-copy-button]');
+		const code = root.querySelector('code');
+		if (!button || !code) continue;
+
+		button.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(code.textContent ?? '');
+				const original = button.textContent;
+				button.textContent = 'Copied';
+				window.setTimeout(() => {
+					button.textContent = original;
+				}, 1400);
+			} catch {
+				button.textContent = 'Copy failed';
+			}
+		});
+	}
+</script>

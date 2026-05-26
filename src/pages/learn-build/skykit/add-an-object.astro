@@ -1,0 +1,177 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import addObjectHtml from '../../../live-examples/skykit/add-an-object/index.html?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const installCode = `npm install @found-in-space/skykit three`;
+const importCode = `import * as THREE from 'three';
+import {
+  createSkykitViewer,
+  createStreamingStarsPlugin,
+  createObject3dPlugin,
+  createKeyboardNavigationPlugin,
+  createSkyGrabPlugin,
+  createSkykitAnimationLoop,
+} from '@found-in-space/skykit';
+import {
+  OCTREE_DEFAULT,
+  createStarOctreeProviderService,
+} from '@found-in-space/star-octree-provider';
+import {
+  createObserverShellStrategy,
+  createSphereVolumeStrategy,
+  combineStrategies,
+} from '@found-in-space/star-trees';
+import { createThreeStarField } from '@found-in-space/three-star-field';`;
+---
+
+<Layout
+	title="Add your own object to space | Found in Space"
+	description="Use SkyKit object plugins to add app-owned world-space and observer-centric visuals to a star viewer."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Add an object</span>
+			</nav>
+			<p class="eyebrow">Lesson 2</p>
+			<h1>Add your own object to space</h1>
+			<p class="lede">
+				SkyKit is not only a star renderer. It can host objects owned by your app: markers,
+				annotation layers, instrument overlays, navigation guides, and animated effects.
+			</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					This example adds a world-space Hyades sphere marker, a world-space radio bubble
+					around Sol, and an observer-centric guide ring. World-space objects use the same
+					parsec-to-render-unit scale as the viewer. Observer-centric objects stay attached to
+					the viewer, which is useful for guide surfaces and sky overlays.
+				</p>
+			</section>
+		</article>
+
+		<LiveCodePlayground
+			id="skykit-add-an-object"
+			title="SkyKit object layer"
+			description="Toggle the app-owned layers, then edit the marker radius, target, or pulse speed."
+			initialCode={addObjectHtml}
+			mode="html"
+			height="34rem"
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change <code>RADIO_BUBBLE_RADIUS_PC</code>.</li>
+					<li>Move the marker by editing <code>HYADES_CENTER_PC</code>.</li>
+					<li>Add a second marker with another <code>createObject3dPlugin()</code>.</li>
+					<li>Toggle visibility with the checkbox bindings.</li>
+					<li>Change the marker pulse speed in the app-owned animation part.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>What changed in the code</h2>
+				<p>
+					The star stream is still the same composition from lesson one, but the session strategy
+					now combines the observer shell with a sphere around the Hyades so the marker has
+					nearby stars to show. The app creates ordinary Three.js objects, places them in render
+					units, then hands them to <code>createObject3dPlugin()</code>.
+				</p>
+				<p>
+					The pulse is not a SkyKit built-in. It is an app-owned part registered through a plugin
+					function. That is the core pattern: SkyKit coordinates the viewer, while your app owns
+					the interaction and visual behavior that make the experience specific.
+				</p>
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Source and next steps</p>
+				<h2>Use package examples for larger object layers.</h2>
+				<p>
+					This live example is intentionally small. The SkyKit custom object example shows the
+					same Object3D pattern with constellation art, a navigation sphere, and a Hyades
+					annotation.
+				</p>
+				<ul>
+					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
+					<li><a href="https://github.com/Found-in-Space/skykit/tree/main/packages/skykit/examples/custom-object-layer" rel="noopener noreferrer">Custom object layer example</a></li>
+					<li><a href={`${basePath}learn/topic/radio-bubble/`}>Found in Space radio bubble lesson</a></li>
+					<li><a href={`${basePath}learn-build/skykit/query-stars-without-three/`}>Next: query stars without Three.js</a></li>
+				</ul>
+			</section>
+
+			<section class="local-panel panel">
+				<h2>Use this locally</h2>
+				<p>
+					In a local app, import SkyKit and the focused packages directly. The object itself is
+					ordinary Three.js, so your app can decide how to generate, animate, and dispose it.
+				</p>
+				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
+				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page--lesson {
+		max-width: 76rem;
+	}
+
+	.lesson-hero {
+		max-width: 60rem;
+		padding: 3.5rem 0 1.5rem;
+	}
+
+	.lesson-hero h1 {
+		margin: 0;
+		font-size: 4rem;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0;
+	}
+
+	.lesson-body {
+		max-width: 54rem;
+	}
+
+	.source-panel {
+		margin: 2.5rem 0;
+	}
+
+	.source-panel h2 {
+		margin-top: 0;
+	}
+
+	.local-panel {
+		margin: 2.5rem 0;
+	}
+
+	.local-panel h2 {
+		margin-top: 0;
+	}
+
+	@media (max-width: 720px) {
+		.lesson-hero h1 {
+			font-size: 2.75rem;
+		}
+	}
+</style>

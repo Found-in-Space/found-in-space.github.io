@@ -1,0 +1,232 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+
+const basePath = import.meta.env.BASE_URL;
+
+const lessons = [
+	{
+		title: 'Create a SkyKit browser',
+		href: `${basePath}learn-build/skykit/create-a-browser/`,
+		build: 'A browser-based star viewer that streams Found in Space data.',
+		learn: 'Viewer host, Three renderer, camera, star provider, streaming plugin, keyboard and grab controls.',
+		time: '15–25 min',
+	},
+	{
+		title: 'Add your own object to space',
+		href: `${basePath}learn-build/skykit/add-an-object/`,
+		build: 'A star viewer with an app-owned Hyades marker, radio bubble, and layer toggles.',
+		learn: 'World-space objects, observer-centric objects, parsecs to render units, Object3D plugin, and animation parts.',
+		time: '20–30 min',
+	},
+	{
+		title: 'Query stars without Three.js',
+		href: `${basePath}learn-build/skykit/query-stars-without-three/`,
+		build: 'A live notebook that streams semantic star cells and turns them into table rows.',
+		learn: 'Provider creation, cell deltas, requested attributes, local sorting and filtering.',
+		time: '20–35 min',
+	},
+	{
+		title: 'Fetch names and labels with sidecars',
+		href: `${basePath}learn-build/skykit/star-metadata-sidecars/`,
+		build: 'A notebook that enriches streamed star refs with sidecar metadata labels.',
+		learn: 'Dataset bootstrap, derived sidecar URLs, StarObjectRef lookup, and label fallback policy.',
+		time: '20–35 min',
+	},
+	{
+		title: 'Build a small app',
+		href: `${basePath}learn-build/skykit/build-a-star-app/`,
+		build: 'A small 2D star-slice demo that points toward Star Pilot.',
+		learn: 'App shape, loading strategy, projection, renderer ownership, interaction, and labels.',
+		time: '30–60 min',
+	},
+];
+---
+
+<Layout
+	title="Build with SkyKit | Found in Space"
+	description="A live coding learning path for building browser experiences with SkyKit and Found in Space star data."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page">
+		<header class="hero skykit-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Build with SkyKit</span>
+			</nav>
+			<p class="eyebrow">Live coding path</p>
+			<h1>Build with SkyKit</h1>
+			<p class="lede">
+				SkyKit lets you turn the Found in Space star data into your own browser experiences.
+				Start with a live star viewer, add your own objects, query stars without a renderer,
+				then build toward small apps like Star Pilot.
+			</p>
+		</header>
+
+		<section class="lesson-grid" aria-label="SkyKit lessons">
+			{lessons.map((lesson, index) => (
+				<article class="lesson-card">
+					<p class="panel__eyebrow">Lesson {index + 1}</p>
+					<h2>{lesson.title}</h2>
+					<dl>
+						<div>
+							<dt>What you build</dt>
+							<dd>{lesson.build}</dd>
+						</div>
+						<div>
+							<dt>What you learn</dt>
+							<dd>{lesson.learn}</dd>
+						</div>
+						<div>
+							<dt>Time estimate</dt>
+							<dd>{lesson.time}</dd>
+						</div>
+					</dl>
+					<a class="link--gold" href={lesson.href}>Start lesson &rarr;</a>
+				</article>
+			))}
+		</section>
+
+		<section class="panel panel--wide path-note">
+			<div>
+				<p class="panel__eyebrow">Where this fits</p>
+				<h2>SkyKit is the front-end/app layer.</h2>
+				<p>
+					The technical build pages explain the catalogue pipeline. This path starts after that:
+					you use the published browser data and composition APIs to make something interactive.
+				</p>
+			</div>
+			<a class="button button--primary" href={`${basePath}learn-build/skykit/create-a-browser/`}>
+				Start the SkyKit path
+			</a>
+		</section>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.skykit-hero {
+		max-width: 58rem;
+		padding-top: 3.5rem;
+	}
+
+	h1,
+	h2 {
+		margin: 0;
+		font-weight: 600;
+		letter-spacing: 0;
+	}
+
+	h1 {
+		font-size: 4.4rem;
+		line-height: 1;
+	}
+
+	h2 {
+		font-size: 1.45rem;
+		line-height: 1.15;
+		color: var(--fis-text);
+	}
+
+	p {
+		line-height: 1.7;
+		color: var(--fis-text-soft);
+	}
+
+	.lesson-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 1rem 0 4rem;
+	}
+
+	.lesson-card {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1.45rem;
+		border: 1px solid var(--fis-line);
+		border-radius: 0.5rem;
+		background: var(--fis-panel);
+		box-shadow: var(--fis-shadow);
+	}
+
+	.lesson-card:first-child {
+		background:
+			linear-gradient(180deg, rgba(242, 200, 121, 0.12), rgba(10, 20, 36, 0.78)),
+			var(--fis-panel);
+	}
+
+	.lesson-card dl {
+		display: grid;
+		gap: 0.8rem;
+		margin: 0;
+	}
+
+	.lesson-card dt {
+		margin-bottom: 0.2rem;
+		color: var(--fis-text-muted);
+		font: 600 0.78rem var(--fis-font-ui);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+	}
+
+	.lesson-card dd {
+		margin: 0;
+		color: var(--fis-text-soft);
+		line-height: 1.55;
+	}
+
+	.lesson-card a {
+		margin-top: auto;
+	}
+
+	.path-note {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 4rem;
+	}
+
+	.path-note div {
+		max-width: 44rem;
+	}
+
+	.path-note h2 {
+		margin-bottom: 0.55rem;
+	}
+
+	.path-note p {
+		margin: 0;
+	}
+
+	@media (max-width: 900px) {
+		h1 {
+			font-size: 3.4rem;
+		}
+
+		.lesson-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.path-note {
+			align-items: flex-start;
+			flex-direction: column;
+		}
+	}
+
+	@media (max-width: 720px) {
+		h1 {
+			font-size: 2.8rem;
+		}
+
+		.path-note .button {
+			width: 100%;
+		}
+	}
+</style>

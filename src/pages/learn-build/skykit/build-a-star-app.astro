@@ -1,0 +1,194 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import buildAppHtml from '../../../live-examples/skykit/build-a-star-app/index.html?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const installCode = `npm install @found-in-space/star-octree-provider @found-in-space/star-trees @found-in-space/meta-sidecar-provider pixi.js`;
+const starPilotCode = `git clone https://github.com/Found-in-Space/star-pilot.git
+cd star-pilot
+npm install
+npm run dev -- --host 127.0.0.1 --port 4323`;
+const architectureCode = `choose app shape
+choose loading strategy
+project stars into app coordinates
+render with your chosen renderer
+add interaction
+add labels`;
+---
+
+<Layout
+	title="Build a small star app | Found in Space"
+	description="Bridge from SkyKit lessons to Star Pilot with a small 2D star-slice app architecture."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Build a small app</span>
+			</nav>
+			<p class="eyebrow">Lesson 5</p>
+			<h1>Build a small app</h1>
+			<p class="lede">
+				Move from examples to app architecture. Choose a shape, load the stars you need,
+				project them into app coordinates, render with your own renderer, then add
+				interaction and labels.
+			</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					Star Pilot is a PixiJS, TypeScript, and Vite sketch rather than a Three.js viewer.
+					It streams Gaia-derived stars from the star-octree provider, uses an app-owned Pizza
+					Strategy, projects a visible slice into 2D, and renders an inertial ship with PixiJS.
+				</p>
+				<p>
+					The live demo below is smaller: it streams a local view, projects a flat slice into
+					canvas coordinates, and draws the result with the browser 2D canvas. The important
+					idea is ownership: SkyKit data packages provide star cells; your app chooses how to
+					interpret and render them.
+				</p>
+			</section>
+
+			<section>
+				<h2>Architecture sequence</h2>
+				<CodeBlockWithCopy code={architectureCode} label="App sequence" language="text" />
+			</section>
+		</article>
+
+		<LiveCodePlayground
+			id="skykit-build-a-star-app"
+			title="Small 2D star-slice demo"
+			description="This app-owned canvas renderer projects streamed stars into a 2D slice."
+			initialCode={buildAppHtml}
+			mode="html"
+			height="34rem"
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change the slice radius in <code>projectSlice()</code>.</li>
+					<li>Change <code>halfThicknessPc</code> to include a thicker or thinner slice.</li>
+					<li>Change the magnitude sort before <code>slice(0, 2200)</code>.</li>
+					<li>Move the stream observer position away from the Sun.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>The Pizza Strategy</h2>
+				<p>
+					Star Pilot uses a custom strategy as the advanced loading concept. The strategy
+					evaluates semantic cell geometry and includes cells that intersect a circular slice
+					around the ship. The loaded pizza diameter is larger than the visible circle, so the
+					ship can move before the next slice finishes loading.
+				</p>
+				<p>
+					This is not a special provider registry case. It is a normal
+					<code>StarCellStrategy</code>: it creates an anchor, evaluates each cell against the
+					app's geometry, emits cells that intersect the slice, and reports changed regions
+					when the slice moves.
+				</p>
+			</section>
+
+			<section>
+				<h2>What changed in the code</h2>
+				<p>
+					The demo no longer calls <code>createSkykitViewer()</code>. It uses the same provider
+					stream directly, maps streamed cell coordinates from parsecs into a 2D canvas, and
+					draws with app-owned rendering code. A real app can swap that renderer for PixiJS,
+					Canvas, WebGL, SVG, or a custom engine.
+				</p>
+				<p>
+					Labels come later in the architecture. Star Pilot wires sidecars through the same
+					dataset bootstrap pattern from lesson four, resolves hover labels with
+					<code>StarObjectRef</code>, and fetches each needed sidecar cell once for automatic
+					map labels.
+				</p>
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Source and next steps</p>
+				<h2>Graduate to Star Pilot.</h2>
+				<p>
+					Do not try to learn the whole app at once. Read the project in layers: stream source,
+					Pizza Strategy, projection math, renderer, controls, then labels.
+				</p>
+				<ul>
+					<li><a href="https://github.com/Found-in-Space/star-pilot" rel="noopener noreferrer">Star Pilot repository</a></li>
+					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
+					<li><a href="https://github.com/Found-in-Space/skykit/tree/main/packages/star-octree-provider/examples/canvas-star-map" rel="noopener noreferrer">Canvas star map example</a></li>
+					<li><a href={`${basePath}learn-build/skykit/`}>Back to the SkyKit path</a></li>
+				</ul>
+			</section>
+
+			<section class="local-panel panel">
+				<h2>Use this locally</h2>
+				<p>
+					For a new small app, install the data packages and a renderer. To inspect the full
+					Star Pilot sketch, clone it and run its Vite dev server.
+				</p>
+				<CodeBlockWithCopy code={installCode} label="Install app packages" language="bash" />
+				<CodeBlockWithCopy code={starPilotCode} label="Run Star Pilot" language="bash" />
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page--lesson {
+		max-width: 76rem;
+	}
+
+	.lesson-hero {
+		max-width: 60rem;
+		padding: 3.5rem 0 1.5rem;
+	}
+
+	.lesson-hero h1 {
+		margin: 0;
+		font-size: 4rem;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0;
+	}
+
+	.lesson-body {
+		max-width: 54rem;
+	}
+
+	.source-panel {
+		margin: 2.5rem 0;
+	}
+
+	.source-panel h2 {
+		margin-top: 0;
+	}
+
+	.local-panel {
+		margin: 2.5rem 0;
+	}
+
+	.local-panel h2 {
+		margin-top: 0;
+	}
+
+	@media (max-width: 720px) {
+		.lesson-hero h1 {
+			font-size: 2.75rem;
+		}
+	}
+</style>

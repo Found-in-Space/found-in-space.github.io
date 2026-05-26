@@ -1,0 +1,190 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveNotebook from '../../../components/live/LiveNotebook.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import cell1 from '../../../live-examples/skykit/star-metadata-sidecars/cell-1.js?raw';
+import cell2 from '../../../live-examples/skykit/star-metadata-sidecars/cell-2.js?raw';
+import cell3 from '../../../live-examples/skykit/star-metadata-sidecars/cell-3.js?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const installCode = `npm install @found-in-space/star-octree-provider @found-in-space/star-trees @found-in-space/meta-sidecar-provider`;
+const importCode = `import {
+  OCTREE_DEFAULT,
+  createStarOctreeProviderService,
+} from '@found-in-space/star-octree-provider';
+import {
+  createMetaSidecarProviderService,
+  deriveMetaSidecarUrlFromRenderUrl,
+} from '@found-in-space/meta-sidecar-provider';
+import { createObserverShellStrategy } from '@found-in-space/star-trees';`;
+const cells = [
+	{
+		id: 'bootstrap',
+		title: '1. Bootstrap the dataset',
+		description: 'Read the render dataset id, derive the matching meta sidecar URL, and open a metadata provider.',
+		initialCode: cell1,
+	},
+	{
+		id: 'stream',
+		title: '2. Stream stars with object refs',
+		description: 'Load visible cells with StarObjectRef identity so metadata lookup has a public key.',
+		initialCode: cell2,
+	},
+	{
+		id: 'labels',
+		title: '3. Fetch labels and cell metadata',
+		description: 'Fetch one star metadata row and one full cell metadata sidecar, then format useful labels.',
+		initialCode: cell3,
+	},
+];
+---
+
+<Layout
+	title="Fetch names and labels with sidecars | Found in Space"
+	description="Enrich streamed SkyKit stars with metadata sidecars using StarObjectRef identity."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Metadata sidecars</span>
+			</nav>
+			<p class="eyebrow">Lesson 4</p>
+			<h1>Fetch names and labels with sidecars</h1>
+			<p class="lede">
+				Keep the render stream compact, then fetch richer catalogue metadata only when your
+				app needs labels, hover text, or facts about a selected star.
+			</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					The render octree streams positions, magnitudes, temperatures, and optional public
+					star refs. Metadata sidecars are separate. Your app bootstraps the render dataset id,
+					derives the matching sidecar URL, creates a sidecar provider, and looks up metadata
+					by <code>StarObjectRef</code> or by semantic cell ref.
+				</p>
+				<p>
+					The label policy in this lesson follows the same shape used by Star Pilot:
+					proper name, Bayer designation plus constellation, Flamsteed plus constellation,
+					HD, HIP, Gaia source id, then a cell/ordinal fallback.
+				</p>
+			</section>
+		</article>
+
+		<LiveNotebook
+			id="skykit-sidecars"
+			title="Resolve sidecar metadata"
+			description="Run the cells in order. The final cell fetches one star row and one full cell sidecar."
+			cells={cells}
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change the magnitude limit in cell 2 to stream a different visible set.</li>
+					<li>Change the selected row in cell 3 before <code>getMeta()</code>.</li>
+					<li>Modify the label formatter order in the shared notebook helper.</li>
+					<li>Render extra metadata fields in the final table.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>What changed in the code</h2>
+				<p>
+					Cell 1 calls <code>ensureBootstrap()</code> on the render provider and requires a
+					dataset id. It then derives the sidecar URL from the render octree URL and creates a
+					metadata provider with the render dataset id as its parent.
+				</p>
+				<p>
+					Cell 3 uses <code>getMeta(star.ref)</code> for one object and
+					<code>getMetaCell(...)</code> for all metadata rows in the same semantic cell. The
+					sidecar provider stays schema-neutral; the app decides what a label should be.
+				</p>
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Source and next steps</p>
+				<h2>Star Pilot uses this pattern for hover labels.</h2>
+				<p>
+					Star Pilot derives the render dataset id, opens the matching generated meta sidecar,
+					and uses public <code>StarObjectRef</code> values for lookup. The render stream stays
+					compact; metadata is fetched only when labels or richer facts are needed.
+				</p>
+				<ul>
+					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
+					<li><a href="https://github.com/Found-in-Space/skykit/tree/main/packages/meta-sidecar-provider" rel="noopener noreferrer">Meta sidecar provider package</a></li>
+					<li><a href="https://github.com/Found-in-Space/star-pilot" rel="noopener noreferrer">Star Pilot repository</a></li>
+					<li><a href={`${basePath}learn-build/skykit/build-a-star-app/`}>Next: build a small app</a></li>
+				</ul>
+			</section>
+
+			<section class="local-panel panel">
+				<h2>Use this locally</h2>
+				<p>
+					Install the data packages and keep the label formatter in your app. The sidecar
+					provider intentionally does not choose display names for you.
+				</p>
+				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
+				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page--lesson {
+		max-width: 76rem;
+	}
+
+	.lesson-hero {
+		max-width: 60rem;
+		padding: 3.5rem 0 1.5rem;
+	}
+
+	.lesson-hero h1 {
+		margin: 0;
+		font-size: 4rem;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0;
+	}
+
+	.lesson-body {
+		max-width: 54rem;
+	}
+
+	.source-panel {
+		margin: 2.5rem 0;
+	}
+
+	.source-panel h2 {
+		margin-top: 0;
+	}
+
+	.local-panel {
+		margin: 2.5rem 0;
+	}
+
+	.local-panel h2 {
+		margin-top: 0;
+	}
+
+	@media (max-width: 720px) {
+		.lesson-hero h1 {
+			font-size: 2.75rem;
+		}
+	}
+</style>

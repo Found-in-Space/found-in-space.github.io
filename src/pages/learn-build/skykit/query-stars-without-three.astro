@@ -1,0 +1,188 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveNotebook from '../../../components/live/LiveNotebook.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import cell1 from '../../../live-examples/skykit/query-stars-without-three/cell-1.js?raw';
+import cell2 from '../../../live-examples/skykit/query-stars-without-three/cell-2.js?raw';
+import cell3 from '../../../live-examples/skykit/query-stars-without-three/cell-3.js?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const installCode = `npm install @found-in-space/star-octree-provider @found-in-space/star-trees @found-in-space/meta-sidecar-provider`;
+const importCode = `import {
+  OCTREE_DEFAULT,
+  createStarOctreeProviderService,
+} from '@found-in-space/star-octree-provider';
+import {
+  createObserverShellStrategy,
+  createStarCellKey,
+  decodeTemperatureK,
+} from '@found-in-space/star-trees';`;
+const cells = [
+	{
+		id: 'provider',
+		title: '1. Create The Provider',
+		description: 'Open the public render octree and read its descriptor.',
+		initialCode: cell1,
+	},
+	{
+		id: 'stream',
+		title: '2. Stream Cells',
+		description: 'Request position, absolute magnitude, temperature, and StarObjectRef identity.',
+		initialCode: cell2,
+	},
+	{
+		id: 'rows',
+		title: '3. Inspect Application Rows',
+		description: 'Turn streamed cells into rows your app owns, then sort and render a table.',
+		initialCode: cell3,
+	},
+];
+---
+
+<Layout
+	title="Query stars without Three.js | Found in Space"
+	description="Use SkyKit data packages without a 3D renderer by streaming cells into a live table notebook."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Query stars without Three.js</span>
+			</nav>
+			<p class="eyebrow">Lesson 3</p>
+			<h1>Query stars without Three.js</h1>
+			<p class="lede">
+				The data packages are useful even when you are not rendering a 3D scene. Stream cells,
+				ask for only the attributes you need, and turn the result into app-owned rows.
+			</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					This notebook follows the provider-only pattern: create a provider, stream cells,
+					listen for deltas, and turn those cells into rows. The required attributes are
+					<code>position</code>, <code>magAbs</code>, <code>teffLog8</code>, and
+					<code>objectRef</code>.
+				</p>
+				<p>
+					Cells are transport/data units. Rows are app-owned interpretation. The provider does
+					not decide what your app is trying to show.
+				</p>
+			</section>
+		</article>
+
+		<LiveNotebook
+			id="skykit-query-stars"
+			title="Stream stars into a table"
+			description="Run the cells in order, or edit one cell and rerun from there."
+			cells={cells}
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change <code>limitingMagnitude</code> in cell 2.</li>
+					<li>Move <code>observerPc</code> to another location in parsecs.</li>
+					<li>Change the sort in cell 3 from brightest stars to coolest stars.</li>
+					<li>Add a local filter before <code>slice(0, 40)</code>.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>What changed in the code</h2>
+				<p>
+					There is no Three.js renderer here. The provider emits deltas such as
+					<code>stars/cells-upsert</code>, <code>stars/cells-remove</code>, and
+					<code>stars/current</code>. The notebook keeps a local <code>cells</code> array,
+					then creates rows by reading coordinate arrays and public star refs.
+				</p>
+				<p>
+					The rendered table intentionally shows a semantic <code>cell key</code>, ordinal,
+					x/y/z parsec positions, absolute magnitude, decoded temperature, and whether a
+					<code>StarObjectRef</code> is available. It does not expose provider storage offsets.
+				</p>
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Source and next steps</p>
+				<h2>Use the provider examples for deeper diagnostics.</h2>
+				<p>
+					The SkyKit repository includes a minimal stream example with the same provider,
+					cell-delta, and table-rendering structure.
+				</p>
+				<ul>
+					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
+					<li><a href="https://github.com/Found-in-Space/skykit/tree/main/packages/star-octree-provider/examples/minimal-stream" rel="noopener noreferrer">Minimal stream example</a></li>
+					<li><a href={`${basePath}learn-build/skykit/star-metadata-sidecars/`}>Next: fetch names and labels with sidecars</a></li>
+				</ul>
+			</section>
+
+			<section class="local-panel panel">
+				<h2>Use this locally</h2>
+				<p>
+					Data-only projects do not need SkyKit or Three.js. Install the focused packages that
+					own provider streaming and star interpretation.
+				</p>
+				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
+				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>
+
+<style>
+	.page--lesson {
+		max-width: 76rem;
+	}
+
+	.lesson-hero {
+		max-width: 60rem;
+		padding: 3.5rem 0 1.5rem;
+	}
+
+	.lesson-hero h1 {
+		margin: 0;
+		font-size: 4rem;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: 0;
+	}
+
+	.lesson-body {
+		max-width: 54rem;
+	}
+
+	.source-panel {
+		margin: 2.5rem 0;
+	}
+
+	.source-panel h2 {
+		margin-top: 0;
+	}
+
+	.local-panel {
+		margin: 2.5rem 0;
+	}
+
+	.local-panel h2 {
+		margin-top: 0;
+	}
+
+	@media (max-width: 720px) {
+		.lesson-hero h1 {
+			font-size: 2.75rem;
+		}
+	}
+</style>

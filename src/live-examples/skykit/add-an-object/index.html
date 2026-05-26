@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add your own object to space</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #02040b;
+      color: #f6f1e8;
+      font-family: system-ui, sans-serif;
+    }
+
+    #viewer {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #viewer:active {
+      cursor: grabbing;
+    }
+
+    .panel {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      display: grid;
+      gap: 8px;
+      width: min(18rem, calc(100% - 24px));
+      padding: 12px;
+      border: 1px solid rgba(242, 200, 121, 0.24);
+      border-radius: 6px;
+      background: rgba(2, 4, 11, 0.78);
+      color: #d8deea;
+      font-size: 13px;
+    }
+
+    .panel h1 {
+      margin: 0;
+      color: #f2c879;
+      font-size: 14px;
+    }
+
+    .panel label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewer" aria-label="SkyKit object-layer viewer"></div>
+  <form class="panel">
+    <h1>App-owned layers</h1>
+    <label><input data-layer-toggle="hyades" type="checkbox" checked> Hyades sphere marker</label>
+    <label><input data-layer-toggle="radio" type="checkbox" checked> Sol radio bubble</label>
+    <label><input data-layer-toggle="guide" type="checkbox" checked> Observer guide ring</label>
+  </form>
+
+  <script type="module">
+    const SKYKIT_VERSION = '0.2.0-alpha.0';
+    const SKYKIT_BROWSER_ESM_BASE = 'https://esm.sh/';
+    const esmBase = normalizeBaseUrl(
+      new URLSearchParams(window.location.search).get('skykitEsmBase')
+      || window.__SKYKIT_ESM_BASE_OVERRIDE__
+      || SKYKIT_BROWSER_ESM_BASE,
+    );
+
+    const [
+      THREE,
+      skykit,
+      octreeProvider,
+      starTrees,
+      threeStarField,
+    ] = await Promise.all([
+      import(packageUrl('three@0.170.0')),
+      import(packageUrl(`@found-in-space/skykit@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-octree-provider@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-trees@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/three-star-field@${SKYKIT_VERSION}`)),
+    ]);
+
+    const {
+      createSkykitViewer,
+      createStreamingStarsPlugin,
+      createObject3dPlugin,
+      createKeyboardNavigationPlugin,
+      createSkyGrabPlugin,
+      createSkykitAnimationLoop,
+    } = skykit;
+    const {
+      createStarOctreeProviderService,
+      OCTREE_DEFAULT,
+    } = octreeProvider;
+    const {
+      createObserverShellStrategy,
+      createSphereVolumeStrategy,
+      combineStrategies,
+    } = starTrees;
+    const {
+      createThreeStarField,
+    } = threeStarField;
+
+    const UNITS_PER_PARSEC = 0.001;
+    const MAX_DEVICE_PIXEL_RATIO = 2;
+    const HYADES_CENTER_PC = Object.freeze({ x: 17.574, y: 42.316, z: 13.963 });
+    const HYADES_RADIUS_PC = 8;
+    const RADIO_BUBBLE_RADIUS_PC = 40;
+
+    const host = document.querySelector('#viewer');
+    let cleanup = () => {};
+    let disposed = false;
+
+    main().catch((error) => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `<pre style="position:fixed;right:12px;bottom:12px;max-width:30rem;white-space:pre-wrap;color:#ffb6a8">${escapeHtml(error?.stack || error?.message || String(error))}</pre>`,
+      );
+    });
+
+    async function main() {
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setClearColor(0x02040b, 1);
+
+      const camera = new THREE.PerspectiveCamera(58, 1, 0.0001, 1000);
+      const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
+      const starField = createThreeStarField({ limitingMagnitude: 7.0, exposure: 2400 });
+      const hyadesMarker = createBubble(HYADES_RADIUS_PC * UNITS_PER_PARSEC, 0x73d5ff, 0.10);
+      const radioBubble = createBubble(RADIO_BUBBLE_RADIUS_PC * UNITS_PER_PARSEC, 0xf2c879, 0.045);
+      const guideRing = createObserverGuide(0.16);
+
+      hyadesMarker.position.copy(toRenderPosition(HYADES_CENTER_PC));
+      radioBubble.position.copy(toRenderPosition({ x: 0, y: 0, z: 0 }));
+
+      const viewer = await createSkykitViewer({
+        host,
+        renderer,
+        camera,
+        view: {
+          observerPc: { x: 0, y: 0, z: 0 },
+          orientationIcrs: lookAtFromOrigin(HYADES_CENTER_PC),
+          coordinateUnitsPerParsec: UNITS_PER_PARSEC,
+          limitingMagnitude: 7.0,
+        },
+        plugins: [
+          createStreamingStarsPlugin({
+            id: 'object-lesson-stars',
+            provider,
+            renderer: starField,
+            session: {
+              strategy: combineStrategies([
+                createObserverShellStrategy(),
+                createSphereVolumeStrategy({
+                  centerPc: HYADES_CENTER_PC,
+                  radiusPc: HYADES_RADIUS_PC,
+                }),
+              ]),
+            },
+          }),
+          createObject3dPlugin({
+            id: 'hyades-marker',
+            object3d: hyadesMarker,
+            anchorMode: 'world-space',
+            disposeObject: true,
+          }),
+          createObject3dPlugin({
+            id: 'sol-radio-bubble',
+            object3d: radioBubble,
+            anchorMode: 'world-space',
+            disposeObject: true,
+          }),
+          createObject3dPlugin({
+            id: 'observer-guide-ring',
+            object3d: guideRing,
+            anchorMode: 'observer-centric',
+            disposeObject: true,
+          }),
+          createKeyboardNavigationPlugin({ speedPcPerSec: 3 }),
+          createSkyGrabPlugin({ target: host, sensitivityRadiansPerPixel: 0.00075 }),
+          (context) => context.addPart({
+            id: 'app-marker-animation',
+            update(frame) {
+              const pulse = 1 + Math.sin(frame.elapsedSeconds * 1.7) * 0.05;
+              hyadesMarker.scale.setScalar(pulse);
+              radioBubble.scale.setScalar(1 + Math.sin(frame.elapsedSeconds * 0.7) * 0.025);
+            },
+            getSnapshot() {
+              return {
+                hyadesRadiusPc: HYADES_RADIUS_PC,
+                radioBubbleRadiusPc: RADIO_BUBBLE_RADIUS_PC,
+              };
+            },
+          }),
+        ],
+      });
+
+      bindLayerToggles({ hyades: hyadesMarker, radio: radioBubble, guide: guideRing });
+
+      const loop = createSkykitAnimationLoop(viewer);
+      const resize = () => {
+        const width = Math.max(1, host.clientWidth || 1);
+        const height = Math.max(1, host.clientHeight || 1);
+        const devicePixelRatio = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setPixelRatio(devicePixelRatio);
+        viewer.resize({ width, height, devicePixelRatio });
+      };
+
+      cleanup = () => {
+        if (disposed) return;
+        disposed = true;
+        window.removeEventListener('resize', resize);
+        loop.dispose();
+        void viewer.dispose();
+        provider.dispose?.();
+      };
+
+      window.addEventListener('resize', resize);
+      window.addEventListener('pagehide', cleanup, { once: true });
+      window.addEventListener('beforeunload', cleanup, { once: true });
+      resize();
+      loop.start();
+    }
+
+    function createBubble(radius, color, opacity) {
+      const group = new THREE.Group();
+      const geometry = new THREE.SphereGeometry(radius, 48, 24);
+      const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+      }));
+      const wire = new THREE.Mesh(geometry.clone(), new THREE.MeshBasicMaterial({
+        color,
+        wireframe: true,
+        transparent: true,
+        opacity: Math.min(0.75, opacity * 5),
+        depthWrite: false,
+      }));
+      group.add(fill, wire);
+      return group;
+    }
+
+    function createObserverGuide(radius) {
+      const group = new THREE.Group();
+      const material = new THREE.LineBasicMaterial({
+        color: 0x8db7ff,
+        transparent: true,
+        opacity: 0.72,
+        depthTest: false,
+      });
+      group.add(createLineLoop(createCirclePoints(radius, 'xy'), material));
+      group.add(createLineLoop(createCirclePoints(radius, 'xz'), material));
+      return group;
+    }
+
+    function createCirclePoints(radius, plane) {
+      const points = [];
+      for (let index = 0; index < 160; index += 1) {
+        const angle = (index / 160) * Math.PI * 2;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        points.push(plane === 'xy' ? new THREE.Vector3(x, y, 0) : new THREE.Vector3(x, 0, y));
+      }
+      return points;
+    }
+
+    function createLineLoop(points, material) {
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.LineLoop(geometry, material);
+      line.frustumCulled = false;
+      return line;
+    }
+
+    function toRenderPosition(pointPc) {
+      return new THREE.Vector3(
+        pointPc.x * UNITS_PER_PARSEC,
+        pointPc.y * UNITS_PER_PARSEC,
+        pointPc.z * UNITS_PER_PARSEC,
+      );
+    }
+
+    function lookAtFromOrigin(targetPc) {
+      const forward = new THREE.Vector3(targetPc.x, targetPc.y, targetPc.z).normalize();
+      const north = new THREE.Vector3(0, 0, 1);
+      let up = north.clone().sub(forward.clone().multiplyScalar(north.dot(forward)));
+      if (up.lengthSq() < 1e-8) up = new THREE.Vector3(0, 1, 0);
+      up.normalize();
+      const backward = forward.clone().negate();
+      const right = up.clone().cross(backward).normalize();
+      up = backward.clone().cross(right).normalize();
+      const matrix = new THREE.Matrix4().makeBasis(right, up, backward);
+      const quaternion = new THREE.Quaternion().setFromRotationMatrix(matrix);
+      return { x: quaternion.x, y: quaternion.y, z: quaternion.z, w: quaternion.w };
+    }
+
+    function bindLayerToggles(layers) {
+      for (const input of document.querySelectorAll('[data-layer-toggle]')) {
+        const layer = layers[input.dataset.layerToggle];
+        if (!layer) continue;
+        layer.visible = input.checked;
+        input.addEventListener('change', () => {
+          layer.visible = input.checked;
+        });
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function packageUrl(specifier) {
+      return `${esmBase}${specifier}`;
+    }
+
+    function normalizeBaseUrl(value) {
+      return value.endsWith('/') ? value : `${value}/`;
+    }
+  </script>
+</body>
+</html>

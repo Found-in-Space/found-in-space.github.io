@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create a SkyKit browser</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #02040b;
+      color: #f6f1e8;
+      font-family: system-ui, sans-serif;
+    }
+
+    #viewer {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #viewer:active {
+      cursor: grabbing;
+    }
+
+    .hud {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      color: #d8deea;
+      font-size: 12px;
+    }
+
+    .hud pre {
+      max-width: min(32rem, 100%);
+      max-height: 7rem;
+      margin: 0;
+      padding: 10px 12px;
+      overflow: auto;
+      border: 1px solid rgba(242, 200, 121, 0.25);
+      border-radius: 6px;
+      background: rgba(2, 4, 11, 0.72);
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewer" aria-label="SkyKit star viewer"></div>
+  <div class="hud">
+    <span>Drag to look. Use WASD, arrows, Q/E, and Shift to fly.</span>
+    <pre id="status" aria-live="polite">Loading SkyKit...</pre>
+  </div>
+
+  <script type="module">
+    const SKYKIT_VERSION = '0.2.0-alpha.0';
+    const SKYKIT_BROWSER_ESM_BASE = 'https://esm.sh/';
+    const esmBase = normalizeBaseUrl(
+      new URLSearchParams(window.location.search).get('skykitEsmBase')
+      || window.__SKYKIT_ESM_BASE_OVERRIDE__
+      || SKYKIT_BROWSER_ESM_BASE,
+    );
+
+    const [
+      THREE,
+      skykit,
+      octreeProvider,
+      starTrees,
+      threeStarField,
+    ] = await Promise.all([
+      import(packageUrl('three@0.170.0')),
+      import(packageUrl(`@found-in-space/skykit@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-octree-provider@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-trees@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/three-star-field@${SKYKIT_VERSION}`)),
+    ]);
+
+    const {
+      createSkykitViewer,
+      createStreamingStarsPlugin,
+      createKeyboardNavigationPlugin,
+      createSkyGrabPlugin,
+      createSkykitAnimationLoop,
+      createSkykitStatusPlugin,
+    } = skykit;
+    const {
+      createStarOctreeProviderService,
+      OCTREE_DEFAULT,
+    } = octreeProvider;
+    const {
+      createObserverShellStrategy,
+    } = starTrees;
+    const {
+      createThreeStarField,
+    } = threeStarField;
+
+    const UNITS_PER_PARSEC = 0.001;
+    const LIMITING_MAGNITUDE = 6.5;
+    const MAX_DEVICE_PIXEL_RATIO = 2;
+
+    const host = document.querySelector('#viewer');
+    const status = document.querySelector('#status');
+    let cleanup = () => {};
+    let disposed = false;
+
+    main().catch((error) => {
+      status.textContent = error?.stack || error?.message || String(error);
+      if (String(error?.message || error).includes('skykit-browser')) {
+        status.textContent += '\n\nThe SkyKit browser modules could not be loaded. The lesson text is still available, but the live preview needs the browser ESM endpoint.';
+      }
+    });
+
+    async function main() {
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setClearColor(0x02040b, 1);
+
+      const camera = new THREE.PerspectiveCamera(58, 1, 0.0001, 1000);
+      const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
+      const starField = createThreeStarField({
+        limitingMagnitude: LIMITING_MAGNITUDE,
+        exposure: 2400,
+      });
+
+      const viewer = await createSkykitViewer({
+        host,
+        renderer,
+        camera,
+        view: {
+          observerPc: { x: 0, y: 0, z: 0 },
+          coordinateUnitsPerParsec: UNITS_PER_PARSEC,
+          limitingMagnitude: LIMITING_MAGNITUDE,
+        },
+        plugins: [
+          createStreamingStarsPlugin({
+            id: 'lesson-stars',
+            provider,
+            renderer: starField,
+            session: { strategy: createObserverShellStrategy() },
+          }),
+          createKeyboardNavigationPlugin({ speedPcPerSec: 2 }),
+          createSkyGrabPlugin({
+            target: host,
+            sensitivityRadiansPerPixel: 0.00075,
+          }),
+          createSkykitStatusPlugin({
+            intervalSeconds: 0.5,
+            render({ viewer: snapshot }) {
+              const stars = snapshot.parts.find((part) => part.id === 'lesson-stars')?.snapshot;
+              status.textContent = JSON.stringify({
+                observerPc: snapshot.view.observerPc,
+                parts: snapshot.partCount,
+                starsLoaded: stars?.renderer?.starCount ?? 0,
+                stream: stars?.status ?? 'starting',
+              }, null, 2);
+            },
+          }),
+        ],
+      });
+
+      const loop = createSkykitAnimationLoop(viewer);
+      const resize = () => {
+        const width = Math.max(1, host.clientWidth || 1);
+        const height = Math.max(1, host.clientHeight || 1);
+        const devicePixelRatio = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setPixelRatio(devicePixelRatio);
+        viewer.resize({ width, height, devicePixelRatio });
+      };
+
+      cleanup = () => {
+        if (disposed) return;
+        disposed = true;
+        window.removeEventListener('resize', resize);
+        loop.dispose();
+        void viewer.dispose();
+        provider.dispose?.();
+      };
+
+      window.addEventListener('resize', resize);
+      window.addEventListener('pagehide', cleanup, { once: true });
+      window.addEventListener('beforeunload', cleanup, { once: true });
+
+      resize();
+      loop.start();
+    }
+
+    function packageUrl(specifier) {
+      return `${esmBase}${specifier}`;
+    }
+
+    function normalizeBaseUrl(value) {
+      return value.endsWith('/') ? value : `${value}/`;
+    }
+  </script>
+</body>
+</html>

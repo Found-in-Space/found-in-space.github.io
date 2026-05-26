@@ -1,0 +1,85 @@
+---
+import '../../styles/live-code.css';
+import liveCodePlaygroundScript from '../../scripts/live-code-playground.js?url';
+
+interface Props {
+	id: string;
+	title: string;
+	description?: string;
+	initialCode: string;
+	mode: 'html';
+	height?: string;
+	runLabel?: string;
+	resetLabel?: string;
+	copyLabel?: string;
+}
+
+const {
+	id,
+	title,
+	description,
+	initialCode,
+	mode,
+	height = '30rem',
+	runLabel = 'Run',
+	resetLabel = 'Reset',
+	copyLabel = 'Copy full example',
+} = Astro.props;
+
+const safeJson = JSON.stringify({ code: initialCode, mode }).replace(/</g, '\\u003c');
+---
+
+<section
+	class="live-code"
+	data-live-code
+	data-example-id={id}
+	style={`--live-code-height: ${height};`}
+>
+	<header class="live-code__header">
+		<div>
+			<p class="eyebrow">Live code</p>
+			<h2>{title}</h2>
+			{description && <p>{description}</p>}
+		</div>
+		<div class="live-code__actions">
+			<button type="button" data-live-code-run>{runLabel}</button>
+			<button type="button" data-live-code-reset>{resetLabel}</button>
+			<button type="button" data-live-code-copy>{copyLabel}</button>
+		</div>
+	</header>
+
+	<div class="live-code__status" data-live-code-status aria-live="polite">Ready.</div>
+
+	<div class="live-code__grid">
+		<div class="live-code__editor-pane">
+			<textarea
+				class="live-code__editor"
+				data-live-code-editor
+				spellcheck="false"
+				aria-label={`${title} editable source`}
+			></textarea>
+		</div>
+
+		<div class="live-code__preview-pane">
+			<iframe
+				class="live-code__preview"
+				data-live-code-preview
+				sandbox="allow-scripts"
+				referrerpolicy="no-referrer"
+				title={`${title} live preview`}>
+			</iframe>
+			<details class="live-code__console-shell">
+				<summary>Console</summary>
+				<pre
+					class="live-code__console"
+					data-live-code-console
+					aria-live="polite"
+				></pre>
+			</details>
+		</div>
+	</div>
+
+	<script type="application/json" data-live-code-initial set:html={safeJson}></script>
+</section>
+
+<script type="module" src={liveCodePlaygroundScript}></script>

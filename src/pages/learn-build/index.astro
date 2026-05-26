@@ -68,6 +68,15 @@ const learningPaths = [
 
 		<section class="doors" aria-label="Ways to learn and build">
 			<article class="panel panel--accent">
+				<p class="panel__eyebrow">Front-end/app layer</p>
+				<h2>Build with SkyKit</h2>
+				<p>
+					Create a browser-based star viewer, add your own objects, query star data without a renderer,
+					and build toward small apps like Star Pilot.
+				</p>
+				<a class="link--gold" href={`${basePath}learn-build/skykit/`}>Start the SkyKit path &rarr;</a>
+			</article>
+			<article class="panel panel--accent">
 				<p class="panel__eyebrow">Use the data</p>
 				<h2>Build something visible first.</h2>
 				<p>
@@ -219,7 +228,12 @@ const learningPaths = [
 		background: var(--fis-panel);
 	}
 
-	.doors,
+	.doors {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
 	.builder-layers__cards {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));

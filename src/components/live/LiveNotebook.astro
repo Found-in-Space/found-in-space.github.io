@@ -1,0 +1,53 @@
+---
+import '../../styles/live-code.css';
+import liveNotebookScript from '../../scripts/live-notebook.js?url';
+
+interface NotebookCell {
+	id: string;
+	title: string;
+	description?: string;
+	initialCode: string;
+}
+
+interface Props {
+	id: string;
+	title: string;
+	description?: string;
+	cells: NotebookCell[];
+}
+
+const { id, title, description, cells } = Astro.props;
+const safeJson = JSON.stringify({ cells }).replace(/</g, '\\u003c');
+---
+
+<section class="live-notebook" data-live-notebook data-notebook-id={id}>
+	<header class="live-code__header">
+		<div>
+			<p class="eyebrow">Live notebook</p>
+			<h2>{title}</h2>
+			{description && <p>{description}</p>}
+		</div>
+		<div class="live-code__actions">
+			<button type="button" data-live-notebook-run-all>Run all</button>
+			<button type="button" data-live-notebook-reset>Reset</button>
+			<button type="button" data-live-notebook-copy>Copy all cells</button>
+		</div>
+	</header>
+
+	<div class="live-code__status" data-live-notebook-status aria-live="polite">Ready.</div>
+
+	<div class="live-notebook__summary" data-live-notebook-summary aria-live="polite"></div>
+	<div class="live-notebook__cells" data-live-notebook-cells></div>
+	<div class="live-notebook__table-shell">
+		<table class="live-notebook__table">
+			<thead data-live-notebook-table-head></thead>
+			<tbody data-live-notebook-table-body>
+				<tr><td>Run the notebook to render rows.</td></tr>
+			</tbody>
+		</table>
+	</div>
+
+	<script type="application/json" data-live-notebook-initial set:html={safeJson}></script>
+</section>
+
+<script type="module" src={liveNotebookScript}></script>
