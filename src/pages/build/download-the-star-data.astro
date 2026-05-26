@@ -41,7 +41,10 @@ uv sync</code></pre>
 					Generate a starter project configuration file — this is the single source of truth for
 					all input and output paths:
 				</p>
-				<pre><code>uv run fis-pipeline project init project.toml</code></pre>
+				<pre><code>uv run fis-pipeline project init --profile small project.toml</code></pre>
+				<p>
+					For the conventional full local layout, omit <code>--profile small</code>.
+				</p>
 			</section>
 
 			<section class="section">
@@ -57,9 +60,10 @@ uv sync</code></pre>
 				<p>
 					The query joins two tables: <code>gaiadr3.gaia_source</code> for astrometry and
 					photometry, and <code>external.gaiaedr3_distance</code> for Bailer-Jones probabilistic
-					distances. The filter <code>astrometric_params_solved IN (31, 95)</code> keeps only
-					stars with five- or six-parameter astrometric solutions — the ones with reliable
-					parallaxes.
+					distances. The filter <code>astrometric_params_solved IN (31, 95)</code> keeps sources
+					with five- or six-parameter astrometric solutions, so the query includes the
+					astrometric fields needed for parallax-based distance work. Later pipeline stages
+					still record distance source and quality flags.
 				</p>
 
 				<div class="callout panel">
