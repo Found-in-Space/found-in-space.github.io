@@ -9,7 +9,7 @@ import cell2 from '../../../live-examples/skykit/star-metadata-sidecars/cell-2.j
 import cell3 from '../../../live-examples/skykit/star-metadata-sidecars/cell-3.js?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/star-octree-provider @found-in-space/star-trees @found-in-space/meta-sidecar-provider`;
+const installCode = `npm install @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/meta-sidecar-provider@0.2.0-alpha.0`;
 const importCode = `import {
   OCTREE_DEFAULT,
   createStarOctreeProviderService,
@@ -93,7 +93,7 @@ const cells = [
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
 					<li>Change the magnitude limit in cell 2 to stream a different visible set.</li>
-					<li>Change the selected row in cell 3 before <code>getMeta()</code>.</li>
+					<li>Change which candidate row cell 3 inspects before <code>getMeta()</code>.</li>
 					<li>Modify the label formatter order in the shared notebook helper.</li>
 					<li>Render extra metadata fields in the final table.</li>
 				</ul>

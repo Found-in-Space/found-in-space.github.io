@@ -7,7 +7,7 @@ import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro'
 import createBrowserHtml from '../../../live-examples/skykit/create-a-browser/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit three`;
+const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/three-star-field@0.2.0-alpha.0 three`;
 const importCode = `import * as THREE from 'three';
 import {
   createSkykitViewer,
@@ -26,7 +26,7 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 
 <Layout
 	title="Create a SkyKit browser | Found in Space"
-	description="Create the smallest useful SkyKit star browser in a live editable browser example."
+	description="Create a small compositional SkyKit star browser in a live editable browser example."
 >
 	<SiteHeader section="Learn & build" />
 
@@ -42,9 +42,9 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<p class="eyebrow">Lesson 1</p>
 			<h1>Create a SkyKit browser</h1>
 			<p class="lede">
-				Create the smallest useful SkyKit star browser: a host element, a Three.js renderer,
-				a camera, a star provider, a star-field renderer, streaming stars, keyboard flight,
-				drag-to-look controls, an animation loop, and cleanup.
+				Create a small compositional SkyKit star browser: a host element, a Three.js
+				renderer, a camera, a star provider, a star-field renderer, streaming stars,
+				keyboard flight, drag-to-look controls, an animation loop, and cleanup.
 			</p>
 		</header>
 
@@ -119,8 +119,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section class="local-panel panel">
 				<h2>Use this locally</h2>
 				<p>
-					When you move this into a local app, install the packages and use normal package
-					imports instead of browser ESM URLs.
+					When you move this into a local app, install the packages you import directly
+					and use normal package imports instead of browser ESM URLs.
 				</p>
 				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
 				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />

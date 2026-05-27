@@ -60,7 +60,8 @@
   </div>
 
   <script type="module">
-    const SKYKIT_VERSION = '0.2.0-alpha.0';
+    const SKYKIT_VERSION = '0.2.0-alpha.1';
+    const SKYKIT_COMPANION_VERSION = '0.2.0-alpha.0';
     const SKYKIT_BROWSER_ESM_BASE = 'https://esm.sh/';
     const esmBase = normalizeBaseUrl(
       new URLSearchParams(window.location.search).get('skykitEsmBase')
@@ -77,9 +78,9 @@
     ] = await Promise.all([
       import(packageUrl('three@0.170.0')),
       import(packageUrl(`@found-in-space/skykit@${SKYKIT_VERSION}`)),
-      import(packageUrl(`@found-in-space/star-octree-provider@${SKYKIT_VERSION}`)),
-      import(packageUrl(`@found-in-space/star-trees@${SKYKIT_VERSION}`)),
-      import(packageUrl(`@found-in-space/three-star-field@${SKYKIT_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-octree-provider@${SKYKIT_COMPANION_VERSION}`)),
+      import(packageUrl(`@found-in-space/star-trees@${SKYKIT_COMPANION_VERSION}`)),
+      import(packageUrl(`@found-in-space/three-star-field@${SKYKIT_COMPANION_VERSION}`)),
     ]);
 
     const {

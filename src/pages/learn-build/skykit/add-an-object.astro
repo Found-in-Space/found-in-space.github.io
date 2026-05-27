@@ -7,7 +7,7 @@ import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro'
 import addObjectHtml from '../../../live-examples/skykit/add-an-object/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit three`;
+const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/three-star-field@0.2.0-alpha.0 three`;
 const importCode = `import * as THREE from 'three';
 import {
   createSkykitViewer,
@@ -119,7 +119,7 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section class="local-panel panel">
 				<h2>Use this locally</h2>
 				<p>
-					In a local app, import SkyKit and the focused packages directly. The object itself is
+					In a local app, install the packages you import directly. The object itself is
 					ordinary Three.js, so your app can decide how to generate, animate, and dispose it.
 				</p>
 				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
