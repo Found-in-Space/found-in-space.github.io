@@ -7,31 +7,15 @@ import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro'
 import addObjectHtml from '../../../live-examples/skykit/add-an-object/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/three-star-field@0.2.0-alpha.0 three`;
+const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 three`;
 const importCode = `import * as THREE from 'three';
-import {
-  createSkykitViewer,
-  createStreamingStarsPlugin,
-  createObject3dPlugin,
-  createKeyboardNavigationPlugin,
-  createSkyGrabPlugin,
-  createSkykitAnimationLoop,
-} from '@found-in-space/skykit';
-import {
-  OCTREE_DEFAULT,
-  createStarOctreeProviderService,
-} from '@found-in-space/star-octree-provider';
-import {
-  createObserverShellStrategy,
-  createSphereVolumeStrategy,
-  combineStrategies,
-} from '@found-in-space/star-trees';
-import { createThreeStarField } from '@found-in-space/three-star-field';`;
+import { createSkykitBrowser } from '@found-in-space/skykit/browser';
+import { createObject3dPlugin } from '@found-in-space/skykit';`;
 ---
 
 <Layout
 	title="Add your own object to space | Found in Space"
-	description="Use SkyKit object plugins to add app-owned world-space and observer-centric visuals to a star viewer."
+	description="Use the beginner SkyKit browser helper to add an app-owned Three.js object to a star viewer."
 >
 	<SiteHeader section="Learn & build" />
 
@@ -47,8 +31,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<p class="eyebrow">Lesson 2</p>
 			<h1>Add your own object to space</h1>
 			<p class="lede">
-				SkyKit is not only a star renderer. It can host objects owned by your app: markers,
-				annotation layers, instrument overlays, navigation guides, and animated effects.
+				Create the default star viewer, add an ordinary Three.js marker, animate it, and
+				toggle it with a checkbox.
 			</p>
 		</header>
 
@@ -56,18 +40,21 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section>
 				<h2>Learning goal</h2>
 				<p>
-					This example adds a world-space Hyades sphere marker, a world-space radio bubble
-					around Sol, and an observer-centric guide ring. World-space objects use the same
-					parsec-to-render-unit scale as the viewer. Observer-centric objects stay attached to
-					the viewer, which is useful for guide surfaces and sky overlays.
+					Lesson 1 used a pasteable embed. This lesson moves one step up: you call
+					<code>createSkykitBrowser()</code> so the viewer is still built for you, but your
+					app gets to add a thing to the scene.
+				</p>
+				<p>
+					The custom object is ordinary Three.js. SkyKit gives it a place among the stars;
+					your app owns the shape, color, animation, and checkbox.
 				</p>
 			</section>
 		</article>
 
 		<LiveCodePlayground
 			id="skykit-add-an-object"
-			title="SkyKit object layer"
-			description="Toggle the app-owned layers, then edit the marker radius, target, or pulse speed."
+			title="Add a Hyades marker"
+			description="Toggle the marker, then edit its color, size, target, or pulse speed."
 			initialCode={addObjectHtml}
 			mode="html"
 			height="34rem"
@@ -77,26 +64,33 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section class="callout panel">
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
-					<li>Change <code>RADIO_BUBBLE_RADIUS_PC</code>.</li>
+					<li>Change the marker color.</li>
+					<li>Change the marker size.</li>
 					<li>Move the marker by editing <code>HYADES_CENTER_PC</code>.</li>
 					<li>Add a second marker with another <code>createObject3dPlugin()</code>.</li>
-					<li>Toggle visibility with the checkbox bindings.</li>
-					<li>Change the marker pulse speed in the app-owned animation part.</li>
+					<li>Change the pulse speed in the <code>update</code> function.</li>
 				</ul>
 			</section>
 
 			<section>
 				<h2>What changed in the code</h2>
 				<p>
-					The star stream is still the same composition from lesson one, but the session strategy
-					now combines the observer shell with a sphere around the Hyades so the marker has
-					nearby stars to show. The app creates ordinary Three.js objects, places them in render
-					units, then hands them to <code>createObject3dPlugin()</code>.
+					Lesson 1 used the pasteable embed. This lesson moves one step up:
+					<code>createSkykitBrowser()</code> still builds the star viewer for us, but now we
+					pass in our own app-owned object.
 				</p>
 				<p>
-					The pulse is not a SkyKit built-in. It is an app-owned part registered through a plugin
-					function. That is the core pattern: SkyKit coordinates the viewer, while your app owns
-					the interaction and visual behavior that make the experience specific.
+					The object is ordinary Three.js. SkyKit does not own its shape, color, animation,
+					or checkbox. SkyKit only gives it a place in the sky scene.
+				</p>
+			</section>
+
+			<section class="callout panel">
+				<p class="panel__eyebrow">Under the hood</p>
+				<p>
+					The marker position line converts Hyades parsec coordinates into the viewer's
+					default scene scale. <code>createObject3dPlugin()</code> then places that ordinary
+					Three.js object in the star scene.
 				</p>
 			</section>
 
@@ -104,9 +98,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 				<p class="panel__eyebrow">Source and next steps</p>
 				<h2>Use package examples for larger object layers.</h2>
 				<p>
-					This live example is intentionally small. The SkyKit custom object example shows the
-					same Object3D pattern with constellation art, a navigation sphere, and a Hyades
-					annotation.
+					This live example is intentionally small. The SkyKit custom object example shows
+					the same idea with constellation art, a guide sphere, and a Hyades annotation.
 				</p>
 				<ul>
 					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
@@ -119,8 +112,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section class="local-panel panel">
 				<h2>Use this locally</h2>
 				<p>
-					In a local app, install the packages you import directly. The object itself is
-					ordinary Three.js, so your app can decide how to generate, animate, and dispose it.
+					In a local app, install SkyKit and Three.js. The object itself is ordinary
+					Three.js, so your app can decide how to generate, animate, and dispose it.
 				</p>
 				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
 				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />

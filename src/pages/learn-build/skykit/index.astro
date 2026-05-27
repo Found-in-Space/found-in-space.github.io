@@ -5,20 +5,39 @@ import MadeByKaj from '../../../components/MadeByKaj.astro';
 
 const basePath = import.meta.env.BASE_URL;
 
+const useCases = [
+	{
+		title: 'Put a star viewer on a page',
+		description: 'Use this if you want an interactive sky on a static site, CMS page, article, or portfolio.',
+	},
+	{
+		title: 'Customize the sky scene',
+		description: 'Use this if you want buttons, markers, custom objects, overlays, or animations.',
+	},
+	{
+		title: 'Use the star data yourself',
+		description: 'Use this if you want lists, labels, maps, Canvas, PixiJS, Phaser, or another renderer.',
+	},
+	{
+		title: 'Build toward a small app',
+		description: 'Use this if you want to own projection, interaction, movement, and labels.',
+	},
+];
+
 const lessons = [
 	{
 		title: 'Create a SkyKit browser',
 		href: `${basePath}learn-build/skykit/create-a-browser/`,
-		build: 'A browser-based star viewer that streams Found in Space data.',
-		learn: 'Viewer host, Three renderer, camera, star provider, streaming plugin, keyboard and grab controls.',
-		time: '15–25 min',
+		build: 'A pasteable star viewer for a static page or CMS block.',
+		learn: 'Viewer element, optional status element, script tag, and beginner attributes.',
+		time: '5-10 min',
 	},
 	{
 		title: 'Add your own object to space',
 		href: `${basePath}learn-build/skykit/add-an-object/`,
-		build: 'A star viewer with an app-owned Hyades marker, radio bubble, and layer toggles.',
-		learn: 'World-space objects, observer-centric objects, parsecs to render units, Object3D plugin, and animation parts.',
-		time: '20–30 min',
+		build: 'A star viewer with an app-owned Hyades marker and checkbox toggle.',
+		learn: 'Default viewer helper, Three.js marker, simple animation, and visibility toggles.',
+		time: '15-25 min',
 	},
 	{
 		title: 'Query stars without Three.js',
@@ -60,11 +79,24 @@ const lessons = [
 			<p class="eyebrow">Live coding path</p>
 			<h1>Build with SkyKit</h1>
 			<p class="lede">
-				SkyKit lets you turn the Found in Space star data into your own browser experiences.
-				Start with a live star viewer, add your own objects, query stars without a renderer,
-				then build toward small apps like Star Pilot.
+				Start with the use-case you have: paste a viewer into a page, customize a sky scene,
+				use star data in your own renderer, or build toward a small app.
 			</p>
 		</header>
+
+		<section class="use-case-section" aria-labelledby="choose-use-case">
+			<p class="eyebrow">Choose your use-case</p>
+			<h2 id="choose-use-case">Start with what you want to build.</h2>
+			<div class="section-grid use-case-grid">
+				{useCases.map((useCase, index) => (
+					<article class="panel use-case-card">
+						<p class="panel__eyebrow">{index + 1}</p>
+						<h3>{useCase.title}</h3>
+						<p>{useCase.description}</p>
+					</article>
+				))}
+			</div>
+		</section>
 
 		<section class="lesson-grid" aria-label="SkyKit lessons">
 			{lessons.map((lesson, index) => (
@@ -93,10 +125,11 @@ const lessons = [
 		<section class="panel panel--wide path-note">
 			<div>
 				<p class="panel__eyebrow">Where this fits</p>
-				<h2>SkyKit is the front-end/app layer.</h2>
+				<h2>Start with a working result.</h2>
 				<p>
-					The technical build pages explain the catalogue pipeline. This path starts after that:
-					you use the published browser data and composition APIs to make something interactive.
+					The first two lessons keep you in the star viewer path. Later lessons deliberately
+					peel that away so you can use the data stream for tables, games, maps, and custom
+					renderers.
 				</p>
 			</div>
 			<a class="button button--primary" href={`${basePath}learn-build/skykit/create-a-browser/`}>
@@ -137,6 +170,32 @@ const lessons = [
 		color: var(--fis-text-soft);
 	}
 
+	.use-case-section {
+		margin-bottom: 4rem;
+	}
+
+	.use-case-section > h2 {
+		margin-bottom: 1.1rem;
+		font-size: 2rem;
+	}
+
+	.use-case-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		margin-top: 1rem;
+		margin-bottom: 0;
+	}
+
+	.use-case-card h3 {
+		margin: 0 0 0.65rem;
+		font-size: 1.25rem;
+		line-height: 1.2;
+		color: var(--fis-text);
+	}
+
+	.use-case-card p:last-child {
+		margin: 0;
+	}
+
 	.lesson-grid {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -157,7 +216,7 @@ const lessons = [
 
 	.lesson-card:first-child {
 		background:
-			linear-gradient(180deg, rgba(242, 200, 121, 0.12), rgba(10, 20, 36, 0.78)),
+			linear-gradient(180deg, var(--fis-gold-subtle), var(--fis-panel)),
 			var(--fis-panel);
 	}
 
@@ -211,6 +270,10 @@ const lessons = [
 		}
 
 		.lesson-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.use-case-grid {
 			grid-template-columns: 1fr;
 		}
 

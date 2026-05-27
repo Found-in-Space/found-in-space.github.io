@@ -10,6 +10,15 @@ import cell3 from '../../../live-examples/skykit/query-stars-without-three/cell-
 
 const basePath = import.meta.env.BASE_URL;
 const installCode = `npm install @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0`;
+const browserImportCode = `import {
+  OCTREE_DEFAULT,
+  createStarOctreeProviderService,
+} from "https://esm.sh/@found-in-space/star-octree-provider@0.2.0-alpha.0?bundle";
+import {
+  createObserverShellStrategy,
+  createStarCellKey,
+  decodeTemperatureK,
+} from "https://esm.sh/@found-in-space/star-trees@0.2.0-alpha.0?bundle";`;
 const importCode = `import {
   OCTREE_DEFAULT,
   createStarOctreeProviderService,
@@ -59,8 +68,8 @@ const cells = [
 			<p class="eyebrow">Lesson 3</p>
 			<h1>Query stars without Three.js</h1>
 			<p class="lede">
-				The data packages are useful even when you are not rendering a 3D scene. Stream cells,
-				ask for only the attributes you need, and turn the result into app-owned rows.
+				Lessons 1-2 used a viewer helper. Now we peel that away and use the data stream
+				directly for lists, maps, games, and custom renderers.
 			</p>
 		</header>
 
@@ -76,6 +85,11 @@ const cells = [
 				<p>
 					Cells are transport/data units. Rows are app-owned interpretation. The provider does
 					not decide what your app is trying to show.
+				</p>
+				<p>
+					The rows from this lesson are plain JavaScript objects. You can draw them with
+					Canvas, PixiJS, Phaser, SVG, or your own renderer. SkyKit is not required once you
+					choose to own rendering yourself.
 				</p>
 			</section>
 		</article>
@@ -128,6 +142,13 @@ const cells = [
 			</section>
 
 			<section class="local-panel panel">
+				<h2>Use this in a browser</h2>
+				<p>
+					For standalone browser examples, use stable, pinned CDN URLs directly. The lesson
+					does not introduce version constants or URL helper functions.
+				</p>
+				<CodeBlockWithCopy code={browserImportCode} label="Browser import" language="js" />
+
 				<h2>Use this locally</h2>
 				<p>
 					Data-only projects do not need SkyKit or Three.js. Install the focused packages that

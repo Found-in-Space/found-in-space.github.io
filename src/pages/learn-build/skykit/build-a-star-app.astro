@@ -58,6 +58,10 @@ add labels`;
 					idea is ownership: SkyKit data packages provide star cells; your app chooses how to
 					interpret and render them.
 				</p>
+				<p>
+					This is still the data/no-viewer path from lessons 3 and 4. The output rows can feed
+					Canvas, PixiJS, Phaser, SVG, WebGL, or a custom renderer.
+				</p>
 			</section>
 
 			<section>
@@ -107,8 +111,8 @@ add labels`;
 				<p>
 					The demo no longer calls <code>createSkykitViewer()</code>. It uses the same provider
 					stream directly, maps streamed cell coordinates from parsecs into a 2D canvas, and
-					draws with app-owned rendering code. A real app can swap that renderer for PixiJS,
-					Canvas, WebGL, SVG, or a custom engine.
+					draws with app-owned rendering code. A real app can swap that renderer for Canvas,
+					PixiJS, Phaser, SVG, WebGL, or a custom engine.
 				</p>
 				<p>
 					Labels come later in the architecture. Star Pilot wires sidecars through the same

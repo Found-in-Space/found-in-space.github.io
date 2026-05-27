@@ -7,26 +7,30 @@ import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro'
 import createBrowserHtml from '../../../live-examples/skykit/create-a-browser/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/three-star-field@0.2.0-alpha.0 three`;
-const importCode = `import * as THREE from 'three';
-import {
-  createSkykitViewer,
-  createStreamingStarsPlugin,
-  createKeyboardNavigationPlugin,
-  createSkyGrabPlugin,
-  createSkykitAnimationLoop,
-} from '@found-in-space/skykit';
-import {
-  OCTREE_DEFAULT,
-  createStarOctreeProviderService,
-} from '@found-in-space/star-octree-provider';
-import { createObserverShellStrategy } from '@found-in-space/star-trees';
-import { createThreeStarField } from '@found-in-space/three-star-field';`;
+const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 three`;
+const importCode = `import { createSkykitBrowser } from '@found-in-space/skykit/browser';
+
+await createSkykitBrowser({
+  host: '#viewer',
+  status: '#status',
+});`;
+const tryThisCode = `<div
+  data-skykit-browser
+  data-skykit-status="#skykit-status"
+  data-skykit-magnitude="7"
+  data-skykit-speed="4"
+  data-skykit-exposure="2600"
+  style="width:100%;height:520px;background:#02040b"
+></div>
+
+<pre id="skykit-status">Loading stars...</pre>
+
+<script type="module" src="https://esm.sh/@found-in-space/skykit@0.2.0-alpha.1/embed?bundle&deps=three@0.170.0"></script>`;
 ---
 
 <Layout
 	title="Create a SkyKit browser | Found in Space"
-	description="Create a small compositional SkyKit star browser in a live editable browser example."
+	description="Paste an interactive SkyKit star viewer into a static page or CMS block."
 >
 	<SiteHeader section="Learn & build" />
 
@@ -42,9 +46,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<p class="eyebrow">Lesson 1</p>
 			<h1>Create a SkyKit browser</h1>
 			<p class="lede">
-				Create a small compositional SkyKit star browser: a host element, a Three.js
-				renderer, a camera, a star provider, a star-field renderer, streaming stars,
-				keyboard flight, drag-to-look controls, an animation loop, and cleanup.
+				Paste an interactive star viewer into a static page or CMS block, then adjust it
+				with a few HTML attributes.
 			</p>
 		</header>
 
@@ -52,13 +55,12 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section>
 				<h2>Learning goal</h2>
 				<p>
-					SkyKit composes the browser experience. The star-octree provider streams cells,
-					three-star-field draws those stars in Three.js, and the viewer coordinates the
-					plugins that make the scene navigable.
+					This first lesson starts with the no-JavaScript embed. You add one viewer
+					<code>&lt;div&gt;</code>, one optional status element, and one module script.
 				</p>
 				<p>
-					This first example starts from browser ESM imports so the first lesson is browser-first.
-					No npm install, Vite project, or TypeScript setup is required to understand the shape.
+					The viewer already knows how to show stars, respond to drag and keyboard input,
+					resize with the page, and write a small loading readout.
 				</p>
 			</section>
 		</article>
@@ -66,39 +68,37 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 		<LiveCodePlayground
 			id="skykit-create-a-browser"
 			title="Small SkyKit star browser"
-			description="Edit the source, then run it. The preview streams stars in a sandboxed iframe."
+			description="Edit the HTML attributes, then run it. The preview opens in a sandboxed iframe."
 			initialCode={createBrowserHtml}
 			mode="html"
-			height="34rem"
+			height="28rem"
 		/>
 
 		<article class="lesson-body prose">
 			<section class="callout panel">
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
-					<li>Change <code>limitingMagnitude</code> from <code>6.5</code> to <code>7.5</code>.</li>
-					<li>Change <code>speedPcPerSec</code> in the keyboard plugin.</li>
-					<li>Change the star-field <code>exposure</code>.</li>
-					<li>Move the initial <code>observerPc</code> away from the Sun.</li>
+					<li>Change the viewer height from <code>500px</code> to <code>700px</code>.</li>
+					<li>Add <code>data-skykit-magnitude="7"</code>.</li>
+					<li>Add <code>data-skykit-speed="4"</code>.</li>
+					<li>Add <code>data-skykit-exposure="2600"</code>.</li>
+					<li>Remove the <code>&lt;pre&gt;</code> and <code>data-skykit-status</code> attribute to make a clean decorative embed.</li>
 				</ul>
-				<p>
-					Higher limiting magnitudes can stream more data and may be slower on some devices.
-				</p>
+				<CodeBlockWithCopy code={tryThisCode} label="Attribute variant" language="html" />
 			</section>
 
 			<section>
 				<h2>What changed in the code</h2>
 				<p>
-					The host element gives SkyKit somewhere to mount. The renderer and camera are ordinary
-					Three.js objects. The provider reads the public render octree, while the streaming
-					plugin asks for cells using <code>createObserverShellStrategy()</code>. Keyboard and
-					grab plugins add control surfaces, and <code>createSkykitAnimationLoop()</code> keeps
-					the viewer moving.
+					The viewer is marked with <code>data-skykit-browser</code>. The embed script finds
+					that element and creates the default SkyKit star viewer there. The status attribute
+					is optional; it points at a normal HTML element where the viewer can write a small
+					loading/status readout.
 				</p>
 				<p>
-					The cleanup path matters. The example disposes the loop, viewer, and provider on
-					<code>pagehide</code> and <code>beforeunload</code>, and the iframe is replaced before
-					each rerun so previous WebGL resources and streams do not keep running.
+					The important point: the beginner embed owns the plumbing. You do not create a
+					renderer, camera, data source, star drawing layer, animation loop, resize handler,
+					or cleanup handler in your first SkyKit page.
 				</p>
 			</section>
 
@@ -106,8 +106,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 				<p class="panel__eyebrow">Source and next steps</p>
 				<h2>Compare this to the package examples.</h2>
 				<p>
-					This live example is intentionally small. The package examples in the SkyKit repository
-					show the same ideas with more diagnostics and local development support.
+					This live example is intentionally tiny. After you have a viewer working, the package
+					examples are useful when you want diagnostics or a local app structure.
 				</p>
 				<ul>
 					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
@@ -119,8 +119,8 @@ import { createThreeStarField } from '@found-in-space/three-star-field';`;
 			<section class="local-panel panel">
 				<h2>Use this locally</h2>
 				<p>
-					When you move this into a local app, install the packages you import directly
-					and use normal package imports instead of browser ESM URLs.
+					When you move from a pasteable embed to a local app, install SkyKit and Three.js,
+					then use the beginner browser entry.
 				</p>
 				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
 				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />

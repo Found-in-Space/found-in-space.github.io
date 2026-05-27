@@ -47,31 +47,15 @@
   </div>
 
   <script type="module">
-    const SKYKIT_COMPANION_VERSION = '0.2.0-alpha.0';
-    const SKYKIT_BROWSER_ESM_BASE = 'https://esm.sh/';
-    const esmBase = normalizeBaseUrl(
-      new URLSearchParams(window.location.search).get('skykitEsmBase')
-      || window.__SKYKIT_ESM_BASE_OVERRIDE__
-      || SKYKIT_BROWSER_ESM_BASE,
-    );
-
-    const [
-      octreeProvider,
-      starTrees,
-    ] = await Promise.all([
-      import(packageUrl(`@found-in-space/star-octree-provider@${SKYKIT_COMPANION_VERSION}`)),
-      import(packageUrl(`@found-in-space/star-trees@${SKYKIT_COMPANION_VERSION}`)),
-    ]);
-
-    const {
+    import {
       OCTREE_DEFAULT,
       createStarOctreeProviderService,
-    } = octreeProvider;
-    const {
+    } from "https://esm.sh/@found-in-space/star-octree-provider@0.2.0-alpha.0?bundle";
+    import {
       createObserverShellStrategy,
       decodeTemperatureK,
       temperatureToRgb,
-    } = starTrees;
+    } from "https://esm.sh/@found-in-space/star-trees@0.2.0-alpha.0?bundle";
 
     const canvas = document.querySelector('#slice');
     const context = canvas.getContext('2d');
@@ -186,14 +170,6 @@
       disposed = true;
       window.removeEventListener('resize', draw);
       provider.dispose?.();
-    }
-
-    function packageUrl(specifier) {
-      return `${esmBase}${specifier}`;
-    }
-
-    function normalizeBaseUrl(value) {
-      return value.endsWith('/') ? value : `${value}/`;
     }
   </script>
 </body>
