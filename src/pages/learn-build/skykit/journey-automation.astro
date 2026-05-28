@@ -1,0 +1,138 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import { applySkykitLiveVersions } from '../../../config/skykit-live';
+import chapterButtonsHtmlSource from '../../../live-examples/skykit/journey-buttons/index.html?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const chapterButtonsHtml = applySkykitLiveVersions(chapterButtonsHtmlSource);
+const chaptersCode = `const SUN_PC = { x: 0, y: 0, z: 0 };
+const ICRS_NORTH = { x: 0, y: 0, z: 1 };
+const PLEIADES_PC = { x: 67.379, y: 103.162, z: 55.161 };
+const ORION_NEBULA_PC = { x: 44.371, y: 409.774, z: -38.889 };
+const ORION_TILTED_ORBIT_NORMAL = { x: -0.35, y: 0.45, z: 0.82 };
+
+const chapters = {
+  solarOrbit: {
+    label: '1 pc Sun orbit',
+    center: SUN_PC,
+    radiusPc: 1,
+    angularSpeedRadPerSec: 0.22,
+    normal: ICRS_NORTH,
+    durationSecs: 4,
+  },
+  pleiadesOrbit: {
+    label: 'Wide Pleiades orbit',
+    center: PLEIADES_PC,
+    radiusPc: 32,
+    angularSpeedRadPerSec: 0.08,
+    normal: ICRS_NORTH,
+    durationSecs: 8,
+  },
+  orionNebulaOrbit: {
+    label: 'Tilted Orion Nebula orbit',
+    center: ORION_NEBULA_PC,
+    radiusPc: 120,
+    angularSpeedRadPerSec: 0.045,
+    normal: ORION_TILTED_ORBIT_NORMAL,
+    durationSecs: 10,
+  },
+};`;
+const buttonCode = `document.querySelector('#sun-orbit').addEventListener('click', () => {
+  goTo('solarOrbit');
+});
+
+document.querySelector('#pleiades-orbit').addEventListener('click', () => {
+  goTo('pleiadesOrbit');
+});
+
+document.querySelector('#orion-orbit').addEventListener('click', () => {
+  goTo('orionNebulaOrbit');
+});`;
+---
+
+<Layout
+	title="Automate SkyKit chapters | Found in Space"
+	description="Create named SkyKit chapter functions, including orbit scenes, then wire buttons to the chapter dispatcher."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Chapter automation</span>
+				</nav>
+				<p class="eyebrow">Lesson 3</p>
+				<h1>Automate chapters</h1>
+				<p class="lede">
+					Turn camera movement into destination buttons: enter a solar orbit from the current
+					view, insert around the Pleiades, then arrive on a tilted orbit around the Orion
+					Nebula.
+				</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					Lesson 2 called individual transitions directly. This lesson gives those ideas
+					chapter semantics: named functions, orbit cameras, and direct navigation actions.
+				</p>
+					<p>
+						The buttons only choose chapters. Each chapter owns its target, orbit camera, duration, and orbital plane.
+					</p>
+			</section>
+		</article>
+
+			<LiveCodePlayground
+				id="skykit-chapter-automation"
+				title="Chapters from the Sun to Orion"
+				description="Use the buttons to enter a 1 pc solar orbit, fly to the Pleiades, or insert around the Orion Nebula on a tilted plane."
+			initialCode={chapterButtonsHtml}
+			mode="html"
+			height="36rem"
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change the Pleiades or Orion <code>radiusPc</code> values to tighten or widen the inserts.</li>
+					<li>Change <code>ORION_TILTED_ORBIT_NORMAL</code> to see the arrival plane change.</li>
+					<li>Add another chapter key with its own target and orbit settings.</li>
+					<li>Adjust each chapter's <code>durationSecs</code>.</li>
+				</ul>
+			</section>
+
+				<section>
+					<h2>What changed in the code</h2>
+					<p>
+						The chapter table is ordinary app code. When a button calls <code>goTo()</code>, the selected chapter invokes navigation actions and starts an orbit after arrival.
+					</p>
+				<CodeBlockWithCopy code={chaptersCode} label="Chapter table" language="js" />
+				<CodeBlockWithCopy code={buttonCode} label="Button wiring" language="js" />
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Next step</p>
+				<h2>Move the same pattern into a local app.</h2>
+				<p>
+					The quickstart embed is useful for learning, but the same browser handle exists
+					when you install SkyKit in Vite and import it from npm.
+				</p>
+				<ul>
+					<li><a href={`${basePath}learn-build/skykit/add-an-object/`}>Next: use SkyKit in a local app</a></li>
+				</ul>
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>

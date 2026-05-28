@@ -7,20 +7,26 @@ import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro'
 import cell1 from '../../../live-examples/skykit/star-metadata-sidecars/cell-1.js?raw';
 import cell2 from '../../../live-examples/skykit/star-metadata-sidecars/cell-2.js?raw';
 import cell3 from '../../../live-examples/skykit/star-metadata-sidecars/cell-3.js?raw';
+import {
+	META_SIDECAR_PROVIDER_VERSION,
+	SKYKIT_BROWSER_ESM_BASE,
+	STAR_OCTREE_PROVIDER_VERSION,
+	STAR_TREES_VERSION,
+} from '../../../config/skykit-live';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/star-octree-provider@0.2.0-alpha.0 @found-in-space/star-trees@0.2.0-alpha.0 @found-in-space/meta-sidecar-provider@0.2.0-alpha.0`;
+const installCode = `npm install @found-in-space/star-octree-provider@${STAR_OCTREE_PROVIDER_VERSION} @found-in-space/star-trees@${STAR_TREES_VERSION} @found-in-space/meta-sidecar-provider@${META_SIDECAR_PROVIDER_VERSION}`;
 const browserImportCode = `import {
   OCTREE_DEFAULT,
   createStarOctreeProviderService,
-} from "https://esm.sh/@found-in-space/star-octree-provider@0.2.0-alpha.0?bundle";
+} from "${SKYKIT_BROWSER_ESM_BASE}@found-in-space/star-octree-provider@${STAR_OCTREE_PROVIDER_VERSION}?bundle";
 import {
   createObserverShellStrategy,
-} from "https://esm.sh/@found-in-space/star-trees@0.2.0-alpha.0?bundle";
+} from "${SKYKIT_BROWSER_ESM_BASE}@found-in-space/star-trees@${STAR_TREES_VERSION}?bundle";
 import {
   createMetaSidecarProviderService,
   deriveMetaSidecarUrlFromRenderUrl,
-} from "https://esm.sh/@found-in-space/meta-sidecar-provider@0.2.0-alpha.0?bundle";`;
+} from "${SKYKIT_BROWSER_ESM_BASE}@found-in-space/meta-sidecar-provider@${META_SIDECAR_PROVIDER_VERSION}?bundle";`;
 const importCode = `import {
   OCTREE_DEFAULT,
   createStarOctreeProviderService,
@@ -67,12 +73,12 @@ const cells = [
 				<span class="breadcrumb__sep" aria-hidden="true">›</span>
 				<span>Metadata sidecars</span>
 			</nav>
-			<p class="eyebrow">Lesson 4</p>
+			<p class="eyebrow">Lesson 6</p>
 			<h1>Fetch names and labels with sidecars</h1>
 			<p class="lede">
 				Keep the render stream compact, then fetch richer catalogue metadata only when your
 				app needs labels, hover text, or facts about a selected star.
-				This is the same data use-case as Lesson 3, with labels added.
+				This is the same data use-case as Lesson 5, with labels added.
 			</p>
 		</header>
 
@@ -166,48 +172,3 @@ const cells = [
 		<MadeByKaj />
 	</main>
 </Layout>
-
-<style>
-	.page--lesson {
-		max-width: 76rem;
-	}
-
-	.lesson-hero {
-		max-width: 60rem;
-		padding: 3.5rem 0 1.5rem;
-	}
-
-	.lesson-hero h1 {
-		margin: 0;
-		font-size: 4rem;
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: 0;
-	}
-
-	.lesson-body {
-		max-width: 54rem;
-	}
-
-	.source-panel {
-		margin: 2.5rem 0;
-	}
-
-	.source-panel h2 {
-		margin-top: 0;
-	}
-
-	.local-panel {
-		margin: 2.5rem 0;
-	}
-
-	.local-panel h2 {
-		margin-top: 0;
-	}
-
-	@media (max-width: 720px) {
-		.lesson-hero h1 {
-			font-size: 2.75rem;
-		}
-	}
-</style>

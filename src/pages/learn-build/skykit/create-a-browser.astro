@@ -4,10 +4,17 @@ import SiteHeader from '../../../components/SiteHeader.astro';
 import MadeByKaj from '../../../components/MadeByKaj.astro';
 import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
 import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
-import createBrowserHtml from '../../../live-examples/skykit/create-a-browser/index.html?raw';
+import {
+	SKYKIT_BROWSER_ESM_BASE,
+	SKYKIT_LIVE_VERSION,
+	THREE_VERSION,
+	applySkykitLiveVersions,
+} from '../../../config/skykit-live';
+import createBrowserHtmlSource from '../../../live-examples/skykit/create-a-browser/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 three`;
+const createBrowserHtml = applySkykitLiveVersions(createBrowserHtmlSource);
+const installCode = `npm install @found-in-space/skykit@${SKYKIT_LIVE_VERSION} three`;
 const importCode = `import { createSkykitBrowser } from '@found-in-space/skykit/browser';
 
 await createSkykitBrowser({
@@ -20,16 +27,20 @@ const tryThisCode = `<div
   data-skykit-magnitude="7"
   data-skykit-speed="4"
   data-skykit-exposure="2600"
+  data-skykit-look-at="05h 36m 12.81s, −01° 12′ 06.9″"
+  data-skykit-mouse-mode="strafe"
+  data-skykit-constellations="western"
+  data-skykit-constellation-art="lazy"
   style="width:100%;height:520px;background:#02040b"
 ></div>
 
 <pre id="skykit-status">Loading stars...</pre>
 
-<script type="module" src="https://esm.sh/@found-in-space/skykit@0.2.0-alpha.1/embed?bundle&deps=three@0.170.0"></script>`;
+<script type="module" src="${SKYKIT_BROWSER_ESM_BASE}@found-in-space/skykit@${SKYKIT_LIVE_VERSION}/embed?bundle&deps=three@${THREE_VERSION}"></script>`;
 ---
 
 <Layout
-	title="Create a SkyKit browser | Found in Space"
+	title="Set up a SkyKit browser | Found in Space"
 	description="Paste an interactive SkyKit star viewer into a static page or CMS block."
 >
 	<SiteHeader section="Learn & build" />
@@ -41,13 +52,13 @@ const tryThisCode = `<div
 				<span class="breadcrumb__sep" aria-hidden="true">›</span>
 				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
 				<span class="breadcrumb__sep" aria-hidden="true">›</span>
-				<span>Create a browser</span>
+				<span>Set up a browser</span>
 			</nav>
 			<p class="eyebrow">Lesson 1</p>
-			<h1>Create a SkyKit browser</h1>
+			<h1>Set up a SkyKit browser</h1>
 			<p class="lede">
-				Paste an interactive star viewer into a static page or CMS block, then adjust it
-				with a few HTML attributes.
+				Paste an interactive star viewer into a static page or CMS block, then choose
+				display options with HTML attributes.
 			</p>
 		</header>
 
@@ -60,7 +71,8 @@ const tryThisCode = `<div
 				</p>
 				<p>
 					The viewer already knows how to show stars, respond to drag and keyboard input,
-					resize with the page, and write a small loading readout.
+					resize with the page, draw constellation layers, and write a small loading
+					readout.
 				</p>
 			</section>
 		</article>
@@ -82,6 +94,10 @@ const tryThisCode = `<div
 					<li>Add <code>data-skykit-magnitude="7"</code>.</li>
 					<li>Add <code>data-skykit-speed="4"</code>.</li>
 					<li>Add <code>data-skykit-exposure="2600"</code>.</li>
+					<li>Add <code>data-skykit-look-at="05h 36m 12.81s, −01° 12′ 06.9″"</code> to start facing Alnilam in Orion's belt.</li>
+					<li>Try <code>data-skykit-mouse-mode="strafe"</code> for the first-person drag direction, or <code>grab</code> to pull the sky around.</li>
+					<li>Add <code>data-skykit-constellations="western"</code> to draw constellation boundaries.</li>
+					<li>Add <code>data-skykit-constellation-art="lazy"</code> to load constellation artwork only when it is needed.</li>
 					<li>Remove the <code>&lt;pre&gt;</code> and <code>data-skykit-status</code> attribute to make a clean decorative embed.</li>
 				</ul>
 				<CodeBlockWithCopy code={tryThisCode} label="Attribute variant" language="html" />
@@ -104,15 +120,14 @@ const tryThisCode = `<div
 
 			<section class="source-panel panel">
 				<p class="panel__eyebrow">Source and next steps</p>
-				<h2>Compare this to the package examples.</h2>
+				<h2>Next, get the browser handle.</h2>
 				<p>
-					This live example is intentionally tiny. After you have a viewer working, the package
-					examples are useful when you want diagnostics or a local app structure.
+					This first example is intentionally tiny. Once the viewer is on the page, the next
+					step is to ask SkyKit for the live browser object and move the view with a script.
 				</p>
 				<ul>
 					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>
-					<li><a href="https://github.com/Found-in-Space/skykit/tree/main/packages/skykit/examples/free-roam-lesson" rel="noopener noreferrer">Free-roam lesson example</a></li>
-					<li><a href={`${basePath}learn-build/skykit/add-an-object/`}>Next: add your own object to space</a></li>
+					<li><a href={`${basePath}learn-build/skykit/look-and-fly/`}>Next: look and fly with SkyKit</a></li>
 				</ul>
 			</section>
 
@@ -130,48 +145,3 @@ const tryThisCode = `<div
 		<MadeByKaj />
 	</main>
 </Layout>
-
-<style>
-	.page--lesson {
-		max-width: 76rem;
-	}
-
-	.lesson-hero {
-		max-width: 60rem;
-		padding: 3.5rem 0 1.5rem;
-	}
-
-	.lesson-hero h1 {
-		margin: 0;
-		font-size: 4rem;
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: 0;
-	}
-
-	.lesson-body {
-		max-width: 54rem;
-	}
-
-	.source-panel {
-		margin: 2.5rem 0;
-	}
-
-	.source-panel h2 {
-		margin-top: 0;
-	}
-
-	.local-panel {
-		margin: 2.5rem 0;
-	}
-
-	.local-panel h2 {
-		margin-top: 0;
-	}
-
-	@media (max-width: 720px) {
-		.lesson-hero h1 {
-			font-size: 2.75rem;
-		}
-	}
-</style>

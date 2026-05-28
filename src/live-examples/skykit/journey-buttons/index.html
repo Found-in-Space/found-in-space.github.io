@@ -1,0 +1,109 @@
+<div
+  id="viewer"
+  data-skykit-browser
+  data-skykit-status="#skykit-status"
+  style="width:100%;height:560px;background:#02040b"
+></div>
+
+<div style="position:fixed;top:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap;background:#02040bcc;color:white;padding:12px">
+  <button id="sun-orbit" type="button">Sun</button>
+  <button id="pleiades-orbit" type="button">Pleiades</button>
+  <button id="orion-orbit" type="button">Orion Nebula</button>
+</div>
+
+<pre id="skykit-status">Loading stars...</pre>
+
+<script type="module" src="__SKYKIT_BROWSER_ESM_BASE__@found-in-space/skykit@__SKYKIT_LIVE_VERSION__/embed?bundle&deps=three@__THREE_VERSION__"></script>
+
+<script type="module">
+  import {
+    SKYKIT_ACTIONS,
+    createSkykitNavigationPlugin,
+  } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/skykit@__SKYKIT_LIVE_VERSION__?bundle&deps=three@__THREE_VERSION__";
+
+  const browser = await Skykit.whenReady("#viewer");
+  await browser.install(createSkykitNavigationPlugin());
+
+  const SUN_PC = { x: 0, y: 0, z: 0 };
+  const ICRS_NORTH = { x: 0, y: 0, z: 1 };
+  const PLEIADES_PC = { x: 67.379, y: 103.162, z: 55.161 };
+  const ORION_NEBULA_PC = { x: 44.371, y: 409.774, z: -38.889 };
+  const ORION_TILTED_ORBIT_NORMAL = { x: -0.35, y: 0.45, z: 0.82 };
+
+  const chapters = {
+    solarOrbit: {
+      label: "1 pc Sun orbit",
+      center: SUN_PC,
+      radiusPc: 1,
+      angularSpeedRadPerSec: 0.22,
+      normal: ICRS_NORTH,
+      durationSecs: 4,
+    },
+    pleiadesOrbit: {
+      label: "Wide Pleiades orbit",
+      center: PLEIADES_PC,
+      radiusPc: 32,
+      angularSpeedRadPerSec: 0.08,
+      normal: ICRS_NORTH,
+      durationSecs: 8,
+    },
+    orionNebulaOrbit: {
+      label: "Tilted Orion Nebula orbit",
+      center: ORION_NEBULA_PC,
+      radiusPc: 120,
+      angularSpeedRadPerSec: 0.045,
+      normal: ORION_TILTED_ORBIT_NORMAL,
+      durationSecs: 10,
+    },
+  };
+
+  async function goTo(id) {
+    const chapter = chapters[id];
+    if (!chapter) return;
+    await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.cancel, null, {
+      source: "lesson.chapterButtons",
+    });
+    await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, {
+      observerPc: orbitAnchor(chapter.center, chapter.radiusPc, chapter.normal),
+      lookAt: { targetPc: chapter.center },
+      movement: { durationSecs: chapter.durationSecs },
+      orientationTransition: { durationSecs: 2 },
+      onArrive: () => {
+        browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.orbit, {
+          center: chapter.center,
+          radius: chapter.radiusPc,
+          angularSpeedRadPerSec: chapter.angularSpeedRadPerSec,
+          normal: chapter.normal,
+        }, { source: "lesson.chapterButtons" });
+      },
+    }, { source: "lesson.chapterButtons" });
+  }
+
+  function orbitAnchor(center, radius, normal) {
+    const side = Math.abs(normal.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
+    const dot = side.x * normal.x + side.y * normal.y + side.z * normal.z;
+    const projected = {
+      x: side.x - normal.x * dot,
+      y: side.y - normal.y * dot,
+      z: side.z - normal.z * dot,
+    };
+    const length = Math.hypot(projected.x, projected.y, projected.z) || 1;
+    return {
+      x: center.x + (projected.x / length) * radius,
+      y: center.y + (projected.y / length) * radius,
+      z: center.z + (projected.z / length) * radius,
+    };
+  }
+
+  document.querySelector("#sun-orbit").addEventListener("click", () => {
+    goTo("solarOrbit");
+  });
+
+  document.querySelector("#pleiades-orbit").addEventListener("click", () => {
+    goTo("pleiadesOrbit");
+  });
+
+  document.querySelector("#orion-orbit").addEventListener("click", () => {
+    goTo("orionNebulaOrbit");
+  });
+</script>

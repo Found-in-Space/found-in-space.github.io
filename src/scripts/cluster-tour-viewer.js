@@ -1,23 +1,21 @@
 import * as THREE from 'three';
 
 import {
-	SKYKIT_ACTIONS,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
 	createSkykitDebugBridge,
-	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
 	installSkykitDebugGlobal,
 } from '@found-in-space/skykit';
-import { createJourney } from '@found-in-space/journey';
 import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
 import { createObserverShellStrategy } from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
+import { activateChapterCamera, createChapterViewpoints } from './chapter-navigation.js';
 
 const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
@@ -39,8 +37,7 @@ const SCENES = {
 		label: 'The solar neighbourhood',
 		view: {
 			observerPc: { x: 8, y: 0, z: 0 },
-			targetPc: SOLAR_ORIGIN_PC,
-			orientationIcrs: computeLookAtOrientation({ x: 8, y: 0, z: 0 }, SOLAR_ORIGIN_PC, ICRS_NORTH),
+			lookAt: { targetPc: SOLAR_ORIGIN_PC },
 		},
 		camera: {
 			type: 'orbit',
@@ -102,6 +99,7 @@ const SCENES = {
 	},
 	'omega-cen': {
 		label: 'Omega Centauri',
+		travel: { durationSecs: 9 },
 		camera: {
 			type: 'orbit',
 			center: OMEGA_CEN_CENTER_PC,
@@ -114,6 +112,7 @@ const SCENES = {
 	},
 	'return-home': {
 		label: 'Back to the Sun',
+		travel: { durationSecs: 10 },
 		camera: {
 			type: 'orbit',
 			center: SOLAR_ORIGIN_PC,
@@ -126,28 +125,17 @@ const SCENES = {
 	},
 };
 
-const CLUSTER_JOURNEY = createJourney({
-	order: ['start', 'orion-nebula', 'upper-sco', 'pleiades', 'hyades', 'omega-cen', 'return-home'],
-	scenes: SCENES,
-	travel: { type: 'orbit-transfer', durationSecs: 5 },
-	transitions: [
-		{
-			fromSceneId: 'hyades',
-			toSceneId: 'omega-cen',
-			travel: { durationSecs: 9 },
-		},
-		{
-			fromSceneId: 'omega-cen',
-			toSceneId: 'return-home',
-			travel: { durationSecs: 10 },
-		},
-	],
-});
-const VIEWPOINTS = CLUSTER_JOURNEY.order.map((id) => ({
+const CHAPTER_ORDER = Object.freeze(['start', 'orion-nebula', 'upper-sco', 'pleiades', 'hyades', 'omega-cen', 'return-home']);
+const CHAPTERS = Object.fromEntries(CHAPTER_ORDER.map((id) => [
 	id,
-	label: SCENES[id].label,
-}));
-const VIEWPOINT_BY_ID = new Map(VIEWPOINTS.map((viewpoint) => [viewpoint.id, viewpoint]));
+	{
+		...SCENES[id],
+		async activate(ctx) {
+			await activateChapterCamera(ctx, SCENES[id], { source: 'website.clusterTour' });
+		},
+	},
+]));
+const VIEWPOINTS = createChapterViewpoints(CHAPTERS, CHAPTER_ORDER);
 
 /**
  * Mount the cluster tour viewer.
@@ -209,14 +197,6 @@ export async function mountClusterTourViewer(mount, options = {}) {
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
 			}),
-			createSkykitJourneyPlugin({
-				id: 'cluster-tour-journey',
-				journey: CLUSTER_JOURNEY,
-				onScene(scene) {
-					const sceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : null;
-					if (sceneId && VIEWPOINT_BY_ID.has(sceneId)) onClusterChange(sceneId);
-				},
-			}),
 		],
 	});
 
@@ -232,11 +212,11 @@ export async function mountClusterTourViewer(mount, options = {}) {
 
 	onStatus('Drag on the view to look around.');
 
-	function goTo(id) {
-		if (!VIEWPOINT_BY_ID.has(id)) return;
-		void viewer.actions.invoke(SKYKIT_ACTIONS.journey.goToChapter, id, {
-			source: 'website.clusterTour',
-		});
+	async function goTo(id) {
+		const chapter = CHAPTERS[id];
+		if (!chapter || disposed) return;
+		onClusterChange(id);
+		await chapter.activate({ viewer, provider, renderer, starField });
 	}
 
 	function resize() {
@@ -266,26 +246,6 @@ export async function mountClusterTourViewer(mount, options = {}) {
 	}
 
 	return { viewer, goTo, viewpoints: VIEWPOINTS };
-}
-
-function computeLookAtOrientation(observerPc, targetPc, upIcrs = ICRS_NORTH) {
-	const direction = new THREE.Vector3(
-		targetPc.x - observerPc.x,
-		targetPc.y - observerPc.y,
-		targetPc.z - observerPc.z,
-	);
-	if (direction.lengthSq() === 0) return { x: 0, y: 0, z: 0, w: 1 };
-
-	const scratch = new THREE.Object3D();
-	scratch.position.set(0, 0, 0);
-	scratch.up.set(upIcrs.x, upIcrs.y, upIcrs.z);
-	scratch.lookAt(direction);
-	return {
-		x: scratch.quaternion.x,
-		y: scratch.quaternion.y,
-		z: scratch.quaternion.z,
-		w: scratch.quaternion.w,
-	};
 }
 
 function resolveAspectRatio(mount) {

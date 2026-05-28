@@ -198,6 +198,41 @@ const basePath = import.meta.env.BASE_URL;
 &lt;/header&gt;</code></pre>
 		</section>
 
+		<!-- ── Lesson layout ──────────────────────────── -->
+
+		<section class="guide-section" id="lesson-layout">
+			<h2>Lesson layout</h2>
+			<p>
+				Shared shell for learning-path pages. Use <code>.page--lesson</code>,
+				<code>.lesson-hero</code>, <code>.lesson-body</code>, <code>.source-panel</code>,
+				and <code>.local-panel</code> with article prose.
+			</p>
+			<div class="page--lesson guide-lesson-demo">
+				<header class="lesson-hero">
+					<p class="eyebrow">Lesson 1</p>
+					<h1>Lesson title</h1>
+					<p class="lede">Introductory lesson copy sized for scanning before a live example.</p>
+				</header>
+				<article class="lesson-body prose">
+					<section>
+						<h2>Learning goal</h2>
+						<p>Long-form lesson content uses the shared prose wrapper.</p>
+					</section>
+					<section class="source-panel panel">
+						<p class="panel__eyebrow">Next step</p>
+						<h2>Continue the path.</h2>
+						<p>Source and local-use panels share spacing across lesson pages.</p>
+					</section>
+				</article>
+			</div>
+			<pre><code>&lt;main class="page page--lesson"&gt;
+  &lt;header class="lesson-hero"&gt;...&lt;/header&gt;
+  &lt;article class="lesson-body prose"&gt;
+    &lt;section class="source-panel panel"&gt;...&lt;/section&gt;
+  &lt;/article&gt;
+&lt;/main&gt;</code></pre>
+		</section>
+
 		<!-- ── Section grid ────────────────────────────── -->
 
 		<section class="guide-section" id="section-grid">
@@ -415,7 +450,7 @@ console.log('Loaded ' + stars.length + ' stars');</code></pre>
 				</thead>
 				<tbody>
 					<tr><td><code>src/styles/theme.css</code></td><td>Design tokens, resets, global body styles</td></tr>
-					<tr><td><code>src/styles/components.css</code></td><td>Shared UI primitives: page, button, panel, eyebrow, lede, breadcrumb, hero, section-grid, narrated-tour, tag, page-nav, link--gold</td></tr>
+					<tr><td><code>src/styles/components.css</code></td><td>Shared UI primitives: page, lesson layout, button, panel, eyebrow, lede, breadcrumb, hero, section-grid, narrated-tour, tag, page-nav, link--gold</td></tr>
 					<tr><td><code>src/styles/prose.css</code></td><td>Article body typography: headings, paragraphs, code, tables, lists, callouts inside a <code>.prose</code> wrapper</td></tr>
 					<tr><td><code>src/layouts/Layout.astro</code></td><td>Root HTML shell — imports all three CSS files</td></tr>
 				</tbody>

@@ -4,18 +4,39 @@ import SiteHeader from '../../../components/SiteHeader.astro';
 import MadeByKaj from '../../../components/MadeByKaj.astro';
 import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
 import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
-import addObjectHtml from '../../../live-examples/skykit/add-an-object/index.html?raw';
+import {
+	SKYKIT_LIVE_VERSION,
+	applySkykitLiveVersions,
+} from '../../../config/skykit-live';
+import addObjectHtmlSource from '../../../live-examples/skykit/add-an-object/index.html?raw';
 
 const basePath = import.meta.env.BASE_URL;
-const installCode = `npm install @found-in-space/skykit@0.2.0-alpha.1 three`;
+const addObjectHtml = applySkykitLiveVersions(addObjectHtmlSource);
+const installCode = `npm install @found-in-space/skykit@${SKYKIT_LIVE_VERSION} three`;
 const importCode = `import * as THREE from 'three';
 import { createSkykitBrowser } from '@found-in-space/skykit/browser';
-import { createObject3dPlugin } from '@found-in-space/skykit';`;
+import {
+  SKYKIT_ACTIONS,
+  createSkykitNavigationPlugin,
+} from '@found-in-space/skykit';`;
+const lookAtMarkerCode = `const browser = await createSkykitBrowser({
+  host: '#viewer',
+});
+await browser.install(createSkykitNavigationPlugin());
+
+browser.addObject(marker, {
+  positionPc: HYADES_CENTER_PC,
+});
+
+await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, {
+  lookAt: { targetPc: HYADES_CENTER_PC },
+  durationSecs: 3,
+});`;
 ---
 
 <Layout
-	title="Add your own object to space | Found in Space"
-	description="Use the beginner SkyKit browser helper to add an app-owned Three.js object to a star viewer."
+	title="Use SkyKit in a local app | Found in Space"
+	description="Use the SkyKit browser helper from npm in a Vite-style local app and keep the same browser handle."
 >
 	<SiteHeader section="Learn & build" />
 
@@ -26,13 +47,13 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 				<span class="breadcrumb__sep" aria-hidden="true">›</span>
 				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
 				<span class="breadcrumb__sep" aria-hidden="true">›</span>
-				<span>Add an object</span>
+				<span>Local app</span>
 			</nav>
-			<p class="eyebrow">Lesson 2</p>
-			<h1>Add your own object to space</h1>
+			<p class="eyebrow">Lesson 4</p>
+			<h1>Use SkyKit in a local app</h1>
 			<p class="lede">
-				Create the default star viewer, add an ordinary Three.js marker, animate it, and
-				toggle it with a checkbox.
+				Move from pasteable scripts to npm imports. You still get the same browser handle,
+				then add an ordinary Three.js marker and toggle it with a checkbox.
 			</p>
 		</header>
 
@@ -40,9 +61,10 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 			<section>
 				<h2>Learning goal</h2>
 				<p>
-					Lesson 1 used a pasteable embed. This lesson moves one step up: you call
-					<code>createSkykitBrowser()</code> so the viewer is still built for you, but your
-					app gets to add a thing to the scene.
+					The first three lessons used the quickstart embed and <code>Skykit.whenReady()</code>.
+					In a Vite-style app, you import <code>createSkykitBrowser()</code> from npm instead.
+					The result is still the same browser object: it can add objects, install plugins,
+					and invoke navigation actions.
 				</p>
 				<p>
 					The custom object is ordinary Three.js. SkyKit gives it a place among the stars;
@@ -53,8 +75,8 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 
 		<LiveCodePlayground
 			id="skykit-add-an-object"
-			title="Add a Hyades marker"
-			description="Toggle the marker, then edit its color, size, target, or pulse speed."
+			title="Add a Hyades marker from app code"
+			description="This browser-module playground uses CDN imports, but the code shape matches the Vite import shown below."
 			initialCode={addObjectHtml}
 			mode="html"
 			height="34rem"
@@ -67,17 +89,18 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 					<li>Change the marker color.</li>
 					<li>Change the marker size.</li>
 					<li>Move the marker by editing <code>HYADES_CENTER_PC</code>.</li>
-					<li>Add a second marker with another <code>createObject3dPlugin()</code>.</li>
+					<li>Add a second marker with another <code>browser.addObject()</code>.</li>
 					<li>Change the pulse speed in the <code>update</code> function.</li>
+					<li>Move the same code into a Vite <code>main.js</code> file with the npm imports below.</li>
 				</ul>
 			</section>
 
 			<section>
 				<h2>What changed in the code</h2>
 				<p>
-					Lesson 1 used the pasteable embed. This lesson moves one step up:
-					<code>createSkykitBrowser()</code> still builds the star viewer for us, but now we
-					pass in our own app-owned object.
+					The quickstart examples got the browser from the global <code>Skykit</code> helper.
+					A compiled app creates the browser directly. After that, the handle is the same:
+					<code>browser.addObject()</code> places app-owned Three.js objects in the star scene.
 				</p>
 				<p>
 					The object is ordinary Three.js. SkyKit does not own its shape, color, animation,
@@ -86,17 +109,25 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 			</section>
 
 			<section class="callout panel">
+				<p class="panel__eyebrow">What to try next</p>
+				<h2>Use the same browser handle to move the view.</h2>
+				<p>
+					The marker hangs off the browser object, and navigation stays in the viewer action registry.
+				</p>
+				<CodeBlockWithCopy code={lookAtMarkerCode} label="Look at the marker" language="js" />
+			</section>
+
+			<section class="callout panel">
 				<p class="panel__eyebrow">Under the hood</p>
 				<p>
-					The marker position line converts Hyades parsec coordinates into the viewer's
-					default scene scale. <code>createObject3dPlugin()</code> then places that ordinary
-					Three.js object in the star scene.
+					<code>browser.addObject()</code> accepts parsec coordinates, converts them into the
+					viewer's scene scale, and places that ordinary Three.js object in the star scene.
 				</p>
 			</section>
 
 			<section class="source-panel panel">
 				<p class="panel__eyebrow">Source and next steps</p>
-				<h2>Use package examples for larger object layers.</h2>
+				<h2>Use package examples for larger local apps.</h2>
 				<p>
 					This live example is intentionally small. The SkyKit custom object example shows
 					the same idea with constellation art, a guide sphere, and a Hyades annotation.
@@ -112,8 +143,9 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 			<section class="local-panel panel">
 				<h2>Use this locally</h2>
 				<p>
-					In a local app, install SkyKit and Three.js. The object itself is ordinary
-					Three.js, so your app can decide how to generate, animate, and dispose it.
+					In a local app, install SkyKit and Three.js, then put the imports in your app entry
+					file. The object itself is ordinary Three.js, so your app can decide how to
+					generate, animate, and dispose it.
 				</p>
 				<CodeBlockWithCopy code={installCode} label="Install" language="bash" />
 				<CodeBlockWithCopy code={importCode} label="Local imports" language="js" />
@@ -123,48 +155,3 @@ import { createObject3dPlugin } from '@found-in-space/skykit';`;
 		<MadeByKaj />
 	</main>
 </Layout>
-
-<style>
-	.page--lesson {
-		max-width: 76rem;
-	}
-
-	.lesson-hero {
-		max-width: 60rem;
-		padding: 3.5rem 0 1.5rem;
-	}
-
-	.lesson-hero h1 {
-		margin: 0;
-		font-size: 4rem;
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: 0;
-	}
-
-	.lesson-body {
-		max-width: 54rem;
-	}
-
-	.source-panel {
-		margin: 2.5rem 0;
-	}
-
-	.source-panel h2 {
-		margin-top: 0;
-	}
-
-	.local-panel {
-		margin: 2.5rem 0;
-	}
-
-	.local-panel h2 {
-		margin-top: 0;
-	}
-
-	@media (max-width: 720px) {
-		.lesson-hero h1 {
-			font-size: 2.75rem;
-		}
-	}
-</style>

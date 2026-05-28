@@ -103,7 +103,7 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 		view: {
 			observerPc: ZERO_PC,
 			targetPc: initialTargetPc,
-			orientationIcrs: initialOrientationIcrs,
+			lookAt: { orientationIcrs: initialOrientationIcrs },
 			coordinateUnitsPerParsec: UNITS_PER_PARSEC,
 			limitingMagnitude: LIMITING_MAGNITUDE,
 			verticalFovDeg: VERTICAL_FOV_DEG,
@@ -190,7 +190,7 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 			distancePc: CONSTELLATION_TARGET_DISTANCE_PC,
 		});
 		if (!look) return false;
-		viewer.requestViewState({ targetPc: look.targetPc }, 'website.freeRoam.constellation');
+		viewer.requestViewState({ lookAt: { targetPc: look.targetPc } }, 'website.freeRoam.constellation');
 		void viewer.actions.invoke(SKYKIT_ACTIONS.navigation.lookAt, {
 			...look.targetPc,
 			up: look.upIcrs,

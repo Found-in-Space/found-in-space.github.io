@@ -1,12 +1,9 @@
 import * as THREE from 'three';
-import { createJourney } from '@found-in-space/journey';
 import {
-	SKYKIT_ACTIONS,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
 	createSkykitDebugBridge,
 	createSkykitHrDiagramPlugin,
-	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
 	createSkykitStarSourcePlugin,
 	createSkykitViewer,
@@ -23,11 +20,12 @@ import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
-import { computeSpatialLookAtOrientation, createOrbitTransferRoute } from '@found-in-space/spatial';
+import { createOrbitTransferRoute } from '@found-in-space/spatial';
 import {
 	createSphereVolumeStrategy,
 } from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
+import { activateChapterCamera } from './chapter-navigation.js';
 import {
 	createCanonicalOmegaCenRoute,
 	createOmegaReturnRoutePoints,
@@ -44,7 +42,6 @@ export const INNER_GALACTIC_PLANE_TARGET_PC = Object.freeze({
 
 const SOLAR_ORIGIN_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
-const IDENTITY_ORIENTATION = Object.freeze({ x: 0, y: 0, z: 0, w: 1 });
 const UNITS_PER_PARSEC = 0.001;
 const VERTICAL_FOV_DEG = 58;
 const MAX_DEVICE_PIXEL_RATIO = 2;
@@ -159,9 +156,8 @@ const HIGHLIGHT_PRESETS = {
 	},
 };
 
-const HR_JOURNEY = createJourney({
-	initial: 'all-stars',
-	order: [
+const HR_INITIAL_CHAPTER_ID = 'all-stars';
+const HR_CHAPTER_ORDER = Object.freeze([
 		'all-stars',
 		'inner-plane',
 		'out-of-plane',
@@ -170,8 +166,9 @@ const HR_JOURNEY = createJourney({
 		'pleiades',
 		'ngc-752',
 		'omega-cen',
-	],
-	scenes: {
+]);
+
+const HR_SCENES = {
 		'all-stars': createLookScene({
 			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
 			hr: {
@@ -244,51 +241,85 @@ const HR_JOURNEY = createJourney({
 				arrivalVolumeRadiusPc: OMEGA_CEN_VOLUME_RADIUS_PC,
 			},
 		}),
-	},
-	transitions: [
-		createOmegaForwardTransition(),
-		createOmegaReturnTransition('ngc-752', OMEGA_RETURN_ROUTES['ngc-752'], {
-			durationSecs: OMEGA_CEN_TRAVEL_SECS,
-			arrivalAction: OMEGA_CEN_ROUTE.reverseArrivalAction,
-		}),
-		createOmegaReturnTransition('pleiades', OMEGA_RETURN_ROUTES.pleiades),
-		createOmegaReturnTransition('away-volume', OMEGA_RETURN_ROUTES['away-volume']),
-		createOmegaReturnTransition('local-volume', OMEGA_RETURN_ROUTES['local-volume']),
-	],
-	travel: { type: 'orbit-transfer', durationSecs: 5, sampleStepSecs: 1 / 24 },
-});
+};
 
-function createOmegaForwardTransition() {
+function createOmegaForwardTravel() {
 	return {
-		fromSceneId: 'ngc-752',
-		toSceneId: 'omega-cen',
-		travel: {
-			type: 'orbit-transfer',
-			durationSecs: OMEGA_CEN_TRAVEL_SECS,
-			sampleStepSecs: 1 / 24,
-			arrivalThreshold: 0.05,
-			pointsPc: OMEGA_CEN_ROUTE.forwardPointsPc,
-			arrivalAction: OMEGA_CEN_ROUTE.forwardArrivalAction,
-		},
+		type: 'orbit-transfer',
+		durationSecs: OMEGA_CEN_TRAVEL_SECS,
+		sampleStepSecs: 1 / 24,
+		arrivalThreshold: 0.05,
+		pointsPc: OMEGA_CEN_ROUTE.forwardPointsPc,
+		arrivalAction: OMEGA_CEN_ROUTE.forwardArrivalAction,
 	};
 }
 
-function createOmegaReturnTransition(toSceneId, pointsPc, {
+function createOmegaReturnTravel(pointsPc, {
 	durationSecs = OMEGA_CEN_RETURN_TO_INNER_TRAVEL_SECS,
 	arrivalAction = null,
 } = {}) {
 	return {
-		fromSceneId: 'omega-cen',
-		toSceneId,
-		travel: {
-			type: 'orbit-transfer',
-			durationSecs,
-			sampleStepSecs: 1 / 24,
-			arrivalThreshold: 0.05,
-			pointsPc,
-			...(arrivalAction ? { arrivalAction } : {}),
-		},
+		type: 'orbit-transfer',
+		durationSecs,
+		sampleStepSecs: 1 / 24,
+		arrivalThreshold: 0.05,
+		pointsPc,
+		...(arrivalAction ? { arrivalAction } : {}),
 	};
+}
+
+function createHrChapters(applyHrSceneState) {
+	return Object.fromEntries(HR_CHAPTER_ORDER.map((id) => [
+		id,
+		{
+			...HR_SCENES[id],
+			label: HR_SCENES[id].label ?? id,
+			async activate(ctx) {
+				const activationScene = createHrActivationScene(id, ctx.previousSceneId);
+				await applyHrSceneState(createRouteAwareHrState(activationScene), 'website.hrDiagram.scene');
+				await activateChapterCamera(ctx, {
+					...HR_SCENES[id],
+					travel: resolveHrChapterTravel(id, ctx.previousSceneId),
+				}, {
+					source: 'website.hrDiagram',
+					onArrive: async () => {
+						const arrivalVolumeRadiusPc = positiveFiniteOrNull(activationScene?.hr?.arrivalVolumeRadiusPc);
+						const hrState = createRouteAwareHrState(activationScene, { arrival: true });
+						if (arrivalVolumeRadiusPc !== null) {
+							hrState.volumeRadiusPc = arrivalVolumeRadiusPc;
+						}
+						await applyHrSceneState(hrState, 'website.hrDiagram.arrival');
+					},
+				});
+			},
+		},
+	]));
+}
+
+function createHrActivationScene(sceneId, previousSceneId) {
+	return {
+		...HR_SCENES[sceneId],
+		sceneId,
+		fromSceneId: previousSceneId,
+		toSceneId: sceneId,
+	};
+}
+
+function resolveHrChapterTravel(sceneId, previousSceneId) {
+	if (previousSceneId === 'ngc-752' && sceneId === 'omega-cen') {
+		return createOmegaForwardTravel();
+	}
+	if (previousSceneId === 'omega-cen' && Object.hasOwn(OMEGA_RETURN_ROUTES, sceneId)) {
+		return createOmegaReturnTravel(OMEGA_RETURN_ROUTES[sceneId], {
+			...(sceneId === 'ngc-752'
+				? {
+					durationSecs: OMEGA_CEN_TRAVEL_SECS,
+					arrivalAction: OMEGA_CEN_ROUTE.reverseArrivalAction,
+				}
+				: {}),
+		});
+	}
+	return HR_SCENES[sceneId]?.travel ?? {};
 }
 
 function createRouteAwareHrState(scene, { arrival = false } = {}) {
@@ -345,7 +376,7 @@ export async function mountHrDiagramViewer(root) {
 	const topicId = root.dataset.topic || 'hr-diagram';
 	const sessionId = root.dataset.datasetId || `website-learn-hr-diagram-${topicId}`;
 	const octreeUrl = readDatasetString(root, 'octreeUrl') ?? OCTREE_DEFAULT;
-	const initialScene = HR_JOURNEY.getScene(HR_JOURNEY.initialSceneId) ?? HR_JOURNEY.getScene('all-stars');
+	const initialScene = HR_SCENES[HR_INITIAL_CHAPTER_ID];
 	const initialView = initialScene?.view ?? {};
 	const initialAspectRatio = resolveAspectRatio(mount);
 	const highlightRegion = buildHighlightRegion(root.dataset.highlight || '');
@@ -377,7 +408,7 @@ export async function mountHrDiagramViewer(root) {
 	);
 	const debug = createSkykitDebugBridge();
 	const uninstallDebugGlobal = installSkykitDebugGlobal(debug);
-	let activeSceneId = HR_JOURNEY.initialSceneId;
+	let activeSceneId = HR_INITIAL_CHAPTER_ID;
 	let activeMode = 'magnitude-limited';
 	let activeMagLimit = DEFAULT_HR_MAG_LIMIT;
 	let activeRadius = DEFAULT_HR_VOLUME_RADIUS;
@@ -387,6 +418,7 @@ export async function mountHrDiagramViewer(root) {
 	let viewer = null;
 	let debugViewer = null;
 	const pendingHrSceneStates = [];
+	const chapters = createHrChapters(applyHrSceneState);
 
 	const hr = createSkykitHrDiagramPlugin({
 		id: `website-hr-diagram-${topicId}`,
@@ -410,8 +442,9 @@ export async function mountHrDiagramViewer(root) {
 		view: {
 			observerPc: initialView.observerPc ?? SOLAR_ORIGIN_PC,
 			targetPc: initialView.targetPc ?? INNER_GALACTIC_PLANE_TARGET_PC,
-			orientationIcrs: initialView.orientationIcrs
-				?? computeLookAtOrientation(SOLAR_ORIGIN_PC, INNER_GALACTIC_PLANE_TARGET_PC),
+			lookAt: initialView.orientationIcrs
+				? { orientationIcrs: initialView.orientationIcrs }
+				: { targetPc: initialView.targetPc ?? INNER_GALACTIC_PLANE_TARGET_PC },
 			coordinateUnitsPerParsec: UNITS_PER_PARSEC,
 			limitingMagnitude: activeMagLimit,
 			verticalFovDeg: VERTICAL_FOV_DEG,
@@ -436,22 +469,6 @@ export async function mountHrDiagramViewer(root) {
 				target: mount,
 				root: () => createHudRoot(hr, mount),
 				runtimeOptions: { services: { surfaces } },
-			}),
-			createSkykitJourneyPlugin({
-				id: `website-hr-diagram-journey-${topicId}`,
-				journey: HR_JOURNEY,
-				onScene(scene) {
-					activeSceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : activeSceneId;
-					void applyHrSceneState(createRouteAwareHrState(scene), 'website.hrDiagram.scene');
-				},
-				onSceneArrive(scene) {
-					const arrivalVolumeRadiusPc = positiveFiniteOrNull(scene?.hr?.arrivalVolumeRadiusPc);
-					const hrState = createRouteAwareHrState(scene, { arrival: true });
-					if (arrivalVolumeRadiusPc !== null) {
-						hrState.volumeRadiusPc = arrivalVolumeRadiusPc;
-					}
-					void applyHrSceneState(hrState, 'website.hrDiagram.arrival');
-				},
 			}),
 		],
 	});
@@ -499,11 +516,13 @@ export async function mountHrDiagramViewer(root) {
 		viewer.requestViewState({ aspectRatio }, 'website.hrDiagram.resize');
 	}
 
-	function goTo(sceneId) {
-		if (!HR_JOURNEY.getScene(sceneId) || disposed) return Promise.resolve(null);
-		return viewer.actions.invoke(SKYKIT_ACTIONS.journey.goToChapter, sceneId, {
-			source: 'website.hrDiagram',
-		});
+	async function goTo(sceneId) {
+		const chapter = chapters[sceneId];
+		if (!chapter || disposed) return null;
+		const previousSceneId = activeSceneId;
+		activeSceneId = sceneId;
+		await chapter.activate({ viewer, provider, renderer, previousSceneId });
+		return sceneId;
 	}
 
 	async function applyHrSceneState(hrState, reason) {
@@ -588,7 +607,7 @@ export async function mountHrDiagramViewer(root) {
 		goTo,
 		destroy,
 		getState,
-		initialSceneId: HR_JOURNEY.initialSceneId,
+		initialSceneId: HR_INITIAL_CHAPTER_ID,
 	};
 }
 
@@ -599,11 +618,11 @@ function createLookScene({
 	hr,
 }) {
 	return {
-		view: { targetPc },
+		view: { lookAt: { targetPc } },
 		navigation: {
 			transitionTo: {
 				observerPc,
-				orientationIcrs: computeLookAtOrientation(observerPc, targetPc),
+				lookAt: { targetPc },
 				durationSecs,
 				movement: { durationSecs },
 				orientationTransition: { durationSecs },
@@ -668,14 +687,6 @@ function normalizeHrMode(value) {
 		return value;
 	}
 	return null;
-}
-
-function computeLookAtOrientation(observerPc, targetPc, upIcrs = ICRS_NORTH) {
-	return computeSpatialLookAtOrientation({
-		position: observerPc,
-		target: targetPc,
-		up: upIcrs,
-	}) ?? IDENTITY_ORIENTATION;
 }
 
 function resolveAspectRatio(element) {

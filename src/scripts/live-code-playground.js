@@ -90,6 +90,7 @@ function initPlayground(root) {
 	}
 
 	editor.value = initialCode;
+	iframe.tabIndex = 0;
 	if (consoleShell && window.matchMedia('(min-width: 721px)').matches) {
 		consoleShell.open = true;
 	}
@@ -120,13 +121,13 @@ function initPlayground(root) {
 	window.addEventListener('message', handleMessage);
 
 	runButton?.addEventListener('click', () => {
-		runPreview();
+		runPreview({ focus: true });
 	});
 
 	resetButton?.addEventListener('click', () => {
 		editor.value = initialCode;
 		statusEl.textContent = 'Reset to the original example.';
-		runPreview();
+		runPreview({ focus: true });
 	});
 
 	copyButton?.addEventListener('click', () => {
@@ -141,8 +142,12 @@ function initPlayground(root) {
 		}
 		if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
 			event.preventDefault();
-			runPreview();
+			runPreview({ focus: true });
 		}
+	});
+
+	iframe.addEventListener('pointerdown', () => {
+		focusPreview();
 	});
 
 	window.addEventListener('pagehide', () => {
@@ -152,15 +157,24 @@ function initPlayground(root) {
 
 	runPreview();
 
-	function runPreview() {
+	function runPreview({ focus = false } = {}) {
 		runCount += 1;
 		consoleEl.textContent = '';
 		statusEl.textContent = 'Running preview...';
-		iframe.srcdoc = '<!doctype html><title>Resetting preview</title>';
-		window.setTimeout(() => {
-			iframe.srcdoc = createSrcdoc(editor.value, runCount);
-			statusEl.textContent = 'Preview running.';
-		}, 0);
+		if (focus) {
+			iframe.addEventListener('load', focusPreview, { once: true });
+		}
+		iframe.srcdoc = createSrcdoc(editor.value, runCount);
+		statusEl.textContent = 'Preview running.';
+	}
+
+	function focusPreview() {
+		try {
+			iframe.focus?.({ preventScroll: true });
+			iframe.contentWindow?.focus?.();
+		} catch {
+			iframe.focus?.();
+		}
 	}
 }
 

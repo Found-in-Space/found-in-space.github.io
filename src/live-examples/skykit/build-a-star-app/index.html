@@ -1,176 +1,341 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Build a small star app</title>
-  <style>
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #02040b;
-      color: #f6f1e8;
-      font-family: system-ui, sans-serif;
+<style>
+  body { margin: 0; background: #02040b; }
+  #slice { display: block; width: 100%; height: calc(100vh - 2.5rem); background: #02040b; }
+  #status {
+    box-sizing: border-box;
+    height: 2.5rem;
+    margin: 0;
+    padding: .65rem .75rem;
+    overflow: hidden;
+    background: #0b1020;
+    color: #d8deea;
+    font: 13px system-ui, sans-serif;
+  }
+  #label {
+    position: fixed;
+    display: none;
+    max-width: 18rem;
+    padding: .45rem .6rem;
+    border: 1px solid rgba(242, 200, 121, 0.35);
+    border-radius: 6px;
+    background: rgba(2, 4, 11, 0.88);
+    color: #f6f1e8;
+    font: 12px system-ui, sans-serif;
+    pointer-events: none;
+  }
+</style>
+
+<canvas id="slice" width="960" height="520" aria-label="2D star slice"></canvas>
+<pre id="status">Loading stars...</pre>
+<div id="label" aria-hidden="true"></div>
+
+<script type="module">
+  import {
+    OCTREE_DEFAULT,
+    createStarOctreeProviderService,
+  } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/star-octree-provider@__STAR_OCTREE_PROVIDER_VERSION__?bundle";
+  import {
+    createObserverShellStrategy,
+    createStarCellKey,
+    temperatureToRgb,
+  } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/star-trees@__STAR_TREES_VERSION__?bundle";
+  import {
+    createMetaSidecarProviderService,
+    deriveMetaSidecarUrlFromRenderUrl,
+  } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/meta-sidecar-provider@__META_SIDECAR_PROVIDER_VERSION__?bundle";
+
+  // Wire up the tiny app shell: one canvas, one status line, and one hover label.
+  const canvas = document.querySelector("#slice");
+  const status = document.querySelector("#status");
+  const label = document.querySelector("#label");
+
+  // Create the data source. The provider streams compact octree cells, not a viewer.
+  const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
+  let metaProvider = null;
+  const cells = [];
+  let rows = [];
+  let hoveredRow = null;
+  let hoverSerial = 0;
+  let viewTransform = { width: canvas.width, height: canvas.height, scale: 1 };
+  const labelCache = new Map();
+
+  // Keep the tunable app settings together so each one is easy to change and rerun.
+  const settings = {
+    limitingMagnitude: 6.5,
+    radiusPc: 50,
+    halfThicknessPc: 10,
+    limit: 2200,
+    pickRadiusPx: 12,
+  };
+
+  // Redraw the current rows when the preview frame changes size, update the hover
+  // label on pointer movement, and close providers when the page is unloaded.
+  window.addEventListener("resize", draw);
+  canvas.addEventListener("pointermove", handlePointerMove);
+  canvas.addEventListener("pointerleave", clearHover);
+  window.addEventListener("pagehide", cleanup, { once: true });
+
+  main().catch((error) => {
+    status.textContent = error?.message || String(error);
+  });
+
+  async function main() {
+    // Bootstrap once so the app can derive the matching metadata sidecar for labels.
+    const bootstrap = await provider.ensureBootstrap();
+    if (bootstrap.datasetId) {
+      metaProvider = createMetaSidecarProviderService({
+        id: "learn-skykit-small-app-meta",
+        parentDatasetId: bootstrap.datasetId,
+        url: deriveMetaSidecarUrlFromRenderUrl(OCTREE_DEFAULT),
+      });
     }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .hud {
-      position: fixed;
-      left: 12px;
-      top: 12px;
-      width: min(22rem, calc(100% - 24px));
-      padding: 12px;
-      border: 1px solid rgba(242, 200, 121, 0.24);
-      border-radius: 6px;
-      background: rgba(2, 4, 11, 0.78);
-      color: #d8deea;
-      font-size: 13px;
-    }
-
-    .hud strong {
-      color: #f2c879;
-    }
-  </style>
-</head>
-<body>
-  <canvas id="slice" aria-label="2D star slice"></canvas>
-  <div class="hud" aria-live="polite">
-    <strong>2D slice demo</strong>
-    <div id="status">Loading a small star stream...</div>
-  </div>
-
-  <script type="module">
-    import {
-      OCTREE_DEFAULT,
-      createStarOctreeProviderService,
-    } from "https://esm.sh/@found-in-space/star-octree-provider@0.2.0-alpha.0?bundle";
-    import {
-      createObserverShellStrategy,
-      decodeTemperatureK,
-      temperatureToRgb,
-    } from "https://esm.sh/@found-in-space/star-trees@0.2.0-alpha.0?bundle";
-
-    const canvas = document.querySelector('#slice');
-    const context = canvas.getContext('2d');
-    const status = document.querySelector('#status');
-    const provider = createStarOctreeProviderService({ url: OCTREE_DEFAULT });
-    const cells = [];
-    let rows = [];
-    let disposed = false;
-
-    window.addEventListener('resize', draw);
-    window.addEventListener('pagehide', cleanup, { once: true });
-    window.addEventListener('beforeunload', cleanup, { once: true });
-
-    main().catch((error) => {
-      status.textContent = error?.message || String(error);
+    // Ask SkyKit data packages for star cells around the Sun. Projection, picking,
+    // rendering, and label policy below belong to this app.
+    const stream = provider.streamCells({
+      strategy: createObserverShellStrategy(),
+      view: {
+        observerPc: { x: 0, y: 0, z: 0 },
+        limitingMagnitude: settings.limitingMagnitude,
+      },
+      attributes: ["position", "magAbs", "teffLog8", "objectRef"],
     });
 
-    async function main() {
-      const stream = provider.streamCells({
-        strategy: createObserverShellStrategy(),
-        view: {
-          observerPc: { x: 0, y: 0, z: 0 },
-          limitingMagnitude: 6.5,
-        },
-        attributes: ['position', 'magAbs', 'teffLog8', 'objectRef'],
-      });
+    for await (const delta of stream) {
+      if (delta.type === "stars/cells-upsert") {
+        // Each upsert adds or replaces cells. This compact example only appends because
+        // the observer never moves, so the stream does not need to evict old cells.
+        cells.push(...delta.cells);
 
-      for await (const delta of stream) {
-        if (disposed) break;
-        if (delta.type === 'stars/cells-upsert') {
-          cells.push(...delta.cells);
-          rows = projectSlice(cells, { radiusPc: 50, halfThicknessPc: 10 }).slice(0, 2200);
-          draw();
-          status.textContent = `${rows.length.toLocaleString()} projected stars from ${cells.length.toLocaleString()} streamed cells.`;
-        }
-        if (delta.type === 'stars/error') {
-          throw new Error(delta.error?.message || 'Provider stream failed.');
-        }
-        if (delta.type === 'stars/current') {
-          status.textContent = `Current slice: ${rows.length.toLocaleString()} stars. This is app-owned rendering, not a Three.js viewer.`;
-          break;
-        }
+        // Translate the streamed cells into the simple row shape that the canvas renderer
+        // understands: x/y position, absolute magnitude, and optional temperature.
+        rows = projectSlice(cells, {
+          radiusPc: settings.radiusPc,
+          halfThicknessPc: settings.halfThicknessPc,
+          limit: settings.limit,
+        });
+        draw();
+        status.textContent = `${rows.length.toLocaleString()} stars projected from ${cells.length.toLocaleString()} cells. Hover a star for labels.`;
+      }
+
+      if (delta.type === "stars/error") {
+        throw new Error(delta.error?.message || "Provider stream failed.");
+      }
+
+      if (delta.type === "stars/current") {
+        status.textContent = `Current slice: ${rows.length.toLocaleString()} stars. Hover a star for labels.`;
+        break;
+      }
+    }
+  }
+
+  function projectSlice(sourceCells, options) {
+    // Provider cells store positions and attributes in typed arrays. Walk each cell and
+    // keep only the stars that fit inside this app's flat cylindrical slice.
+    const projected = [];
+    for (const cell of sourceCells) {
+      const positions = cell.coordinates.components;
+      const magnitudes = cell.attributes.magAbs;
+      const temperatures = cell.attributes.teffLog8;
+
+      for (let index = 0; index < cell.count; index += 1) {
+        const x = positions[index * 3];
+        const y = positions[index * 3 + 1];
+        const z = positions[index * 3 + 2];
+        if (Math.hypot(x, y) > options.radiusPc) continue;
+        if (Math.abs(z) > options.halfThicknessPc) continue;
+        const ref = cell.refs?.[index] ?? null;
+        const ordinal = ref?.ordinal ?? index;
+        const cellKey = ref ? createStarCellKey(ref) : cell.cellKey;
+
+        projected.push({
+          x,
+          y,
+          magAbs: magnitudes?.[index] ?? 8,
+          teffLog8: temperatures?.[index] ?? null,
+          ref,
+          ordinal,
+          fallbackLabel: `cell ${cellKey} / ${ordinal}`,
+        });
       }
     }
 
-    function projectSlice(sourceCells, options) {
-      const projected = [];
-      for (const cell of sourceCells) {
-        const positions = cell.coordinates.components;
-        const magnitudes = cell.attributes.magAbs;
-        for (let index = 0; index < cell.count; index += 1) {
-          const x = positions[index * 3];
-          const y = positions[index * 3 + 1];
-          const z = positions[index * 3 + 2];
-          const radialPc = Math.hypot(x, y);
-          if (radialPc > options.radiusPc || Math.abs(z) > options.halfThicknessPc) continue;
-          const magAbs = magnitudes?.[index] ?? 8;
-          const teffLog8 = cell.attributes.teffLog8?.[index] ?? null;
-          const temperatureK = teffLog8 == null ? null : decodeTemperatureK(teffLog8);
-          projected.push({ x, y, z, magAbs, teffLog8, temperatureK });
-        }
-      }
-      return projected.sort((left, right) => left.magAbs - right.magAbs);
-    }
+    // Draw the brightest matching stars first and cap the count so this remains a small,
+    // responsive teaching example.
+    return projected
+      .sort((left, right) => left.magAbs - right.magAbs)
+      .slice(0, options.limit);
+  }
 
-    function draw() {
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      const width = Math.max(1, canvas.clientWidth || window.innerWidth || 1);
-      const height = Math.max(1, canvas.clientHeight || window.innerHeight || 1);
-      canvas.width = Math.floor(width * pixelRatio);
-      canvas.height = Math.floor(height * pixelRatio);
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      context.clearRect(0, 0, width, height);
-      context.fillStyle = '#02040b';
-      context.fillRect(0, 0, width, height);
+  function draw() {
+    // This renderer is intentionally ordinary canvas code. A larger app could replace
+    // this function with PixiJS, SVG, WebGL, or another renderer.
+    const context = canvas.getContext("2d");
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const width = canvas.clientWidth || canvas.width;
+    const height = canvas.clientHeight || canvas.height;
+    const scale = Math.min(width, height) * 0.46 / settings.radiusPc;
+    viewTransform = { width, height, scale };
 
-      const radiusPc = 50;
-      const scale = Math.min(width, height) * 0.46 / radiusPc;
-      context.translate(width / 2, height / 2);
+    canvas.width = Math.floor(width * pixelRatio);
+    canvas.height = Math.floor(height * pixelRatio);
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, width / 2, height / 2);
+    context.clearRect(-width / 2, -height / 2, width, height);
 
-      context.strokeStyle = 'rgba(242, 200, 121, 0.28)';
-      context.lineWidth = 1;
+    // Show the selected slice radius so the star positions have a visible boundary.
+    context.strokeStyle = "rgba(242, 200, 121, 0.28)";
+    context.beginPath();
+    context.arc(0, 0, settings.radiusPc * scale, 0, Math.PI * 2);
+    context.stroke();
+
+    // Convert catalogue attributes into simple drawing choices: absolute magnitude drives
+    // marker size/opacity, and effective temperature drives colour when present.
+    for (const row of rows) {
+      const brightness = Math.max(0.12, Math.min(1, (8 - row.magAbs) / 10));
+      const rgb = row.teffLog8 == null ? [216, 226, 255] : temperatureToRgb(row.teffLog8);
+      context.fillStyle = `rgba(${rgb.join(",")}, ${0.25 + brightness * 0.7})`;
       context.beginPath();
-      context.arc(0, 0, radiusPc * scale, 0, Math.PI * 2);
-      context.stroke();
-
-      for (const row of rows) {
-        const brightness = Math.max(0.12, Math.min(1, (8 - row.magAbs) / 10));
-        const color = row.teffLog8 == null ? '216,226,255' : rgbCss(temperatureToRgb(row.teffLog8));
-        context.fillStyle = `rgba(${color}, ${0.25 + brightness * 0.7})`;
-        context.beginPath();
-        context.arc(row.x * scale, row.y * scale, 0.6 + brightness * 2.2, 0, Math.PI * 2);
-        context.fill();
-      }
-
-      context.fillStyle = '#f2c879';
-      context.beginPath();
-      context.moveTo(14, 0);
-      context.lineTo(-9, -7);
-      context.lineTo(-5, 0);
-      context.lineTo(-9, 7);
-      context.closePath();
+      context.arc(row.x * scale, row.y * scale, 0.6 + brightness * 2.2, 0, Math.PI * 2);
       context.fill();
     }
 
-    function rgbCss(rgb) {
-      return `${rgb[0]}, ${rgb[1]}, ${rgb[2]}`;
+    if (hoveredRow) {
+      context.strokeStyle = "rgba(242, 200, 121, 0.86)";
+      context.lineWidth = 1.5;
+      context.beginPath();
+      context.arc(hoveredRow.x * scale, hoveredRow.y * scale, 5, 0, Math.PI * 2);
+      context.stroke();
     }
 
-    function cleanup() {
-      if (disposed) return;
-      disposed = true;
-      window.removeEventListener('resize', draw);
-      provider.dispose?.();
+    // Draw a small marker at the observer position, which is the centre of this slice.
+    context.fillStyle = "#f2c879";
+    context.beginPath();
+    context.moveTo(14, 0);
+    context.lineTo(-9, -7);
+    context.lineTo(-5, 0);
+    context.lineTo(-9, 7);
+    context.closePath();
+    context.fill();
+  }
+
+  function handlePointerMove(event) {
+    const rect = canvas.getBoundingClientRect();
+    const row = findNearestRow(event.clientX - rect.left, event.clientY - rect.top);
+    if (!row) {
+      clearHover();
+      return;
     }
-  </script>
-</body>
-</html>
+
+    hoveredRow = row;
+    draw();
+    label.style.display = "block";
+    label.setAttribute("aria-hidden", "false");
+    label.style.left = `${event.clientX + 12}px`;
+    label.style.top = `${event.clientY + 12}px`;
+    label.textContent = row.fallbackLabel;
+    void updateHoverLabel(row);
+  }
+
+  function findNearestRow(pointerX, pointerY) {
+    let best = null;
+    let bestDistanceSquared = settings.pickRadiusPx ** 2;
+    const centerX = viewTransform.width / 2;
+    const centerY = viewTransform.height / 2;
+
+    for (const row of rows) {
+      const screenX = centerX + row.x * viewTransform.scale;
+      const screenY = centerY + row.y * viewTransform.scale;
+      const distanceSquared = (screenX - pointerX) ** 2 + (screenY - pointerY) ** 2;
+      if (distanceSquared < bestDistanceSquared) {
+        best = row;
+        bestDistanceSquared = distanceSquared;
+      }
+    }
+
+    return best;
+  }
+
+  async function updateHoverLabel(row) {
+    const serial = ++hoverSerial;
+    const text = await resolveLabel(row);
+    if (serial !== hoverSerial || hoveredRow !== row) return;
+    label.textContent = text;
+    status.textContent = `Selected ${text}.`;
+  }
+
+  async function resolveLabel(row) {
+    if (!metaProvider || !row.ref) return row.fallbackLabel;
+    const cacheKey = `${row.ref.datasetId}:${row.ref.level}:${row.ref.mortonCode}:${row.ref.ordinal}`;
+    if (labelCache.has(cacheKey)) return labelCache.get(cacheKey);
+
+    try {
+      const entry = await metaProvider.getMeta(row.ref);
+      const text = formatLabel(entry, row.fallbackLabel);
+      labelCache.set(cacheKey, text);
+      return text;
+    } catch (error) {
+      console.warn("Metadata lookup failed", error);
+      return row.fallbackLabel;
+    }
+  }
+
+  function clearHover() {
+    hoverSerial += 1;
+    hoveredRow = null;
+    label.style.display = "none";
+    label.setAttribute("aria-hidden", "true");
+    draw();
+  }
+
+  function formatLabel(entry, fallback) {
+    const properName = metaString(entry?.proper_name);
+    if (properName) return properName;
+
+    const bayer = formatBayerDesignation(entry);
+    if (bayer) return bayer;
+
+    const flamsteed = metaString(entry?.flamsteed);
+    const constellation = metaString(entry?.constellation);
+    if (flamsteed) return constellation ? `${flamsteed} ${constellation}` : flamsteed;
+
+    const hd = metaString(entry?.hd);
+    if (hd) return `HD ${hd}`;
+
+    const hip = metaString(entry?.hip_id);
+    if (hip) return `HIP ${hip}`;
+
+    const gaia = metaString(entry?.gaia_source_id);
+    if (gaia) return `Gaia ${gaia}`;
+
+    return fallback;
+  }
+
+  function formatBayerDesignation(entry) {
+    const bayer = metaString(entry?.bayer);
+    if (!bayer) return "";
+    const constellation = metaString(entry?.constellation);
+    if (!constellation || designationEndsWithConstellation(bayer, constellation)) return bayer;
+    return `${bayer} ${constellation}`;
+  }
+
+  function designationEndsWithConstellation(value, constellation) {
+    const lowerValue = value.toLowerCase();
+    const lowerConstellation = constellation.toLowerCase();
+    if (!lowerValue.endsWith(lowerConstellation)) return false;
+    if (lowerValue.length === lowerConstellation.length) return true;
+    const separator = value[value.length - constellation.length - 1];
+    return separator === " " || separator === "-";
+  }
+
+  function metaString(value) {
+    if (value == null) return "";
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    if (typeof value === "bigint") return value.toString();
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function cleanup() {
+    provider.dispose?.();
+    metaProvider?.dispose?.();
+  }
+</script>

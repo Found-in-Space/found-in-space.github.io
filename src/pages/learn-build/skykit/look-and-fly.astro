@@ -1,0 +1,134 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import MadeByKaj from '../../../components/MadeByKaj.astro';
+import LiveCodePlayground from '../../../components/live/LiveCodePlayground.astro';
+import CodeBlockWithCopy from '../../../components/live/CodeBlockWithCopy.astro';
+import { applySkykitLiveVersions } from '../../../config/skykit-live';
+import lookAndFlyHtmlSource from '../../../live-examples/skykit/look-and-fly/index.html?raw';
+
+const basePath = import.meta.env.BASE_URL;
+const lookAndFlyHtml = applySkykitLiveVersions(lookAndFlyHtmlSource);
+const lookCode = `import {
+  SKYKIT_ACTIONS,
+  createRaDecLookAt,
+  createSkykitNavigationPlugin,
+} from '@found-in-space/skykit';
+
+const browser = await Skykit.whenReady();
+await browser.install(createSkykitNavigationPlugin());
+const ALNILAM_LOOK_AT = createRaDecLookAt('05h 36m 12.81s', '−01° 12′ 06.9″');
+
+function transitionTo(payload) {
+  return browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, payload);
+}
+
+await transitionTo({
+  lookAt: ALNILAM_LOOK_AT,
+  durationSecs: 3,
+});`;
+const flyCode = `import {
+  SKYKIT_ACTIONS,
+  createRaDecLookAt,
+  createSkykitNavigationPlugin,
+} from '@found-in-space/skykit';
+
+const browser = await Skykit.whenReady();
+await browser.install(createSkykitNavigationPlugin());
+const ALNILAM_LOOK_AT = createRaDecLookAt('05h 36m 12.81s', '−01° 12′ 06.9″');
+
+function transitionTo(payload) {
+  return browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, payload);
+}
+
+await transitionTo({
+  observerPc: { x: 28, y: -18, z: 10 },
+  lookAt: ALNILAM_LOOK_AT,
+  movement: { durationSecs: 8 },
+  orientationTransition: { durationSecs: 3 },
+});`;
+---
+
+<Layout
+	title="Look and fly with SkyKit | Found in Space"
+	description="Use the beginner SkyKit browser handle to look toward Orion and fly through 3D space."
+>
+	<SiteHeader section="Learn & build" />
+
+	<main class="page page--lesson">
+		<header class="lesson-hero">
+			<nav class="breadcrumb" aria-label="Breadcrumb">
+				<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<a href={`${basePath}learn-build/skykit/`}>SkyKit</a>
+				<span class="breadcrumb__sep" aria-hidden="true">›</span>
+				<span>Look and fly</span>
+			</nav>
+			<p class="eyebrow">Lesson 2</p>
+			<h1>Look and fly with SkyKit</h1>
+			<p class="lede">
+				Keep the pasteable embed, then use the browser handle to animate the view after
+				startup.
+			</p>
+		</header>
+
+		<article class="lesson-body prose">
+			<section>
+				<h2>Learning goal</h2>
+				<p>
+					Lesson 1 configured the browser with HTML attributes. This lesson adds a tiny
+					script. <code>Skykit.whenReady()</code> gives you the live browser object, and
+					<code>transitionTo()</code> can rotate the view or move the
+					observer through parsec space.
+				</p>
+			</section>
+		</article>
+
+		<LiveCodePlayground
+			id="skykit-look-and-fly"
+			title="Look toward Orion, then fly out"
+			description="The first transition rotates the view. The second moves the observer through 3D space."
+			initialCode={lookAndFlyHtml}
+			mode="html"
+			height="34rem"
+		/>
+
+		<article class="lesson-body prose">
+			<section class="callout panel">
+				<p class="panel__eyebrow">Things to try</p>
+				<ul>
+					<li>Change the wait times before each transition.</li>
+					<li>Change <code>durationSecs</code> to make the movement slower or faster.</li>
+					<li>Change <code>observerPc</code> to fly to another place in parsec space.</li>
+					<li>Use only <code>lookAt</code> when you want to rotate without moving.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>What changed in the code</h2>
+				<p>
+					The first transition changes only the look direction. The second transition includes
+					<code>observerPc</code>, so SkyKit also moves the observer. The
+					<code>movement</code> and <code>orientation</code> lanes can have different
+					durations.
+				</p>
+				<CodeBlockWithCopy code={lookCode} label="Look direction" language="js" />
+				<CodeBlockWithCopy code={flyCode} label="Fly through space" language="js" />
+			</section>
+
+			<section class="source-panel panel">
+				<p class="panel__eyebrow">Next step</p>
+				<h2>Turn one-off moves into chapters.</h2>
+				<p>
+					Once you have more than a couple of transitions, give the stops names and let
+					chapter functions manage the sequence.
+				</p>
+				<ul>
+					<li><a href={`${basePath}learn-build/skykit/journey-automation/`}>Next: automate chapters</a></li>
+				</ul>
+			</section>
+		</article>
+
+		<MadeByKaj />
+	</main>
+</Layout>

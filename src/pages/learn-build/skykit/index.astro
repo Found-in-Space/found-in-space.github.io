@@ -26,17 +26,31 @@ const useCases = [
 
 const lessons = [
 	{
-		title: 'Create a SkyKit browser',
+		title: 'Set up a SkyKit browser',
 		href: `${basePath}learn-build/skykit/create-a-browser/`,
-		build: 'A pasteable star viewer for a static page or CMS block.',
-		learn: 'Viewer element, optional status element, script tag, and beginner attributes.',
+		build: 'A pasteable star viewer with startup direction, movement speed, and constellation options.',
+		learn: 'Viewer element, optional status element, script tag, and display attributes.',
 		time: '5-10 min',
 	},
 	{
-		title: 'Add your own object to space',
+		title: 'Look and fly with SkyKit',
+		href: `${basePath}learn-build/skykit/look-and-fly/`,
+		build: 'A pasted viewer that looks toward Orion, then flies through nearby 3D space.',
+		learn: 'Skykit.whenReady(), the browser handle, look transitions, and observer movement.',
+		time: '10-15 min',
+	},
+	{
+		title: 'Automate chapters',
+		href: `${basePath}learn-build/skykit/journey-automation/`,
+		build: 'Button-driven chapters from the Sun to the Pleiades and Orion Nebula with orbital inserts.',
+		learn: 'Chapter functions, targets, orbit semantics, and button wiring.',
+		time: '15-25 min',
+	},
+	{
+		title: 'Use SkyKit in a local app',
 		href: `${basePath}learn-build/skykit/add-an-object/`,
-		build: 'A star viewer with an app-owned Hyades marker and checkbox toggle.',
-		learn: 'Default viewer helper, Three.js marker, simple animation, and visibility toggles.',
+		build: 'A Vite-style SkyKit browser with an app-owned Hyades marker and checkbox toggle.',
+		learn: 'npm imports, createSkykitBrowser(), the same browser handle, and app-owned Three.js objects.',
 		time: '15-25 min',
 	},
 	{
@@ -127,7 +141,7 @@ const lessons = [
 				<p class="panel__eyebrow">Where this fits</p>
 				<h2>Start with a working result.</h2>
 				<p>
-					The first two lessons keep you in the star viewer path. Later lessons deliberately
+					The first four lessons keep you in the star viewer path. Later lessons deliberately
 					peel that away so you can use the data stream for tables, games, maps, and custom
 					renderers.
 				</p>

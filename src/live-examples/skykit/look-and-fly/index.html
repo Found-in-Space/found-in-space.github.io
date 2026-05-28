@@ -1,0 +1,43 @@
+<div
+  data-skykit-browser
+  data-skykit-status="#skykit-status"
+  style="width:100%;height:520px;background:#02040b"
+></div>
+
+<pre id="skykit-status">Loading stars...</pre>
+
+<script type="module" src="__SKYKIT_BROWSER_ESM_BASE__@found-in-space/skykit@__SKYKIT_LIVE_VERSION__/embed?bundle&deps=three@__THREE_VERSION__"></script>
+
+<script type="module">
+  import {
+    SKYKIT_ACTIONS,
+    createRaDecLookAt,
+    createSkykitNavigationPlugin,
+  } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/skykit@__SKYKIT_LIVE_VERSION__?bundle&deps=three@__THREE_VERSION__";
+
+  const browser = await Skykit.whenReady();
+  await browser.install(createSkykitNavigationPlugin());
+  const ALNILAM_LOOK_AT = createRaDecLookAt('05h 36m 12.81s', '−01° 12′ 06.9″');
+
+  function transitionTo(payload) {
+    return browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, payload, {
+      source: "lesson.lookAndFly",
+    });
+  }
+
+  window.setTimeout(() => {
+    transitionTo({
+      lookAt: ALNILAM_LOOK_AT,
+      durationSecs: 3,
+    });
+  }, 2000);
+
+  window.setTimeout(() => {
+    transitionTo({
+      observerPc: { x: 28, y: -18, z: 10 },
+      lookAt: ALNILAM_LOOK_AT,
+      movement: { durationSecs: 8 },
+      orientationTransition: { durationSecs: 3 },
+    });
+  }, 6500);
+</script>

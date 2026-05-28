@@ -107,7 +107,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 		view: {
 			observerPc: ZERO_PC,
 			targetPc: initialTargetPc,
-			orientationIcrs: initialOrientationIcrs,
+			lookAt: { orientationIcrs: initialOrientationIcrs },
 			coordinateUnitsPerParsec: UNITS_PER_PARSEC,
 			limitingMagnitude: LIMITING_MAGNITUDE,
 			verticalFovDeg: VERTICAL_FOV_DEG,
@@ -212,7 +212,7 @@ export async function mountParallaxViewer(mount, options = {}) {
 		viewer.requestViewState({
 			observerPc: ZERO_PC,
 			targetPc: look.targetPc,
-			orientationIcrs: look.orientationIcrs,
+			lookAt: { orientationIcrs: look.orientationIcrs },
 			aspectRatio: resolveAspectRatio(mount),
 		}, 'website.parallax.constellation');
 		constellationController.setSelection?.(entry.key);

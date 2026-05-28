@@ -1,23 +1,20 @@
 import * as THREE from 'three';
 
 import {
-	SKYKIT_ACTIONS,
 	createObject3dPlugin,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
-	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
 } from '@found-in-space/skykit';
-import { createJourney } from '@found-in-space/journey';
 import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
-import { computeSpatialLookAtOrientation } from '@found-in-space/spatial';
 import { createObserverShellStrategy } from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
+import { activateChapterCamera } from './chapter-navigation.js';
 
 const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
@@ -26,7 +23,6 @@ const MAX_DEVICE_PIXEL_RATIO = 2;
 const STAR_SESSION_ID = 'website-learn-astrophage';
 const STAR_ATTRIBUTES = Object.freeze(['position', 'magAbs', 'teffLog8']);
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
-const IDENTITY_ORIENTATION = Object.freeze({ x: 0, y: 0, z: 0, w: 1 });
 const LINE_DRAW_DURATION_SECS = 0.85;
 const SIRIUS_WISE_SECOND_JUMP_DELAY_SECS = 0.75;
 
@@ -89,12 +85,7 @@ const SCENES = {
 		label: 'The Sun is dimming',
 		view: {
 			observerPc: { x: 2, y: 0, z: 0 },
-			targetPc: STARS.sol.pc,
-			orientationIcrs: computeSpatialLookAtOrientation({
-				position: { x: 2, y: 0, z: 0 },
-				target: STARS.sol.pc,
-				up: ICRS_NORTH,
-			}) ?? IDENTITY_ORIENTATION,
+			lookAt: { targetPc: STARS.sol.pc },
 		},
 		camera: {
 			type: 'orbit',
@@ -110,16 +101,12 @@ const SCENES = {
 	'tau-ceti-sky': {
 		label: 'Where it began',
 		view: {
-			targetPc: STARS.tauCet.pc,
+			lookAt: { targetPc: STARS.tauCet.pc },
 		},
 		navigation: {
 			transitionTo: {
 				observerPc: STARS.sol.pc,
-				orientationIcrs: computeSpatialLookAtOrientation({
-					position: STARS.sol.pc,
-					target: STARS.tauCet.pc,
-					up: ICRS_NORTH,
-				}) ?? IDENTITY_ORIENTATION,
+				lookAt: { targetPc: STARS.tauCet.pc },
 				durationSecs: 2.5,
 				movement: { durationSecs: 2.5 },
 				orientationTransition: { durationSecs: 2.5 },
@@ -194,15 +181,6 @@ const SCENES = {
 };
 
 const CHAPTER_IDS = Object.freeze(Object.keys(SCENES));
-const CHAPTERS = new Set(CHAPTER_IDS);
-const ASTROPHAGE_JOURNEY = createJourney({
-	id: 'website-astrophage-journey',
-	title: 'The astrophage infestation',
-	order: CHAPTER_IDS,
-	scenes: SCENES,
-	travel: { type: 'orbit-transfer', durationSecs: 4 },
-});
-
 const MARKER_SIZE_PC = 0.12;
 const LABEL_OFFSET_PC = 0.18;
 const INFECTION_COLOR = 0xff4444;
@@ -230,6 +208,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 		exposure: 2500,
 	});
 	const annotations = buildAnnotations();
+	const chapters = createAstrophageChapters(annotations);
 	let disposed = false;
 
 	applyChapterVisibility('sol-dimming', annotations);
@@ -269,14 +248,6 @@ export async function mountAstrophageViewer(mount, options = {}) {
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
 			}),
-			createSkykitJourneyPlugin({
-				id: 'astrophage-journey',
-				journey: ASTROPHAGE_JOURNEY,
-				onScene(scene) {
-					const sceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : null;
-					if (sceneId) applyChapterVisibility(sceneId, annotations);
-				},
-			}),
 		],
 	});
 
@@ -288,11 +259,10 @@ export async function mountAstrophageViewer(mount, options = {}) {
 
 	onStatus('Drag on the view to look around.');
 
-	function goTo(id) {
-		if (!CHAPTERS.has(id)) return;
-		void viewer.actions.invoke(SKYKIT_ACTIONS.journey.goToChapter, id, {
-			source: 'website.astrophage',
-		});
+	async function goTo(id) {
+		const chapter = chapters[id];
+		if (!chapter || disposed) return;
+		await chapter.activate({ viewer, provider, renderer, starField });
 	}
 
 	function resize() {
@@ -324,6 +294,19 @@ export async function mountAstrophageViewer(mount, options = {}) {
 	}
 
 	return { viewer, goTo, dispose };
+}
+
+function createAstrophageChapters(annotations) {
+	return Object.fromEntries(CHAPTER_IDS.map((id) => [
+		id,
+		{
+			...SCENES[id],
+			async activate(ctx) {
+				applyChapterVisibility(id, annotations);
+				await activateChapterCamera(ctx, SCENES[id], { source: 'website.astrophage' });
+			},
+		},
+	]));
 }
 
 function buildAnnotations() {

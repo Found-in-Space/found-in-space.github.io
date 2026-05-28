@@ -5,19 +5,17 @@ import {
 	createObject3dPlugin,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
-	createSkykitJourneyPlugin,
 	createSkykitNavigationPlugin,
 	createSkykitViewer,
 	createStreamingStarsPlugin,
 } from '@found-in-space/skykit';
-import { createJourney } from '@found-in-space/journey';
 import {
 	OCTREE_DEFAULT,
 	createStarOctreeProviderService,
 } from '@found-in-space/star-octree-provider';
-import { computeSpatialLookAtOrientation } from '@found-in-space/spatial';
 import { createObserverShellStrategy } from '@found-in-space/star-trees';
 import { createThreeStarField } from '@found-in-space/three-star-field';
+import { activateChapterCamera, createChapterViewpoints } from './chapter-navigation.js';
 
 const UNITS_PER_PARSEC = 0.001;
 const LIMITING_MAGNITUDE = 7.5;
@@ -29,7 +27,6 @@ const MAX_DEVICE_PIXEL_RATIO = 2;
 const ZERO_PC = Object.freeze({ x: 0, y: 0, z: 0 });
 const SOLAR_ORIGIN_PC = ZERO_PC;
 const ICRS_NORTH = Object.freeze({ x: 0, y: 0, z: 1 });
-const IDENTITY_ORIENTATION = Object.freeze({ x: 0, y: 0, z: 0, w: 1 });
 const HYADES_CENTER_PC = Object.freeze({ x: 17.574, y: 42.316, z: 13.963 });
 const BEFORE_RADIO_ORBIT_RADIUS_PC = 0.25;
 const MARCONI_GROW_DURATION_SECS = 10;
@@ -91,7 +88,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		currentDate: currentDateMs,
 	});
 	const { group: bubbleGroup } = createRadioBubbleMeshes({ radiusPc, radiusLy });
-	const { journey, scenes, viewpoints, viewpointById } = createRadioBubbleJourney();
+	const { chapters, scenes, viewpoints } = createRadioBubbleChapters();
 	const bubbleAnimation = createRadioBubbleOriginAnimationPlugin({
 		bubbleGroup,
 		radiusPc,
@@ -137,16 +134,6 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
 			}),
-			createSkykitJourneyPlugin({
-				id: 'radio-bubble-journey',
-				journey,
-				onScene(scene) {
-					const sceneId = typeof scene?.sceneId === 'string' ? scene.sceneId : null;
-					if (!sceneId || !viewpointById.has(sceneId)) return;
-					bubbleAnimation.setScene(sceneId);
-					onViewpointChange(sceneId);
-				},
-			}),
 		],
 	});
 
@@ -158,11 +145,12 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 
 	onStatus('Drag on the view to look around.');
 
-	function goTo(id) {
-		if (!viewpointById.has(id)) return;
-		void viewer.actions.invoke(SKYKIT_ACTIONS.journey.goToChapter, id, {
-			source: 'website.radioBubble',
-		});
+	async function goTo(id) {
+		const chapter = chapters[id];
+		if (!chapter || disposed) return;
+		bubbleAnimation.setScene(id);
+		onViewpointChange(id);
+		await chapter.activate({ viewer, provider, renderer, starField });
 	}
 
 	function resize() {
@@ -192,7 +180,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	return { viewer, goTo, viewpoints, radiusPc, radiusLy };
 }
 
-function createRadioBubbleJourney() {
+function createRadioBubbleChapters() {
 	const scenes = {
 		'before-radio': {
 			label: 'Before radio',
@@ -248,23 +236,21 @@ function createRadioBubbleJourney() {
 		},
 	};
 	const order = ['before-radio', 'marconi', 'outside', 'hyades', 'home'];
-	const journey = createJourney({
-		id: 'website-radio-bubble-journey',
-		title: 'The radio bubble',
-		order,
-		scenes,
-		travel: { type: 'orbit-transfer', durationSecs: 5 },
-	});
-	const viewpoints = order.map((id) => ({
+	const chapters = Object.fromEntries(order.map((id) => [
 		id,
-		label: scenes[id].label,
-	}));
+		{
+			...scenes[id],
+			async activate(ctx) {
+				await activateChapterCamera(ctx, scenes[id], { source: 'website.radioBubble' });
+			},
+		},
+	]));
+	const viewpoints = createChapterViewpoints(chapters, order);
 
 	return {
-		journey,
+		chapters,
 		scenes,
 		viewpoints,
-		viewpointById: new Map(viewpoints.map((viewpoint) => [viewpoint.id, viewpoint])),
 	};
 }
 
@@ -419,8 +405,7 @@ function createSolarOrbitView(radiusPc, angleRad = 0) {
 	const observerPc = solarOrbitPosition(radiusPc, angleRad);
 	return {
 		observerPc,
-		targetPc: SOLAR_ORIGIN_PC,
-		orientationIcrs: computeLookAtOrientation(observerPc, SOLAR_ORIGIN_PC),
+		lookAt: { targetPc: SOLAR_ORIGIN_PC },
 	};
 }
 
@@ -428,8 +413,7 @@ function requestMarconiCamera(target, finalRadiusPc, progress, angleRad) {
 	const observerPc = solarOrbitPosition(resolveMarconiOrbitRadius(finalRadiusPc, progress), angleRad);
 	target.requestViewState({
 		observerPc,
-		targetPc: SOLAR_ORIGIN_PC,
-		orientationIcrs: computeLookAtOrientation(observerPc, SOLAR_ORIGIN_PC),
+		lookAt: { targetPc: SOLAR_ORIGIN_PC },
 	}, 'website.radioBubble.marconi');
 }
 
@@ -493,14 +477,6 @@ function resolveDateMs(value, fallbackMs) {
 	}
 	const time = Number(value);
 	return Number.isFinite(time) ? time : fallbackMs;
-}
-
-function computeLookAtOrientation(observerPc, targetPc, upIcrs = ICRS_NORTH) {
-	return computeSpatialLookAtOrientation({
-		position: observerPc,
-		target: targetPc,
-		up: upIcrs,
-	}) ?? IDENTITY_ORIENTATION;
 }
 
 function nonNegativeNumber(value, fallback) {

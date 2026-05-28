@@ -8,9 +8,8 @@
 </form>
 
 <script type="module">
-  import * as THREE from "https://esm.sh/three@0.170.0";
-  import { createSkykitBrowser } from "https://esm.sh/@found-in-space/skykit@0.2.0-alpha.1/browser?bundle&deps=three@0.170.0";
-  import { createObject3dPlugin } from "https://esm.sh/@found-in-space/skykit@0.2.0-alpha.1?bundle&deps=three@0.170.0";
+  import * as THREE from "__SKYKIT_BROWSER_ESM_BASE__three@__THREE_VERSION__";
+  import { createSkykitBrowser } from "__SKYKIT_BROWSER_ESM_BASE__@found-in-space/skykit@__SKYKIT_LIVE_VERSION__/browser?bundle&deps=three@__THREE_VERSION__";
 
   const HYADES_CENTER_PC = { x: 17.574, y: 42.316, z: 13.963 };
 
@@ -23,28 +22,23 @@
       opacity: 0.8,
     }),
   );
-  marker.position.set(
-    HYADES_CENTER_PC.x * 0.001,
-    HYADES_CENTER_PC.y * 0.001,
-    HYADES_CENTER_PC.z * 0.001,
-  );
-
-  await createSkykitBrowser({
+  const browser = await createSkykitBrowser({
     host: "#viewer",
     limitingMagnitude: 7,
+    view: { lookAt: { targetPc: HYADES_CENTER_PC } },
     plugins: [
-      createObject3dPlugin({
-        id: "hyades-marker",
-        object3d: marker,
-        anchorMode: "world-space",
-        disposeObject: true,
-      }),
       (context) => context.addPart({
         update(frame) {
           marker.scale.setScalar(1 + Math.sin(frame.elapsedSeconds * 2) * 0.08);
         },
       }),
     ],
+  });
+
+  browser.addObject(marker, {
+    id: "hyades-marker",
+    positionPc: HYADES_CENTER_PC,
+    disposeObject: true,
   });
 
   document.querySelector("#toggle-marker").addEventListener("change", (event) => {
