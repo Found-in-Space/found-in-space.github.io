@@ -36,7 +36,7 @@ import {
   deriveMetaSidecarUrlFromRenderUrl,
 } from '@found-in-space/meta-sidecar-provider';
 import { createObserverShellStrategy } from '@found-in-space/star-trees';`;
-const cells = [
+const notebookSteps = [
 	{
 		id: 'bootstrap',
 		title: '1. Bootstrap the dataset',
@@ -45,14 +45,14 @@ const cells = [
 	},
 	{
 		id: 'stream',
-		title: '2. Stream stars with object refs',
-		description: 'Load visible cells with StarObjectRef identity so metadata lookup has a public key.',
+		title: '2. Choose bright Sun-view refs',
+		description: 'Load visible star cells, then sort bright Sun-view candidates with StarObjectRef identity.',
 		initialCode: cell2,
 	},
 	{
 		id: 'labels',
 		title: '3. Fetch labels and cell metadata',
-		description: 'Fetch one star metadata row and one full cell metadata sidecar, then format useful labels.',
+		description: 'Walk the bright candidates until a proper name or catalogue designation is found.',
 		initialCode: cell3,
 	},
 ];
@@ -92,6 +92,17 @@ const cells = [
 					by <code>StarObjectRef</code> or by semantic cell ref.
 				</p>
 				<p>
+					This lesson deliberately starts from the Sun and sorts candidates by apparent
+					brightness. Bright naked-eye stars are much more likely to have proper names,
+					Bayer designations, and Flamsteed numbers than a random row from a billion-star
+					dataset.
+				</p>
+				<p>
+					This is still the visible-star stream from the render provider. It is not a true
+					nearest-star query, so faint neighbours such as Proxima Centauri are not the goal
+					of this particular example.
+				</p>
+				<p>
 					The label policy in this lesson follows the same shape used by Star Pilot:
 					proper name, Bayer designation plus constellation, Flamsteed plus constellation,
 					HD, HIP, Gaia source id, then a cell/ordinal fallback.
@@ -106,17 +117,18 @@ const cells = [
 		<LiveNotebook
 			id="skykit-sidecars"
 			title="Resolve sidecar metadata"
-			description="Run the cells in order. The final cell fetches one star row and one full cell sidecar."
-			cells={cells}
+			description="Run the notebook steps in order. The final step fetches one star row and one full star-cell sidecar."
+			cells={notebookSteps}
 		/>
 
 		<article class="lesson-body prose">
 			<section class="callout panel">
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
-					<li>Change the magnitude limit in cell 2 to stream a different visible set.</li>
-					<li>Change which candidate row cell 3 inspects before <code>getMeta()</code>.</li>
-					<li>Modify the label formatter order in the shared notebook helper.</li>
+					<li>Change the magnitude limit in step 2 to stream a different visible set.</li>
+					<li>Change the sort in step 2 to distance to find nearest visible candidates.</li>
+					<li>Require only proper names in step 3 by changing <code>hasHumanReadableName()</code>.</li>
+					<li>Change which name fields are shown in the final table.</li>
 					<li>Render extra metadata fields in the final table.</li>
 				</ul>
 			</section>
@@ -124,14 +136,16 @@ const cells = [
 			<section>
 				<h2>What changed in the code</h2>
 				<p>
-					Cell 1 calls <code>ensureBootstrap()</code> on the render provider and requires a
+					Step 1 calls <code>ensureBootstrap()</code> on the render provider and requires a
 					dataset id. It then derives the sidecar URL from the render octree URL and creates a
 					metadata provider with the render dataset id as its parent.
 				</p>
 				<p>
-					Cell 3 uses <code>getMeta(star.ref)</code> for one object and
-					<code>getMetaCell(...)</code> for all metadata rows in the same semantic cell. The
-					sidecar provider stays schema-neutral; the app decides what a label should be.
+					Step 2 computes each candidate's distance from the Sun and apparent magnitude, then
+					puts the brightest Sun-view rows first. Step 3 uses <code>getMeta(star.ref)</code>
+					and <code>getMetaCell(...)</code> while walking those candidates, then stops only when
+					the selected star has a proper name, Bayer, or Flamsteed designation. The sidecar
+					provider stays schema-neutral; the app decides what a label should be.
 				</p>
 			</section>
 

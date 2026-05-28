@@ -33,23 +33,23 @@ import {
   createStarCellKey,
   decodeTemperatureK,
 } from '@found-in-space/star-trees';`;
-const cells = [
+const notebookSteps = [
 	{
 		id: 'provider',
 		title: '1. Create The Provider',
-		description: 'Open the public render octree and read its descriptor.',
+		description: 'Clean up any previous run, open the public render octree, and read its descriptor.',
 		initialCode: cell1,
 	},
 	{
 		id: 'stream',
-		title: '2. Stream Cells',
-		description: 'Request position, absolute magnitude, temperature, and StarObjectRef identity.',
+		title: '2. Stream Star Cells',
+		description: 'Request the exact star attributes the table needs, then collect provider deltas.',
 		initialCode: cell2,
 	},
 	{
 		id: 'rows',
 		title: '3. Inspect Application Rows',
-		description: 'Turn streamed cells into rows your app owns, then sort and render a table.',
+		description: 'Turn streamed star cells into rows your app owns, then sort and render a table.',
 		initialCode: cell3,
 	},
 ];
@@ -57,7 +57,7 @@ const cells = [
 
 <Layout
 	title="Query stars without Three.js | Found in Space"
-	description="Use SkyKit data packages without a 3D renderer by streaming cells into a live table notebook."
+	description="Use SkyKit data packages without a 3D renderer by streaming star cells into a live table notebook."
 >
 	<SiteHeader section="Learn & build" />
 
@@ -82,14 +82,16 @@ const cells = [
 			<section>
 				<h2>Learning goal</h2>
 				<p>
-					This notebook follows the provider-only pattern: create a provider, stream cells,
-					listen for deltas, and turn those cells into rows. The required attributes are
+					This notebook follows the provider-only pattern: create a provider, stream star cells,
+					listen for deltas, and turn those star cells into rows. The required attributes are
 					<code>position</code>, <code>magAbs</code>, <code>teffLog8</code>, and
 					<code>objectRef</code>.
 				</p>
 				<p>
-					Cells are transport/data units. Rows are app-owned interpretation. The provider does
-					not decide what your app is trying to show.
+					In this lesson, <strong>star cells</strong> are octree data chunks streamed by the
+					provider. <strong>Notebook steps</strong> are the editable code blocks you run in
+					order. Rows are app-owned interpretation: the provider does not decide what your app
+					is trying to show.
 				</p>
 				<p>
 					The rows from this lesson are plain JavaScript objects. You can draw them with
@@ -97,22 +99,43 @@ const cells = [
 					choose to own rendering yourself.
 				</p>
 			</section>
+
+			<section>
+				<h2>How to read the notebook</h2>
+				<p>
+					Each notebook step runs in the same notebook state. That is why step 1 begins with
+					<code>provider?.dispose?.()</code>: if you rerun the step, the old provider may
+					still be alive. Optional chaining makes the cleanup safe when no provider exists
+					yet, or when a provider implementation has no <code>dispose</code> method.
+				</p>
+				<p>
+					Step 2 does not download "all stars." It asks for the star cells needed around one
+					observer view, using a demand strategy and a short attribute list. The stream
+					reports progress with deltas, and <code>stars/current</code> marks the first
+					complete answer for that view.
+				</p>
+				<p>
+					Step 3 is where provider data becomes application data. The helper
+					<code>rowsFromCells()</code> reads packed arrays from each star cell and returns
+					ordinary row objects that the lesson can filter, sort, slice, and render.
+				</p>
+			</section>
 		</article>
 
 		<LiveNotebook
 			id="skykit-query-stars"
 			title="Stream stars into a table"
-			description="Run the cells in order, or edit one cell and rerun from there."
-			cells={cells}
+			description="Run the notebook steps in order, or edit one step and rerun from there."
+			cells={notebookSteps}
 		/>
 
 		<article class="lesson-body prose">
 			<section class="callout panel">
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
-					<li>Change <code>limitingMagnitude</code> in cell 2.</li>
+					<li>Change <code>limitingMagnitude</code> in step 2.</li>
 					<li>Move <code>observerPc</code> to another location in parsecs.</li>
-					<li>Change the sort in cell 3 from brightest stars to coolest stars.</li>
+					<li>Change the sort in step 3 from brightest stars to coolest stars.</li>
 					<li>Add a local filter before <code>slice(0, 40)</code>.</li>
 				</ul>
 			</section>
@@ -122,13 +145,21 @@ const cells = [
 				<p>
 					There is no Three.js renderer here. The provider emits deltas such as
 					<code>stars/cells-upsert</code>, <code>stars/cells-remove</code>, and
-					<code>stars/current</code>. The notebook keeps a local <code>cells</code> array,
-					then creates rows by reading coordinate arrays and public star refs.
+					<code>stars/current</code>. The notebook keeps a local <code>cells</code> array
+					of provider star cells, then creates rows by reading coordinate arrays and public
+					star refs.
 				</p>
 				<p>
-					The rendered table intentionally shows a semantic <code>cell key</code>, ordinal,
-					x/y/z parsec positions, absolute magnitude, decoded temperature, and whether a
-					<code>StarObjectRef</code> is available. It does not expose provider storage offsets.
+					The comments in the notebook steps are deliberately detailed because this lesson
+					exposes the data lifecycle that the viewer normally hides: open a provider, choose a
+					demand strategy, request attributes, consume async deltas, and dispose of long-lived
+					resources when a run is replaced.
+				</p>
+				<p>
+					The rendered table intentionally shows a semantic <code>cell key</code> from each
+					star cell, ordinal, x/y/z parsec positions, absolute magnitude, decoded
+					temperature, and whether a <code>StarObjectRef</code> is available. It does not
+					expose provider storage offsets.
 				</p>
 			</section>
 
@@ -137,7 +168,7 @@ const cells = [
 				<h2>Use the provider examples for deeper diagnostics.</h2>
 				<p>
 					The SkyKit repository includes a minimal stream example with the same provider,
-					cell-delta, and table-rendering structure.
+					star-cell delta, and table-rendering structure.
 				</p>
 				<ul>
 					<li><a href="https://github.com/Found-in-Space/skykit" rel="noopener noreferrer">SkyKit repository</a></li>

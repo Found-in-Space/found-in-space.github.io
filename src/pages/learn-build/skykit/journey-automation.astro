@@ -9,10 +9,12 @@ import chapterButtonsHtmlSource from '../../../live-examples/skykit/journey-butt
 
 const basePath = import.meta.env.BASE_URL;
 const chapterButtonsHtml = applySkykitLiveVersions(chapterButtonsHtmlSource);
-const chaptersCode = `const SUN_PC = { x: 0, y: 0, z: 0 };
+const chaptersCode = `import { createRaDecLookAt } from '@found-in-space/skykit';
+
+const SUN_PC = { x: 0, y: 0, z: 0 };
 const ICRS_NORTH = { x: 0, y: 0, z: 1 };
-const PLEIADES_PC = { x: 67.379, y: 103.162, z: 55.161 };
-const ORION_NEBULA_PC = { x: 44.371, y: 409.774, z: -38.889 };
+const PLEIADES = skyTarget('03h 40m', '+22d 00m', 125);
+const ORION_NEBULA = skyTarget('05h 15m', '-05d 23m', 355);
 const ORION_TILTED_ORBIT_NORMAL = { x: -0.35, y: 0.45, z: 0.82 };
 
 const chapters = {
@@ -26,21 +28,46 @@ const chapters = {
   },
   pleiadesOrbit: {
     label: 'Wide Pleiades orbit',
-    center: PLEIADES_PC,
-    radiusPc: 32,
-    angularSpeedRadPerSec: 0.08,
+    center: PLEIADES,
+    radiusPc: 50,
+    angularSpeedRadPerSec: 0.25,
     normal: ICRS_NORTH,
     durationSecs: 8,
   },
   orionNebulaOrbit: {
     label: 'Tilted Orion Nebula orbit',
-    center: ORION_NEBULA_PC,
-    radiusPc: 120,
-    angularSpeedRadPerSec: 0.045,
+    center: ORION_NEBULA,
+    radiusPc: 150,
+    angularSpeedRadPerSec: 0.25,
     normal: ORION_TILTED_ORBIT_NORMAL,
     durationSecs: 10,
   },
-};`;
+};
+
+function skyTarget(ra, dec, distancePc) {
+  const target = createRaDecLookAt(ra, dec, { distancePc });
+  if (!target) throw new Error(\`Could not parse sky target \${ra}, \${dec}\`);
+  return target;
+}`;
+const navigationCode = `async function goTo(id) {
+  const chapter = chapters[id];
+  if (!chapter) return;
+
+  await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.cancel);
+  await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.lockAt, {
+    ...chapter.center,
+    up: chapter.normal,
+    recenterSpeed: 0.08,
+  });
+  await browser.viewer.actions.invoke(SKYKIT_ACTIONS.navigation.orbitalInsert, {
+    center: chapter.center,
+    radius: chapter.radiusPc,
+    angularSpeedRadPerSec: chapter.angularSpeedRadPerSec,
+    normal: chapter.normal,
+    durationSecs: chapter.durationSecs,
+    sampleStepSecs: 1 / 30,
+  });
+}`;
 const buttonCode = `document.querySelector('#sun-orbit').addEventListener('click', () => {
   goTo('solarOrbit');
 });
@@ -72,9 +99,8 @@ document.querySelector('#orion-orbit').addEventListener('click', () => {
 				<p class="eyebrow">Lesson 3</p>
 				<h1>Automate chapters</h1>
 				<p class="lede">
-					Turn camera movement into destination buttons: enter a solar orbit from the current
-					view, insert around the Pleiades, then arrive on a tilted orbit around the Orion
-					Nebula.
+					Turn camera movement into destination buttons: enter a solar orbit, then insert
+					around the Pleiades and Orion Nebula using RA, Dec, and distance values.
 				</p>
 		</header>
 
@@ -83,7 +109,8 @@ document.querySelector('#orion-orbit').addEventListener('click', () => {
 				<h2>Learning goal</h2>
 				<p>
 					Lesson 2 called individual transitions directly. This lesson gives those ideas
-					chapter semantics: named functions, orbit cameras, and direct navigation actions.
+					chapter semantics: named functions, catalogue-style sky targets, orbit cameras,
+					and direct navigation actions.
 				</p>
 					<p>
 						The buttons only choose chapters. Each chapter owns its target, orbit camera, duration, and orbital plane.
@@ -94,7 +121,7 @@ document.querySelector('#orion-orbit').addEventListener('click', () => {
 			<LiveCodePlayground
 				id="skykit-chapter-automation"
 				title="Chapters from the Sun to Orion"
-				description="Use the buttons to enter a 1 pc solar orbit, fly to the Pleiades, or insert around the Orion Nebula on a tilted plane."
+				description="Use the buttons to enter a 1 pc solar orbit, fly to the Pleiades, or insert around the Orion Nebula from RA, Dec, and distance targets."
 			initialCode={chapterButtonsHtml}
 			mode="html"
 			height="36rem"
@@ -104,7 +131,8 @@ document.querySelector('#orion-orbit').addEventListener('click', () => {
 			<section class="callout panel">
 				<p class="panel__eyebrow">Things to try</p>
 				<ul>
-					<li>Change the Pleiades or Orion <code>radiusPc</code> values to tighten or widen the inserts.</li>
+					<li>Change the Pleiades or Orion <code>distancePc</code> values to move the target closer or farther away.</li>
+					<li>Change their <code>radiusPc</code> values to tighten or widen the inserts.</li>
 					<li>Change <code>ORION_TILTED_ORBIT_NORMAL</code> to see the arrival plane change.</li>
 					<li>Add another chapter key with its own target and orbit settings.</li>
 					<li>Adjust each chapter's <code>durationSecs</code>.</li>
@@ -114,9 +142,15 @@ document.querySelector('#orion-orbit').addEventListener('click', () => {
 				<section>
 					<h2>What changed in the code</h2>
 					<p>
-						The chapter table is ordinary app code. When a button calls <code>goTo()</code>, the selected chapter invokes navigation actions and starts an orbit after arrival.
+						The chapter table is ordinary app code. The cluster targets are written as
+						RA, Dec, and parsec distance; SkyKit resolves them into 3D navigation targets
+						when <code>goTo()</code> invokes the navigation actions. <code>lockAt</code>
+						keeps the camera on the destination while <code>orbitalInsert</code> builds the
+						smooth route into the final orbit. The Sun stays as a parsec vector because a
+						zero-distance target has no meaningful RA or Dec.
 					</p>
 				<CodeBlockWithCopy code={chaptersCode} label="Chapter table" language="js" />
+				<CodeBlockWithCopy code={navigationCode} label="Chapter automation" language="js" />
 				<CodeBlockWithCopy code={buttonCode} label="Button wiring" language="js" />
 			</section>
 

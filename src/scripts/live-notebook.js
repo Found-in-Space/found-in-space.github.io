@@ -126,7 +126,7 @@ function initNotebook(root) {
 						<h3>${escapeHtml(definition.title)}</h3>
 						${definition.description ? `<p>${escapeHtml(definition.description)}</p>` : ''}
 					</div>
-					<button type="button" data-live-notebook-run-cell>Run cell</button>
+					<button type="button" data-live-notebook-run-cell>Run step</button>
 				</header>
 				<textarea
 					class="live-notebook__editor"
@@ -236,7 +236,7 @@ ${source}
 			await navigator.clipboard.writeText(source);
 			const original = copyButton.textContent;
 			copyButton.textContent = 'Copied';
-			setStatus('Copied all notebook cells.');
+			setStatus('Copied all notebook steps.');
 			window.setTimeout(() => {
 				copyButton.textContent = original;
 			}, 1400);
@@ -286,7 +286,7 @@ ${source}
 		tableHead.innerHTML = `<tr>${columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join('')}</tr>`;
 		tableBody.innerHTML = rows.length
 			? rows.map((row, rowIndex) => renderTableRow(row, rowIndex, columns)).join('')
-			: `<tr><td colspan="${columns.length}" class="empty-row">Run the cells to render rows.</td></tr>`;
+			: `<tr><td colspan="${columns.length}" class="empty-row">Run the notebook steps to render rows.</td></tr>`;
 	}
 
 	function renderKeyValue(values) {
