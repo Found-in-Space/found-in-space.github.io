@@ -1,17 +1,17 @@
 # Found in Space — Website
 
-Part of [Found in Space](https://foundin.space/), a project that turns real astronomical measurements into interactive explorations of the solar neighbourhood. See all repositories at [github.com/Found-in-Space](https://github.com/Found-in-Space).
+Part of [Found in Space](https://foundin.space/), a project that starts with open astronomical measurements and turns them into interactive 3D views people can explore, question, and build on. See all repositories at [github.com/Found-in-Space](https://github.com/Found-in-Space).
 
 This repository is the public-facing website at [foundin.space](https://foundin.space), built with [Astro](https://astro.build/) and hosted on GitHub Pages.
 
 ## Site structure
 
-The site is organised around four main sections:
+The site is organised around four main routes:
 
-- **Explore** — guided interactive experiences using real astronomical catalogue data. Fly through the solar neighbourhood, feel parallax by moving the observer, and see the depth hiding behind familiar constellations. No prior knowledge needed.
-- **Learn** — structured lessons built on the 3D viewer and real measurements. The first lesson covers the Hertzsprung–Russell diagram. A **Next Steps** subsection poses open research questions for students — starting points for genuine investigation, not exercises with known answers.
-- **Build** — technical documentation for the open data pipeline: how the Gaia and Hipparcos catalogues are merged, how the spatial index works, and how to download and run the pipeline yourself.
-- **About** — project background, motivation, and the person behind it.
+- **Explore** — guided interactive experiences built from catalogue measurements and derived distances. Fly through the solar neighbourhood, feel parallax by moving the observer, and see the depth hiding behind familiar constellations. No prior knowledge needed.
+- **Teach** — ready-to-use visualisations, classroom prompts, and inquiry projects that ask what the evidence shows, what remains uncertain, and how a representation shapes what students notice.
+- **Learn & Build** — structured lessons, starter data, live coding guides, and routes into the open pipeline for students and curious builders who want to make a chart, visualisation, investigation, or game.
+- **About** — the project's educational purpose, open methods, broader direction, and the person behind it.
 
 ## Development
 

@@ -2,7 +2,7 @@
 
 ## Platform promise
 
-`foundin.space` should help people learn through real space data: explore the nearby stars, teach with interactive visualisations, and build data-driven experiences from open catalogues and code.
+`foundin.space` starts with open astronomical measurements and the nearby stars. It should help people encounter a compelling view, question the evidence and choices behind it, and build with the same data and code.
 
 This site is not a personal portfolio and not only a project documentation site. It should work as a focused educational platform with a public-facing identity of its own while still linking back to `k-si.com`.
 
@@ -109,12 +109,12 @@ Purpose:
 Include:
 
 - hero statement with plain-language promise
-- one short explanation of Found in Space as part planetarium, classroom, and open data lab
+- one short explanation of Found in Space as part planetarium, classroom, and open science lab
 - three audience routes:
   - explore the stars
-  - teach with real data
+  - teach through inquiry
   - learn and build with the data
-- minimal proof points: real catalogues, 3D visualisations, guided activities, open pipeline, starter data guides
+- minimal proof points: open measurements and derived data, 3D visualisations, explanations of sources and limitations, guided investigations, open pipeline and reusable code
 - a few suggested first steps
 
 ### Explore
@@ -289,10 +289,12 @@ This section is optional at launch.
 
 - Lead with meaning before mechanics.
 - Start from the solar neighbourhood and the learner's question, not from the repositories.
+- Let visitors move from seeing a representation, to questioning its evidence and assumptions, to building with its materials.
+- Treat observations, derived quantities, model or simulation outputs, and illustration as valuable but not interchangeable.
 - Keep educational and technical material connected, but not collapsed into one voice.
 - Use short pages with strong onward paths rather than dense all-in-one explanations.
 - Treat the viewer as one tool inside a larger learning experience.
-- Make uncertainty visible. The site should not imply that the data is complete, perfect, or frictionless.
+- Make sources, assumptions, uncertainty, and limitations visible. The site should not imply that data is complete, that a simulation is a measurement, or that a visualisation is a direct image of reality.
 
 ## Success criteria
 

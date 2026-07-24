@@ -15,19 +15,19 @@ const aboutPath = `${basePath}about/`;
 
 <Layout
 	title="Found in Space"
-	description="Found in Space helps people learn through real astronomical catalogue data with interactive 3D experiences, teaching material, starter data guides, and open code."
+	description="Found in Space turns open astronomical measurements into explorable 3D worlds: see what each view is made from, question the evidence, and build with it."
 >
 	<SiteHeader section="Learning through data" />
 
 	<main class="page">
 		<section class="hero home-hero">
-			<p class="eyebrow">Learning through data</p>
-			<h1>Explore the nearby stars. Learn from the data behind the view.</h1>
+			<p class="eyebrow">See it. Question it. Build with it.</p>
+			<h1>Explore the nearby stars. Then look behind the view.</h1>
 			<p class="lede">
-				Found in Space turns open astronomical catalogues into interactive 3D experiences,
-				classroom activities, and code. Fly through real stars, teach with guided
-				investigations, or build your own data-driven visualisations from the same open
-				measurements.
+				Found in Space starts with open astronomical measurements and turns them into
+				interactive 3D experiences. Explore the view, see how it was made, ask what the
+				evidence can and cannot show, and use the same data and code to build something of
+				your own.
 			</p>
 			<div class="hero__actions" aria-label="Primary routes">
 				<a class="button button--primary" href={explorePath}>Explore the stars</a>
@@ -42,19 +42,20 @@ const aboutPath = `${basePath}about/`;
 				<h2>Start with wonder.</h2>
 				<p>
 					For anyone who wants to see the sky differently. Begin with familiar constellations,
-					then move through catalogue-estimated 3D star positions and watch the flat night
-					sky open into depth.
+					then move through 3D star positions estimated from catalogue measurements and watch
+					the flat night sky open into depth.
 				</p>
 				<p class="route-card__meta">Best for: first-time visitors, visual exploration, public engagement</p>
 				<span class="route-card__cta">Browse the visual journeys</span>
 			</a>
 
 			<a class="panel route-card" href={teachPath}>
-				<p class="panel__eyebrow">Teach with real data</p>
+				<p class="panel__eyebrow">Teach through inquiry</p>
 				<h2>Turn visuals into inquiry.</h2>
 				<p>
-					For teachers, lecturers, and workshop leaders. Use guided visualisations, classroom
-					prompts, and open-ended investigations built from real astronomical measurements.
+					For teachers, lecturers and workshop leaders. Use guided visualisations, classroom
+					prompts and open-ended investigations to ask what the measurements show, what remains
+					uncertain, and how the representation shapes what we notice.
 				</p>
 				<p class="route-card__meta">Best for: activities, workshops, outreach, student projects</p>
 				<span class="route-card__cta">Open the teacher hub</span>
@@ -64,8 +65,9 @@ const aboutPath = `${basePath}about/`;
 				<p class="panel__eyebrow">Learn &amp; build</p>
 				<h2>Work with the data.</h2>
 				<p>
-					For students, pupils, curious coders, and independent learners. Learn astronomy and
-					data concepts, inspect the pipeline, or build your own visual experience.
+					For students, pupils, curious coders and independent learners. Learn the astronomy and
+					data concepts, inspect the pipeline, or use the open data and code to build your own
+					visualisation, investigation or game.
 				</p>
 				<p class="route-card__meta">Best for: self-study, starter data, notebooks, code, projects</p>
 				<span class="route-card__cta">Find a starting point</span>
@@ -75,33 +77,36 @@ const aboutPath = `${basePath}about/`;
 		<section class="definition" aria-label="What is Found in Space?">
 			<div class="definition__copy">
 				<p class="eyebrow">What is Found in Space?</p>
-				<h2>Part planetarium, part classroom, part open data lab.</h2>
+				<h2>Part planetarium, part classroom, part open science lab.</h2>
 			</div>
 			<div class="definition__body">
 				<p>
-					It uses real measurements from Gaia, Hipparcos, and other catalogues to help people see
-					how raw data becomes knowledge, and how knowledge can become something you can explore.
+					Found in Space begins with measurements from Gaia, Hipparcos and other catalogues. It
+					lets people explore the resulting view while keeping visible how those measurements
+					were selected, estimated and turned into a 3D world.
 				</p>
 				<p>
-					Real data is powerful because it can surprise you, and because it teaches you to ask what
-					the data can and cannot show.
+					A scientific picture might be built from observations, derived measurements, models,
+					simulations or illustration. They can all be useful, but they are not the same. The aim
+					is to make those layers clear and explorable, so people can ask what each one can—and
+					cannot—tell us.
 				</p>
 				</div>
 			</section>
 
 			<section class="proof" aria-label="What the project includes">
 				<ul class="proof__list">
-					<li>Real astronomical catalogue data</li>
+					<li>Open astronomical measurements and derived data</li>
 					<li>Interactive 3D browser visualisations</li>
-					<li>Guided activities and investigations</li>
-					<li>Open pipeline, spatial index, and viewer code</li>
-					<li>Starter data guides for experiments and projects</li>
+					<li>Explanations of sources, assumptions and limitations</li>
+					<li>Guided questions and open-ended investigations</li>
+					<li>Open data pipeline, viewer and reusable code</li>
 				</ul>
 			</section>
 
 		<section class="start-points" aria-label="Suggested first steps">
 			<article class="panel">
-				<p class="panel__eyebrow">First look</p>
+				<p class="panel__eyebrow">See it</p>
 				<h2>Constellations and 3D space</h2>
 				<p>
 					Start with Orion and see how a familiar sky pattern changes when each star is placed at
@@ -110,7 +115,7 @@ const aboutPath = `${basePath}about/`;
 				<a class="link--gold" href={constellationFlyThroughPath}>Open the fly-through</a>
 			</article>
 			<article class="panel">
-				<p class="panel__eyebrow">Flagship lesson</p>
+				<p class="panel__eyebrow">Question it</p>
 				<h2>The HR diagram</h2>
 				<p>
 					Plot temperature against luminosity, then ask what the structure tells you and what the
@@ -119,7 +124,7 @@ const aboutPath = `${basePath}about/`;
 				<a class="link--gold" href={hrDiagramPath}>Open the lesson</a>
 			</article>
 			<article class="panel">
-				<p class="panel__eyebrow">Starter data</p>
+				<p class="panel__eyebrow">Build with it</p>
 				<h2>Build something visible</h2>
 				<p>
 					Begin with a small bright-star data guide before deciding whether to run the full
@@ -131,8 +136,8 @@ const aboutPath = `${basePath}about/`;
 
 		<section class="about-teaser" aria-label="About the project">
 			<p>
-				Found in Space is not just a star viewer. It is a way to learn how data becomes
-				understanding.
+				Found in Space is not just a star viewer. It is a way to see what the view is made
+				from, ask what it can tell us, and build with the material behind it.
 			</p>
 			<a class="button button--ghost" href={aboutPath}>About the project</a>
 		</section>

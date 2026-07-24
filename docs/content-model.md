@@ -9,6 +9,9 @@ The site should move between three modes without becoming fragmented:
 - `Lab`: technically transparent, inspectable, extensible
 
 Every major section should clearly favor one mode, but the whole site should let visitors move between them.
+The intended progression is to see a compelling representation, question the evidence and choices
+behind it, and build with the underlying data, models, or code. “See it. Question it. Build with it.”
+should structure that progression without becoming a repeated global strapline.
 
 ## Core content types
 
@@ -165,9 +168,9 @@ Core sections:
 
 - hero
 - short project definition
-- three-layer architecture strip
-- choose-your-path routing
-- featured journey
+- three audience routes
+- concise capability proof points
+- suggested starting points for seeing, questioning, and building
 - credibility/about teaser
 
 ### Explore landing
