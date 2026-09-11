@@ -78,8 +78,13 @@ frame). Successful loading and decoding did not establish smooth camera motion.
 The continuous track is now the sole pose owner, while dedicated capture APIs
 set the radio shell, Astrophage annotations and HR sampling independently.
 
-The camera eases into each destination, moves gently around it, and eases into
-the next transfer without a cut. Route timings may therefore be longer than the
+The camera eases into each destination, completes a full 360-degree circular
+orbit with the target centred, then eases into the next transfer without a cut.
+Each orbit lasts 22 seconds: two seconds to gain speed, eighteen seconds at
+constant angular speed, and two seconds to slow down. The orbit plane is tilted
+15 degrees and its radius is constant. Opening views and HR sky-sampling
+chapters remain establishing views. The final Astrophage stop orbits 40 Eridani
+first, then turns toward the Sun for the look back. Route timings may therefore be longer than the
 interactive chapter timings. Use `info.chapters`/`capture.json` for actual times.
 The four topics remain separate videos, each with an uninterrupted camera path.
 
@@ -97,3 +102,23 @@ python3 tools/journey-rushes/motion-review.py OUTPUT [journey-id ...]
 
 Each filmstrip row contains frames two seconds before, one second before, at,
 one second after, and two seconds after a camera knot.
+
+## Full-orbit review
+
+The v2 endpoint interpolation was continuous but covered only 0.22 radians
+(about 13 degrees) at each stop. A full orbit must sample its circle and look-at
+orientation throughout the turn; interpolating between its identical endpoints
+would collapse it to a stationary camera.
+
+The motion tests check the far side of every orbit, fixed radius, target framing,
+continuous joins and a full accumulated turn. `verify.py` independently measures
+the captured camera positions in the orbit plane and requires at least 359.99
+degrees of one-way travel with a constant radius.
+
+```sh
+python3 tools/journey-rushes/orbit-review.py OUTPUT [journey-id ...]
+```
+
+This exports eight actual viewpoints at 45-degree intervals around each orbit,
+including complete orbits from a frame-limited proof. Review the video itself
+to assess the path, not only the loading and continuity reports.

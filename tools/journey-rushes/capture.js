@@ -61,7 +61,7 @@ window.rush = {
     composite(journey.chapters[ch]);
     frameIndex=index;
     return {dataUrl:out.toDataURL('image/png'),time,index,chapter:journey.chapters[ch].id,
-      waitMs,readiness:ready,view:app.viewer.getViewState(),motion:{positionError,orientationError,angularStep},
+      waitMs,readiness:ready,view:app.viewer.getViewState(),path:{segment:expected.segment,kind:expected.kind,orbitProgress:expected.orbitProgress??null},motion:{positionError,orientationError,angularStep},
       hr:app.getState?.() ?? null};
   },
 };

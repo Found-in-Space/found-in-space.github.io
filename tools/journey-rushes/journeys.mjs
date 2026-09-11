@@ -3,7 +3,7 @@
 const chapter = (id, seconds, title, body, eyebrow='') => ({id, seconds, title, body, eyebrow});
 export const journeys = {
   'radio-bubble': {title:'The radio bubble', source:'radio-bubble', chapters:[
-    chapter('before-radio',6,'Before the bubble','We begin at the solar origin. Before wireless telegraphy, no human radio wavefront has crossed the space between the stars.','Earth orbit · before radio'),
+    chapter('before-radio',6,'Before the bubble','We begin at the solar origin. Before wireless telegraphy, no human radio wavefront has crossed the space between the stars.','Near the Sun · before radio'),
     chapter('marconi',12,'A century at light speed','Starting from an approximate date in summer 1895, the shell expands by one light-year each year. Watch it grow through the solar neighbourhood.','1895 → September 2026'),
     chapter('outside',10,'Our small footprint','After about 131 years, the first wavefront is only about 40 parsecs from home. The shell marks possible arrival, not whether a signal could be detected.','One parsec ≈ 3.26 light-years'),
     chapter('hyades',12,'Almost in reach','The Hyades, our nearest open star cluster, lie about 48 parsecs away. Our earliest signals still have roughly 25 years of travel ahead.','The Hyades · about 48 pc'),
@@ -16,7 +16,7 @@ export const journeys = {
     chapter('inner-spread',10,'The nearest victims','The red links trace the lesson’s imagined first jumps from Tau Ceti toward Epsilon Eridani and 40 Eridani. Real stars become stepping stones in a fictional chain.','First spread · nearby systems'),
     chapter('sirius-wise',10,'An invisible stepping stone','The chain continues through Sirius and the cold brown dwarf WISE 0855-0714. The labels mark destinations that are not all visible as bright stars.','Sirius → WISE 0855-0714'),
     chapter('final-spread',10,'The Sun falls','The final links reach the Sun and other nearby systems. Pull back to see how a sequence of short jumps can connect the neighbourhood.','The complete imagined network'),
-    chapter('keid-lookback',10,'Looking home','From 40 Eridani, look back toward the Sun. This is a fictional route drawn across measured stellar positions: a familiar story in a three-dimensional neighbourhood.','40 Eridani · about 16 light-years'),
+    chapter('keid-lookback',10,'Looking home','Circle 40 Eridani, then turn to look back toward the Sun. This is a fictional route drawn across measured stellar positions: a familiar story in a three-dimensional neighbourhood.','40 Eridani · about 16 light-years'),
   ]},
   'star-clusters': {title:'A journey through star clusters',source:'star-clusters',chapters:[
     chapter('start',8,'Our stellar neighbourhood','We start near the Sun, then travel among groups of stars with very different ages. The star field shows catalogue measurements; the journey reveals their depth.','Home · the solar neighbourhood'),

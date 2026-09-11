@@ -1,6 +1,7 @@
 """Validate completed rush files and export a near-arrival frame per chapter."""
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -40,6 +41,31 @@ for capture in sorted(root.glob('*/capture.json')):
                 assert stars['renderedRevision']['demandRevision'] == d['revision']
             assert d['activeWorkItemCount'] == 0 and d['inFlightCellCount'] == 0
             assert d['currentCellCount'] >= d['desiredCellCount']
+    orbit_results = []
+    for orbit in meta.get('motionAudit', {}).get('orbits', []):
+        orbit_frames = [f for f in frames if orbit['start'] - 1e-8 <= f['time'] < orbit['end'] - 1e-8]
+        assert len(orbit_frames) == round(orbit['seconds'] * meta['captureFps'])
+        swept = 0.0
+        previous_angle = None
+        max_radius_error = 0.0
+        for frame in orbit_frames:
+            radial = {axis: frame['view']['observerPc'][axis] - orbit['centerPc'][axis] for axis in ('x', 'y', 'z')}
+            radius = math.sqrt(sum(value * value for value in radial.values()))
+            max_radius_error = max(max_radius_error, abs(radius - orbit['radiusPc']))
+            assert max_radius_error < 1e-6
+            assert math.sqrt(sum((frame['view']['targetPc'][axis] - orbit['centerPc'][axis])**2 for axis in ('x', 'y', 'z'))) < 1e-6
+            x = sum(radial[axis] * orbit['basisU'][axis] for axis in radial)
+            y = sum(radial[axis] * orbit['basisV'][axis] for axis in radial)
+            angle = math.atan2(y, x)
+            if previous_angle is not None:
+                step = math.atan2(math.sin(angle - previous_angle), math.cos(angle - previous_angle))
+                assert step >= -1e-8, 'Orbit reverses direction'
+                swept += step
+            previous_angle = angle
+        swept_degrees = math.degrees(swept)
+        assert 359.99 < swept_degrees <= 360.01, f'Orbit incomplete: {swept_degrees} degrees'
+        orbit_results.append({'chapter': orbit['chapter'], 'swept_degrees': swept_degrees,
+                              'max_radius_error_pc': max_radius_error, 'frames': len(orbit_frames)})
     probe = json.loads(subprocess.check_output([
         'ffprobe', '-v', 'error', '-show_streams', '-show_format', '-of', 'json', str(video)
     ]))
@@ -59,7 +85,7 @@ for capture in sorted(root.glob('*/capture.json')):
                         '-frames:v', '1', str(review / f"{i+1:02d}-{chapter['id']}.png")], check=True)
     result = {'id': meta['id'], 'seconds': meta['duration'], 'capture_frames': len(frames),
               'output_frames': int(stream['nb_frames']), 'all_frames_ready': True,
-              'full_decode_passed': True, 'continuous_camera': bool(meta.get('motionAudit')),
+              'full_decode_passed': True, 'full_orbits_verified': orbit_results, 'continuous_camera': bool(meta.get('motionAudit')),
               'max_angular_step_degrees': max((f.get('motion',{}).get('angularStep',0) for f in frames), default=0), 'bytes': video.stat().st_size,
               'sha256': hashlib.file_digest(video.open('rb'), 'sha256').hexdigest(),
               'total_loading_wait_seconds': round(sum(f['waitMs'] for f in frames) / 1000, 2),
