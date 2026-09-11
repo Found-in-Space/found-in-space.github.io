@@ -178,7 +178,14 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		void provider.dispose?.();
 	}
 
-	return { viewer, goTo, viewpoints, radiusPc, radiusLy };
+	return {
+		viewer, goTo, viewpoints, radiusPc, radiusLy,
+		setCaptureProgress: options.capture ? (progress) => {
+			setBubbleProgress(bubbleGroup, progress);
+			onTimelineDateChange(progress > 0
+				? formatRadioBubbleTimelineDate(firstSignalDateMs, currentDateMs, progress) : null);
+		} : undefined,
+	};
 }
 
 function createRadioBubbleChapters() {

@@ -300,6 +300,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 
 	return {
 		viewer, goTo, dispose,
+		setCaptureScene: options.capture ? (id) => applyChapterVisibility(id, annotations) : undefined,
 		getCaptureLabels: options.capture ? () => Object.entries(annotations.labels)
 			.filter(([, label]) => label.visible)
 			.map(([key, label]) => ({

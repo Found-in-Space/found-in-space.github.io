@@ -618,6 +618,13 @@ export async function mountHrDiagramViewer(root, options = {}) {
 		destroy,
 		getState,
 		initialSceneId: HR_INITIAL_CHAPTER_ID,
+		setCaptureScene: options.capture ? async (sceneId, {arrival = false} = {}) => {
+			const scene = createHrActivationScene(sceneId, activeSceneId);
+			activeSceneId = sceneId;
+			const state = createRouteAwareHrState(scene, {arrival});
+			if (arrival && scene.hr?.arrivalVolumeRadiusPc) state.volumeRadiusPc = scene.hr.arrivalVolumeRadiusPc;
+			await applyHrSceneState(state, 'website.hrDiagram.capture');
+		} : undefined,
 	};
 }
 

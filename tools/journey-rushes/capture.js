@@ -3,45 +3,65 @@ import { mountAstrophageViewer } from '/src/scripts/astrophage-viewer.js';
 import { mountClusterTourViewer } from '/src/scripts/cluster-tour-viewer.js';
 import { mountHrDiagramViewer } from '/src/scripts/hr-diagram-viewer.js';
 import { waitForStarsReady } from './readiness.mjs';
-import { journeys } from './journeys.mjs';
+import { createContinuousJourney, auditContinuousJourney, distance, angularDistance } from './continuous-path.mjs';
 
 const out=document.querySelector('#output');
 const ctx=out.getContext('2d');
 const root=document.querySelector('#root');
 const mount=document.querySelector('#view');
-let app, journey, active=-1, time=0, frameIndex=-1, timeline=null;
+let app, journey, plan, active=-1, arrivalApplied=false, time=0, frameIndex=-1, timeline=null, previousPose=null;
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
 window.rush = {
   async init(id) {
-    journey=journeys[id]; if(!journey) throw new Error(`Unknown journey ${id}`);
+    plan=createContinuousJourney(id); journey=plan.journey;
     const options={autoStart:false,capture:true,currentDateMs:Date.UTC(2026,8,11,12),onTimelineDateChange:s=>timeline=s};
     if(id==='radio-bubble') app=await mountRadioBubbleViewer(mount,options);
     if(id==='astrophage') app=await mountAstrophageViewer(mount,options);
     if(id==='star-clusters') app=await mountClusterTourViewer(mount,options);
     if(id==='hr-diagram') app=await mountHrDiagramViewer(root,options);
     for (const chapter of journey.chapters) composite(chapter);
-    return {duration:journey.duration, title:journey.title};
+    return {duration:journey.duration, title:journey.title,chapters:journey.chapters,motionAudit:auditContinuousJourney(plan)};
   },
   status() {return {time,frameIndex,view:app?.viewer.getViewState(),snapshot:app?.viewer.getSnapshot()};},
-  async capture({index,fps=12.5,timeoutMs=180000}) {
+  async capture({index,fps=25,timeoutMs=180000}) {
     if(index!==frameIndex+1) throw new Error('Capture requires sequential fixed-time frames');
     time=index/fps;
     const ch=journey.chapters.findIndex(c=>time>=c.start && time<c.end);
     if(ch<0) throw new Error('Frame is outside journey');
-    // Bring the previous chapter to the exact boundary before activating the next.
-    if(index>0) app.viewer.frame(1/fps);
-    if(ch!==active) {await app.goTo(journey.chapters[ch].id); active=ch;}
-    // Flush pending navigation/view patches without advancing simulation time.
-    app.viewer.frame(0);
+    const chapter=journey.chapters[ch];
+    if(ch!==active) {
+      await app.setCaptureScene?.(chapter.id);
+      active=ch;arrivalApplied=false;
+    }
+    if(journey.source==='hr-diagram' && chapter.id==='omega-cen' && time>=chapter.arrival && !arrivalApplied) {
+      await app.setCaptureScene(chapter.id,{arrival:true});arrivalApplied=true;
+    }
+    if(app.setCaptureProgress) {
+      const growth=journey.chapters.find(c=>c.id==='marconi');
+      const u=Math.max(0,Math.min(1,(time-growth.start)/(growth.arrival-growth.start)));
+      app.setCaptureProgress(u*u*u*(10+u*(-15+6*u)));
+    }
+    const expected=plan.evaluate(time);
+    // The camera track is the only owner of pose. Chapter effects never issue
+    // interactive goTo/lockAt/orbit commands during offline capture.
+    app.viewer.requestViewState({observerPc:expected.observerPc,
+      orientationIcrs:expected.orientationIcrs,targetPc:expected.targetPc},'journey.continuous-pose');
+    app.viewer.frame(index===0?0:1/fps);
     await delay(0);
-    app.viewer.frame(0);
+    const actual=app.viewer.getViewState();
+    const positionError=distance(actual.observerPc,expected.observerPc);
+    const orientationError=angularDistance(actual.orientationIcrs,expected.orientationIcrs);
+    if(positionError>1e-7 || orientationError>.0001) throw new Error(`Camera left authored path at ${time}s: ${positionError}pc / ${orientationError}deg`);
+    const angularStep=previousPose?angularDistance(previousPose.orientationIcrs,actual.orientationIcrs):0;
+    if(angularStep>24/fps+.001) throw new Error(`Camera jump at ${time}s: ${angularStep}deg`);
+    previousPose=actual;
     const {readiness: ready,waitMs}=await waitForStarsReady(app.viewer,{timeoutMs});
     app.viewer.render();
     composite(journey.chapters[ch]);
     frameIndex=index;
     return {dataUrl:out.toDataURL('image/png'),time,index,chapter:journey.chapters[ch].id,
-      waitMs,readiness:ready,view:app.viewer.getViewState(),
+      waitMs,readiness:ready,view:app.viewer.getViewState(),motion:{positionError,orientationError,angularStep},
       hr:app.getState?.() ?? null};
   },
 };

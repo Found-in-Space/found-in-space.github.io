@@ -23,6 +23,12 @@ for capture in sorted(root.glob('*/capture.json')):
         assert frame['index'] == i
         assert abs(frame['time'] - i / meta['captureFps']) < 1e-8
         assert frame['readiness']['ready']
+        if meta.get('motionAudit'):
+            assert 'motion' in frame, 'Continuous capture lacks per-frame motion evidence'
+        if 'motion' in frame:
+            assert frame['motion']['positionError'] < 1e-7
+            assert frame['motion']['orientationError'] < .0001
+            assert frame['motion']['angularStep'] <= 24 / meta['captureFps'] + .001
         for stars in frame['readiness']['stars']:
             d = stars['demand']
             assert stars['ready'] and d['status'] == 'current'
@@ -42,7 +48,7 @@ for capture in sorted(root.glob('*/capture.json')):
     assert (stream['width'], stream['height']) == (960, 540)
     assert stream['codec_name'] == 'h264' and stream['pix_fmt'] == 'yuv420p'
     assert stream['r_frame_rate'] == '25/1'
-    assert int(stream['nb_frames']) == len(frames) * 2
+    assert int(stream['nb_frames']) == round(len(frames) * 25 / meta['captureFps'])
     assert abs(float(probe['format']['duration']) - meta['duration']) < .041
     subprocess.run(['ffmpeg', '-v', 'error', '-xerror', '-i', str(video), '-f', 'null', '-'], check=True)
     review = folder / 'chapters'
@@ -53,7 +59,8 @@ for capture in sorted(root.glob('*/capture.json')):
                         '-frames:v', '1', str(review / f"{i+1:02d}-{chapter['id']}.png")], check=True)
     result = {'id': meta['id'], 'seconds': meta['duration'], 'capture_frames': len(frames),
               'output_frames': int(stream['nb_frames']), 'all_frames_ready': True,
-              'full_decode_passed': True, 'bytes': video.stat().st_size,
+              'full_decode_passed': True, 'continuous_camera': bool(meta.get('motionAudit')),
+              'max_angular_step_degrees': max((f.get('motion',{}).get('angularStep',0) for f in frames), default=0), 'bytes': video.stat().st_size,
               'sha256': hashlib.file_digest(video.open('rb'), 'sha256').hexdigest(),
               'total_loading_wait_seconds': round(sum(f['waitMs'] for f in frames) / 1000, 2),
               'max_loading_wait_seconds': round(max(f['waitMs'] for f in frames) / 1000, 2)}

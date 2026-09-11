@@ -16,9 +16,9 @@ const output=process.argv[2];
 if(!output || !path.isAbsolute(output)) throw new Error('Usage: node tools/journey-rushes/render.mjs ABSOLUTE_OUTPUT [journey|all] [maxFrames]');
 const ids=process.argv[3] && process.argv[3]!=='all' ? [process.argv[3]] : Object.keys(journeys);
 const maxFrames=Number(process.argv[4])||Infinity;
-const fps=12.5;
+const fps=25;
 await fs.mkdir(output,{recursive:true});
-const server=await createServer({configFile:false,root:website,cacheDir:'/tmp/fis-journey-vite-cache',optimizeDeps:{entries:['tools/journey-rushes/index.html']},server:{host:'127.0.0.1',port:5197,strictPort:true},logLevel:'warn'});
+const server=await createServer({configFile:false,root:website,cacheDir:'/tmp/fis-journey-vite-cache',optimizeDeps:{entries:['tools/journey-rushes/index.html']},server:{host:'127.0.0.1',port:5197,strictPort:true,hmr:false,watch:null},logLevel:'warn'});
 await server.listen();
 let browser;
 try {
@@ -36,7 +36,7 @@ try {
    const info=await page.evaluate(id=>window.rush.init(id),id);
    const count=Math.min(maxFrames,Math.round(info.duration*fps));
    const video=path.join(dir,`${id}-rush-540p.mp4`);
-   const ffmpeg=spawn('ffmpeg',['-hide_banner','-loglevel','warning','-y','-f','image2pipe','-framerate',String(fps),'-vcodec','png','-i','pipe:0','-vf','fps=25,setsar=1','-an','-c:v','libx264','-preset','veryfast','-crf','19','-pix_fmt','yuv420p','-color_primaries','bt709','-color_trc','bt709','-colorspace','bt709','-movflags','+faststart',video]);
+   const ffmpeg=spawn('ffmpeg',['-hide_banner','-loglevel','warning','-y','-f','image2pipe','-framerate',String(fps),'-vcodec','png','-i','pipe:0','-vf','fps=25,scale=out_color_matrix=bt709,setsar=1','-an','-c:v','libx264','-preset','veryfast','-crf','19','-pix_fmt','yuv420p','-color_primaries','bt709','-color_trc','bt709','-colorspace','bt709','-movflags','+faststart',video]);
    let fferr='';ffmpeg.stderr.on('data',x=>fferr+=x);ffmpeg.stdin.on('error',()=>{});
    const completion=once(ffmpeg,'close');
    const entries=[];const started=Date.now();
@@ -57,7 +57,7 @@ try {
     }
     ffmpeg.stdin.end();
     const [code]=await completion;if(code!==0) throw new Error(fferr);
-    const metadata={id,...info,captureFps:fps,outputFps:25,width:960,height:540,frameCount:count,outputDuration:count/fps,createdAt:new Date().toISOString(),renderMs:Date.now()-started,websiteCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:website,encoding:'utf8'}).trim(),readinessRule:'Forced demand at each view; provider current; renderer has delivered current view/demand revision; exact cell and star counts agree with provider; zero active/in-flight work; stable through two render-only passes.',chapters:journeys[id].chapters,frames:entries};
+    const metadata={id,...info,captureFps:fps,outputFps:25,width:960,height:540,frameCount:count,outputDuration:count/fps,createdAt:new Date().toISOString(),renderMs:Date.now()-started,websiteCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:website,encoding:'utf8'}).trim(),readinessRule:'Forced demand at each view; provider current; renderer has delivered current view/demand revision; exact cell and star counts agree with provider; zero active/in-flight work; stable through two render-only passes.',chapters:info.chapters,frames:entries};
     await fs.writeFile(path.join(dir,'capture.json'),JSON.stringify(metadata,null,2));
     await fs.copyFile(path.join(website,`src/pages/learn/topic/${journeys[id].source}.astro`),path.join(dir,'original-lesson.astro.txt'));
     console.log(`DONE ${id}: ${video}`);
