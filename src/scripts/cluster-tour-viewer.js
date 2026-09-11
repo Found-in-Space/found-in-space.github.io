@@ -156,7 +156,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 
 	onStatus('Creating SkyKit viewer...');
 	const initialAspectRatio = resolveAspectRatio(mount);
-	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: Boolean(options.capture) });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(VERTICAL_FOV_DEG, initialAspectRatio, 0.0001, 1000);
 	const provider = createStarOctreeProviderService({
@@ -187,6 +187,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 				provider,
 				renderer: starField,
 				attributes: STAR_ATTRIBUTES,
+				updateOptions: options.capture ? { demand: 'force' } : undefined,
 				session: {
 					id: STAR_SESSION_ID,
 					strategy: createObserverShellStrategy(),
@@ -208,7 +209,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
-	loop.start();
+	if (options.autoStart !== false) loop.start();
 
 	onStatus('Drag on the view to look around.');
 

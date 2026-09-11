@@ -367,7 +367,7 @@ function useOmegaCenDestinationDemandStrategy() {
 	return OMEGA_CEN_DESTINATION_DEMAND_STRATEGY;
 }
 
-export async function mountHrDiagramViewer(root) {
+export async function mountHrDiagramViewer(root, options = {}) {
 	const mount = root.querySelector('[data-hr-diagram-viewer-shell]');
 	if (!(mount instanceof HTMLElement)) {
 		throw new Error('Missing [data-hr-diagram-viewer-shell] mount for HR diagram viewer.');
@@ -389,6 +389,7 @@ export async function mountHrDiagramViewer(root) {
 		id: `website-hr-diagram-source-${topicId}`,
 		provider,
 		session: { id: sessionId },
+		updateOptions: options.capture ? { demand: 'force' } : undefined,
 		retainCellsOnRestart: {
 			until: 'current',
 			maxAgeMs: 20_000,
@@ -398,7 +399,7 @@ export async function mountHrDiagramViewer(root) {
 		limitingMagnitude: DEFAULT_HR_MAG_LIMIT,
 		exposure: 2500,
 	});
-	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: Boolean(options.capture) });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(
 		VERTICAL_FOV_DEG,
@@ -481,7 +482,7 @@ export async function mountHrDiagramViewer(root) {
 	await flushPendingHrSceneStates();
 
 	function createHudRoot(hrPlugin, host) {
-		const isMobile = host.clientWidth > 0 && host.clientWidth <= HUD_MOBILE_BREAKPOINT_PX;
+		const isMobile = !options.capture && host.clientWidth > 0 && host.clientWidth <= HUD_MOBILE_BREAKPOINT_PX;
 		const key = isMobile ? 'mobile' : 'desktop';
 		if (cachedHudRoot && cachedHudRootKey === key) return cachedHudRoot;
 
@@ -489,13 +490,22 @@ export async function mountHrDiagramViewer(root) {
 		cachedHudRoot = createDockLayout('website-hr-diagram-hud-root', {
 			padding: isMobile ? 10 : 18,
 			bottomRight: {
-				maxWidth: isMobile ? 310 : 430,
-				maxHeight: isMobile ? 230 : 330,
+				maxWidth: options.capture ? 520 : isMobile ? 310 : 430,
+				maxHeight: options.capture ? 380 : isMobile ? 230 : 330,
 				child: createColumn('website-hr-diagram-hud-panel', {
 					gap: 8,
 					padding: 8,
 					backgroundColor: 'rgba(8, 15, 30, 0.76)',
-					children: [hrPlugin.getNode()],
+					children: [options.capture ? {
+						...hrPlugin.getNode(),
+						component: {
+							...hrPlugin.getNode().component,
+							measure(ctx) {
+								const width = ctx.constraints?.maxWidth ?? HR_TEXTURE_WIDTH;
+								return { width, height: width * HR_TEXTURE_HEIGHT / HR_TEXTURE_WIDTH };
+							},
+						},
+					} : hrPlugin.getNode()],
 				}),
 			},
 		});
@@ -600,7 +610,7 @@ export async function mountHrDiagramViewer(root) {
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
-	loop.start();
+	if (options.autoStart !== false) loop.start();
 
 	return {
 		viewer,
