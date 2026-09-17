@@ -3,8 +3,17 @@ interface Props {
 	section?: string;
 }
 
-const { section = 'Learning through data' } = Astro.props;
+const { section = 'Explore. Question. Build.' } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
+const pathname = Astro.url.pathname.replace(/\/$/, '');
+const navigation = [
+	{ label: 'Explore', route: 'explore', sections: ['explore', 'projects'] },
+	{ label: 'Question', route: 'question', sections: ['question', 'learn'] },
+	{ label: 'Build', route: 'build', sections: ['build', 'learn-build'] },
+	{ label: 'Teach', route: 'teach', sections: ['teach'] },
+	{ label: 'About', route: 'about', sections: ['about'] },
+];
+const currentSection = Astro.url.pathname.slice(basePath.length).split('/')[0];
 ---
 
 <header class="site-header">
@@ -35,11 +44,11 @@ const basePath = import.meta.env.BASE_URL;
 		</div>
 		<div class="site-header__backdrop" aria-hidden="true" hidden></div>
 		<nav class="site-nav" id="site-nav-primary" aria-label="Primary">
-			<a href={basePath}>Home</a>
-			<a href={`${basePath}explore/`}>Explore</a>
-			<a href={`${basePath}teach/`}>Teach</a>
-			<a href={`${basePath}learn-build/`}>Learn &amp; Build</a>
-			<a href={`${basePath}about/`}>About</a>
+			{navigation.map((item) => <a
+				href={`${basePath}${item.route}/`}
+				class:list={{ 'is-active': item.sections.includes(currentSection) }}
+				aria-current={pathname === `${basePath}${item.route}` ? 'page' : undefined}
+			>{item.label}</a>)}
 		</nav>
 	</div>
 </header>
@@ -278,8 +287,13 @@ const basePath = import.meta.env.BASE_URL;
 	.site-nav a:hover {
 		transform: translateY(-1px);
 		background: rgba(15, 28, 50, 0.82);
-		border-color: rgba(242, 200, 121, 0.32);
+		border-color: var(--fis-gold-subtle);
 		color: var(--fis-text);
+	}
+
+	.site-nav a.is-active {
+		border-color: var(--fis-gold-subtle);
+		color: var(--fis-gold);
 	}
 
 	@media (max-width: 720px) {

@@ -1,17 +1,39 @@
 # Found in Space — Website
 
-Part of [Found in Space](https://foundin.space/), a project that starts with open astronomical measurements and turns them into interactive 3D views people can explore, question, and build on. See all repositories at [github.com/Found-in-Space](https://github.com/Found-in-Space).
+Part of [Found in Space](https://foundin.space/): tools for thinking and creating
+with scientific data and models. **Explore. Question. Build.**
 
 This repository is the public-facing website at [foundin.space](https://foundin.space), built with [Astro](https://astro.build/) and hosted on GitHub Pages.
 
 ## Site structure
 
-The site is organised around four main routes:
+The public navigation follows what visitors want to do:
 
-- **Explore** — guided interactive experiences built from catalogue measurements and derived distances. Fly through the solar neighbourhood, feel parallax by moving the observer, and see the depth hiding behind familiar constellations. No prior knowledge needed.
-- **Teach** — ready-to-use visualisations, classroom prompts, and inquiry projects that ask what the evidence shows, what remains uncertain, and how a representation shapes what students notice.
-- **Learn & Build** — structured lessons, starter data, live coding guides, and routes into the open pipeline for students and curious builders who want to make a chart, visualisation, investigation, or game.
-- **About** — the project's educational purpose, open methods, broader direction, and the person behind it.
+- **Explore** (`/explore/`) — experiences across stars, worlds, eclipses, and
+  musical experiments, with availability and setup made clear.
+- **Question** (`/question/`) — questions across the projects, routes to guided
+  investigations, and distinctions between evidence, models, and representation.
+- **Build** (`/build/`) — reusable data, models, components, and authoring tools,
+  with ways to adapt materials both with and without coding.
+- **Teach** (`/teach/`) — current astronomy activities and suggestions to adapt
+  across the projects; levels and timings are planning estimates.
+- **About** (`/about/`) — the mission, data and model literacy ambition, and the
+  person behind the work.
+
+Project pages (`/projects/<topic>/`) connect an experience to its inputs,
+questions, and reusable materials. SkyKit, Pas de Géant, Shadowline, and Aeolian
+Measure share this structure, with their different availability stated explicitly.
+
+Existing lessons and live examples retain their URLs under `/learn/` and
+`/learn-build/`. The latter is a star-specific learning path. The former Build
+pipeline overview now lives at `/build/star-data/`; the detailed data guides
+retain their existing URLs.
+
+See [site structure and content guidance](docs/site-structure.md) before adding
+another project, route, or public capability claim. The
+[developer project map](https://github.com/Found-in-Space/.github/blob/main/docs/projects.md)
+owns the full technical inventory; this website helps the public find a useful
+starting point.
 
 ## Development
 

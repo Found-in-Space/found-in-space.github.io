@@ -68,23 +68,23 @@ const questions = [
 
 <Layout
 	title="Teach | Found in Space"
-	description="Use Found in Space in activities, workshops, and outreach with real astronomical data, guided visualisations, classroom prompts, and inquiry projects."
+	description="Adapt experiences and prompts for teaching with scientific data and models. Browse current astronomy activities and questions about worlds, eclipses and representation."
 >
-	<SiteHeader section="Teach with real data" />
+	<SiteHeader section="Teach with data and models" />
 
 	<main class="page">
 		<header class="hero teach-hero">
-			<p class="eyebrow">Teach with real astronomical data</p>
-			<h1>Help students investigate the universe through data they can see.</h1>
+			<p class="eyebrow">Teach with data and models</p>
+			<h1>Make room for curiosity, evidence, and making.</h1>
 			<p class="lede">
-				Found in Space gives you interactive visualisations, guided questions, and open
-				investigations for teaching astronomy, data, uncertainty, coding, and critical thinking.
-				Most activities need no coding; every one can become a deeper project.
+				Help learners ask what a measurement or model can tell them, try a different
+				representation, or make something of their own. The current guided activities focus on
+				astronomy; the wider projects offer more starting points for scale, prediction, and creative work.
 			</p>
 			<div class="hero__actions">
 				<a class="button button--primary" href="#ready-to-use-activities">Start with an activity</a>
 				<a class="button button--ghost" href="#inquiry">Run an inquiry activity</a>
-				<a class="button button--ghost" href={`${basePath}learn-build/`}>Create or adapt</a>
+				<a class="button button--ghost" href={`${basePath}build/`}>Create or adapt</a>
 			</div>
 		</header>
 
@@ -93,35 +93,36 @@ const questions = [
 				<p class="panel__eyebrow">Use it quickly</p>
 				<h2>Can I use this in a lesson?</h2>
 				<p>
-					Yes. Start with a guided viewer or activity page, then use the prompts below for
-					discussion, worksheet questions, or small-group investigation.
+					Preview a guided viewer or activity page, then adapt the prompts below for discussion,
+					worksheet questions, or small-group investigation in your setting.
 				</p>
 			</article>
 			<article class="panel">
 				<p class="panel__eyebrow">Choose a level</p>
 				<h2>What age or stage is it for?</h2>
 				<p>
-					Activities work best from secondary school upward. Each activity lists the suggested
-					level, timing, astronomy idea, and data idea so you can pick the right depth.
+					The suggested levels start at secondary school. Levels and timings are planning
+					estimates for you to adapt, rather than results from classroom evaluation.
 				</p>
 			</article>
 			<article class="panel">
 				<p class="panel__eyebrow">Extend it</p>
 				<h2>Do students need coding?</h2>
 				<p>
-					No for the visual activities. Optional extensions use starter data guides, notebooks,
-					the open pipeline, or student-made visualisations when you want a project layer.
+					The visual activities do not require coding. Making can mean choosing examples or
+					composing an investigation; data and coding guides offer optional extensions.
 				</p>
 			</article>
 		</section>
 
-		<section class="lesson-section" id="ready-to-use-activities" aria-label="Ready-to-use activities">
+		<section class="lesson-section" id="ready-to-use-activities" aria-label="Current astronomy activities">
 			<div class="section-heading">
-				<p class="eyebrow">Ready-to-use activities</p>
+				<p class="eyebrow">Current astronomy activities</p>
 				<h2>Start with a guided visualisation.</h2>
 				<p>
-					Each activity pairs an astronomy idea with a data idea. That pairing is the heart of
-					Found in Space: students learn what the universe is doing and how the evidence is built.
+					Each activity pairs an astronomy idea with a data idea. Use the pairing to discuss
+					both the phenomenon and how its representation was made. Learners can explore freely,
+					compare cases, or follow a question; there is no single required lesson sequence.
 				</p>
 			</div>
 
@@ -134,11 +135,11 @@ const questions = [
 						</div>
 						<dl class="lesson-card__meta">
 							<div>
-								<dt>Best for</dt>
+								<dt>Suggested level</dt>
 								<dd>{lesson.bestFor}</dd>
 							</div>
 							<div>
-								<dt>Time</dt>
+								<dt>Estimated time</dt>
 								<dd>{lesson.time}</dd>
 							</div>
 							<div>
@@ -177,6 +178,17 @@ const questions = [
 			</div>
 		</section>
 
+		<section class="hub-section" aria-labelledby="beyond-stars-title">
+			<h2 id="beyond-stars-title">Questions beyond the star field.</h2>
+			<p>These are prompts to adapt, not complete teaching packs. Check each project’s setup and availability before planning a session.</p>
+			<div class="section-grid section-grid--two">
+				<article class="panel destination-card"><p class="panel__eyebrow">Prediction · Shadowline</p><h3>One eclipse, two places.</h3><p>Ask learners to predict how the eclipse differs at two locations, then compare the model’s local circumstances and discuss what produced the difference.</p><div class="destination-card__links"><a class="link--gold" href={`${basePath}projects/eclipses/`}>Find the eclipse explorer and model →</a></div></article>
+				<article class="panel destination-card"><p class="panel__eyebrow">Scale · Pas de Géant</p><h3>A world at a different scale.</h3><p>Compare two scales or viewpoints. Ask which distances belong to the physical world and which belong to the display. Immersive exploration uses a WebXR-capable headset; the project guide also documents desktop controls.</p><div class="destination-card__links"><a class="link--gold" href={`${basePath}projects/worlds/`}>Read about worlds and access →</a></div></article>
+			</div>
+			<p>For further ideas, including the questions behind Aeolian Measure’s work in private development,
+				<a class="link--gold" href={`${basePath}question/`}>browse the Question route</a>.</p>
+		</section>
+
 		<section class="adapt" aria-label="Create or adapt a visualisation">
 			<div>
 				<p class="eyebrow">Create or adapt</p>
@@ -189,7 +201,7 @@ const questions = [
 					and Hipparcos become a browser-ready star map.
 				</p>
 				<div class="adapt__actions">
-					<a class="button button--primary" href={`${basePath}learn-build/`}>Learn &amp; build</a>
+					<a class="button button--primary" href={`${basePath}build/`}>Find materials to build with</a>
 					<a class="button button--ghost" href={`${basePath}build/download-the-star-data/`}>
 						Use the starter guide
 					</a>

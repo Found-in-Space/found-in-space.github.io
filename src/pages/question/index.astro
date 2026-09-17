@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import { projects, siteHref } from '../../data/projects';
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout title="Question | Found in Space" description="Investigate what scientific measurements, models and representations can tell you. Find questions about stars, scale, eclipse predictions and musical mappings.">
+	<SiteHeader section="Question" />
+	<main class="page">
+		<header class="hero hub-hero">
+			<p class="eyebrow">Question</p><h1>What can this material tell you?</h1>
+			<p class="lede">A pattern can come from the system itself, a measurement limit, a model,
+				or the way we choose to show it. Follow something you noticed—or start with one of these questions.</p>
+		</header>
+		<section class="hub-section" aria-labelledby="questions-title">
+			<h2 id="questions-title">Questions across the projects.</h2>
+			<p>These are invitations to investigate. Check each project’s availability before planning an activity.</p>
+			<div class="section-grid section-grid--two">
+				{projects.map((project) => <article class="panel destination-card">
+					<p class="panel__eyebrow">{project.topic}</p><h3>{project.prompt}</h3>
+					<p>{project.tryThis}</p>
+					<p class="destination-card__meta">{project.name} · {project.status}</p>
+					<div class="destination-card__links">
+						{project.question && <a class="link--gold" href={siteHref(project.question.href, basePath)}>{project.question.label} →</a>}
+						<a class="link--gold" href={`${basePath}projects/${project.slug}/`}>See the experience and its materials →</a>
+					</div>
+				</article>)}
+			</div>
+		</section>
+		<section class="hub-section" aria-labelledby="guides-title">
+			<h2 id="guides-title">Follow a guided investigation.</h2>
+			<p>The current lesson collection centres on stars. Each topic connects an astronomy idea with a question about evidence or representation.</p>
+			<div class="section-grid section-grid--three">
+				<article class="panel destination-card"><h3>What does a stellar sample leave out?</h3><p>Use the HR diagram to compare temperature and luminosity, and consider the limits of the sample.</p><div class="destination-card__links"><a class="link--gold" href={`${basePath}learn/topic/hr-diagram/`}>Open the HR diagram lesson →</a></div></article>
+				<article class="panel destination-card"><h3>When does a shape need an explanation?</h3><p>Investigate why Orion and the Pleiades can look elongated, with competing explanations to examine.</p><div class="destination-card__links"><a class="link--gold" href={`${basePath}learn/next-steps/why-orion-and-the-pleiades-can-look-elongated/`}>Open the research brief →</a></div></article>
+				<article class="panel destination-card"><h3>Which assumptions change a conclusion?</h3><p>Explore an idealised radio bubble and distinguish the reach of a signal from whether anyone could detect it.</p><div class="destination-card__links"><a class="link--gold" href={`${basePath}learn/topic/radio-bubble/`}>Open the radio bubble lesson →</a></div></article>
+			</div>
+			<div class="action-links"><a class="button button--ghost" href={`${basePath}learn/`}>All astronomy lessons</a><a class="button button--ghost" href={`${basePath}teach/`}>Plan a teaching activity</a></div>
+		</section>
+		<section class="hub-note prose">
+			<h2>Keep the kind of evidence in view.</h2>
+			<p>A catalogue contains observations and inferred quantities. An eclipse model produces predictions.
+				A musical mapping makes artistic choices. Ask where the inputs came from, what was assumed,
+				what changed in the representation, and whether this material can answer your question.</p>
+			<p>Comparing two views, changing one assumption, or making your own version can all be useful.
+				<a href={`${basePath}build/`}>Find materials to build with</a> when making becomes part of the investigation.</p>
+		</section>
+		<MadeByKaj />
+	</main>
+</Layout>

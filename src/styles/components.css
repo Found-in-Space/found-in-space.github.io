@@ -184,6 +184,103 @@
 	margin: 2rem 0 4rem;
 }
 
+/* ── Public route hubs ────────────────────────── */
+
+.hub-hero {
+	max-width: 56rem;
+	padding-top: 2.5rem;
+}
+
+.hub-hero h1 {
+	margin: 0;
+	font-size: clamp(2.7rem, 5.5vw, 4.7rem);
+	font-weight: 600;
+	line-height: 1.06;
+	text-wrap: balance;
+}
+
+.hub-section {
+	margin: 0 0 4rem;
+	scroll-margin-top: 7rem;
+}
+
+.hub-section > h2,
+.hub-section > header h2 {
+	margin: 0 0 1rem;
+	font-size: clamp(1.8rem, 3vw, 2.4rem);
+	font-weight: 600;
+	line-height: 1.15;
+}
+
+.hub-section > p,
+.hub-section > header p:not(.eyebrow) {
+	max-width: 48rem;
+	line-height: 1.7;
+	color: var(--fis-text-soft);
+}
+
+.section-grid--two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section-grid--three {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.destination-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-width: 0;
+	scroll-margin-top: 7rem;
+}
+
+.destination-card h2,
+.destination-card h3 {
+	margin: 0 0 0.8rem;
+	font-size: 1.65rem;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.destination-card p:not(.panel__eyebrow) {
+	margin: 0 0 1.1rem;
+	line-height: 1.65;
+	color: var(--fis-text-soft);
+}
+
+.destination-card .destination-card__meta {
+	font-family: var(--fis-font-ui);
+	font-size: 0.85rem;
+	color: var(--fis-text-muted);
+}
+
+.destination-card__links {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	margin-top: auto;
+	padding-top: 0.5rem;
+	line-height: 1.5;
+}
+
+.action-links {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.8rem;
+	margin-top: 1.5rem;
+}
+
+.hub-note {
+	padding: 2rem 0;
+	border-top: 1px solid var(--fis-line);
+}
+
+@media (max-width: 600px) {
+	.hub-hero { padding-top: 1.5rem; }
+}
+
 @media (max-width: 900px) {
 	.section-grid {
 		grid-template-columns: 1fr;

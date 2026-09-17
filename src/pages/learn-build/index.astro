@@ -46,14 +46,14 @@ const learningPaths = [
 ---
 
 <Layout
-	title="Learn & Build | Found in Space"
+	title="Learn & Build with Stars | Found in Space"
 	description="Learn astronomy and data concepts, use starter star data guides, inspect the open pipeline, or build your own data-driven experience."
 >
-	<SiteHeader section="Learn & build" />
+	<SiteHeader section="Learn & build with stars" />
 
 	<main class="page">
 		<header class="hero learn-build-hero">
-			<p class="eyebrow">Learn &amp; build with the data</p>
+			<p class="eyebrow">Learn &amp; build with stars</p>
 			<h1>Move from seeing the stars to working with the data behind them.</h1>
 			<p class="lede">
 				Start with a guided lesson, create a small bright-star sample, or inspect the open
@@ -62,9 +62,16 @@ const learningPaths = [
 			<div class="hero__actions">
 				<a class="button button--primary" href={`${basePath}learn/topic/hr-diagram/`}>Start learning</a>
 				<a class="button button--ghost" href={`${basePath}build/download-the-star-data/`}>Create starter data</a>
-				<a class="button button--ghost" href={`${basePath}build/`}>Inspect the pipeline</a>
+				<a class="button button--ghost" href={`${basePath}build/star-data/`}>Inspect the pipeline</a>
 			</div>
 		</header>
+
+		<section class="hub-note prose" aria-label="More materials">
+			<h2>A learning path through the star data.</h2>
+			<p>This collection focuses on astronomy and SkyKit. For other models, authoring tools,
+				and ways to make things, visit <a href={`${basePath}build/`}>Build</a>.
+				For investigations across the projects, visit <a href={`${basePath}question/`}>Question</a>.</p>
+		</section>
 
 		<section class="doors" aria-label="Ways to learn and build">
 			<article class="panel panel--accent">
@@ -101,7 +108,7 @@ const learningPaths = [
 					Follow the route from raw catalogues to cleaned Parquet, spatial indexing, streaming
 					cells, and the browser viewer.
 				</p>
-				<a class="link--gold" href={`${basePath}build/`}>Read the technical overview</a>
+				<a class="link--gold" href={`${basePath}build/star-data/`}>Read the technical overview</a>
 			</article>
 		</section>
 
