@@ -32,7 +32,7 @@ const PLEIADES_CENTER_PC = Object.freeze({ x: 67.379, y: 103.162, z: 55.161 });
 const HYADES_CENTER_PC = Object.freeze({ x: 17.574, y: 42.316, z: 13.963 });
 const OMEGA_CEN_CENTER_PC = Object.freeze({ x: -3290.566, y: -1309.263, z: -3862.073 });
 
-const SCENES = {
+export const SCENES = {
 	start: {
 		label: 'The solar neighbourhood',
 		view: {
@@ -167,6 +167,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 	const debug = createSkykitDebugBridge();
 	const uninstallDebugGlobal = installSkykitDebugGlobal(debug);
 	let disposed = false;
+	const navigation = createSkykitNavigationPlugin({ speed: 600, acceleration: 240, deceleration: 180 });
 	let debugViewer = null;
 
 	const viewer = await createSkykitViewer({
@@ -192,7 +193,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 					strategy: createObserverShellStrategy(),
 				},
 			}),
-			createSkykitNavigationPlugin({ speed: 600, acceleration: 240, deceleration: 180 }),
+			navigation,
 			createSkyGrabPlugin({
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
@@ -216,7 +217,7 @@ export async function mountClusterTourViewer(mount, options = {}) {
 		const chapter = CHAPTERS[id];
 		if (!chapter || disposed) return;
 		onClusterChange(id);
-		await chapter.activate({ viewer, provider, renderer, starField });
+		await chapter.activate({ viewer, navigation, provider, renderer, starField });
 	}
 
 	function resize() {

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 import {
-	SKYKIT_ACTIONS,
 	createObject3dPlugin,
 	createSkyGrabPlugin,
 	createSkykitAnimationLoop,
@@ -32,7 +31,6 @@ const BEFORE_RADIO_ORBIT_RADIUS_PC = 0.25;
 const MARCONI_GROW_DURATION_SECS = 10;
 const MARCONI_ORBIT_START_MARGIN_PC = 0.25;
 const MARCONI_ORBIT_END_MARGIN_PC = 80;
-const MARCONI_ORBIT_ANGULAR_SPEED_RAD_PER_SEC = 0.0;
 const HYADES_ORBIT_RADIUS_PC = 15;
 const STAR_ATTRIBUTES = Object.freeze(['position', 'magAbs', 'teffLog8']);
 const MONTH_LABELS = Object.freeze([
@@ -88,7 +86,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		currentDate: currentDateMs,
 	});
 	const { group: bubbleGroup } = createRadioBubbleMeshes({ radiusPc, radiusLy });
-	const { chapters, scenes, viewpoints } = createRadioBubbleChapters();
+	const { chapters, scenes, viewpoints } = createRadioBubbleChapters({ radiusPc });
 	const bubbleAnimation = createRadioBubbleOriginAnimationPlugin({
 		bubbleGroup,
 		radiusPc,
@@ -97,6 +95,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		onTimelineDateChange,
 	});
 	let disposed = false;
+	const navigation = createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 });
 	setBubbleProgress(bubbleGroup, 0);
 
 	const viewer = await createSkykitViewer({
@@ -129,7 +128,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 				disposeObject: true,
 			}),
 			bubbleAnimation,
-			createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 }),
+			navigation,
 			createSkyGrabPlugin({
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
@@ -150,7 +149,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 		if (!chapter || disposed) return;
 		bubbleAnimation.setScene(id);
 		onViewpointChange(id);
-		await chapter.activate({ viewer, provider, renderer, starField });
+		await chapter.activate({ viewer, navigation, provider, renderer, starField });
 	}
 
 	function resize() {
@@ -180,7 +179,7 @@ export async function mountRadioBubbleViewer(mount, options = {}) {
 	return { viewer, goTo, viewpoints, radiusPc, radiusLy };
 }
 
-function createRadioBubbleChapters() {
+export function createRadioBubbleChapters({ radiusPc = computeRadioBubbleRadius().radiusPc } = {}) {
 	const scenes = {
 		'before-radio': {
 			label: 'Before radio',
@@ -241,6 +240,22 @@ function createRadioBubbleChapters() {
 		{
 			...scenes[id],
 			async activate(ctx) {
+				if (id === 'marconi') {
+					// The bubble owns its growth; navigation alone owns the camera.
+					// Retain the live orbit angle and transition from the full live pose,
+					// including when entering backwards or after dragging the view.
+					const angle = resolveOrbitAngle(ctx.viewer.getViewState().observerPc);
+					await activateChapterCamera(ctx, {
+						navigation: {
+							transitionTo: {
+								observerPc: solarOrbitPosition(resolveMarconiOrbitRadius(radiusPc, 1), angle),
+								lookAt: { targetPc: SOLAR_ORIGIN_PC },
+								durationSecs: MARCONI_GROW_DURATION_SECS,
+							},
+						},
+					}, { source: 'website.radioBubble.marconi' });
+					return;
+				}
 				await activateChapterCamera(ctx, scenes[id], { source: 'website.radioBubble' });
 			},
 		},
@@ -254,26 +269,23 @@ function createRadioBubbleChapters() {
 	};
 }
 
-function createRadioBubbleOriginAnimationPlugin({
+export function createRadioBubbleOriginAnimationPlugin({
 	bubbleGroup,
 	radiusPc,
 	firstSignalDateMs,
 	currentDateMs,
 	onTimelineDateChange,
 }) {
-	let context = null;
 	let activeSceneId = null;
 	let mode = 'hidden';
 	let elapsedSecs = 0;
-	let orbitAngleRad = 0;
 	let progress = 0;
 	let timelineLabel = undefined;
 
 	return {
 		id: 'radio-bubble-origin-animation',
 		setup(nextContext) {
-			context = nextContext;
-			context.addPart({
+			nextContext.addPart({
 				id: 'radio-bubble-origin-animation',
 				priority: 100,
 				update(frame) {
@@ -290,10 +302,8 @@ function createRadioBubbleOriginAnimationPlugin({
 							mode = 'settled';
 						}
 					}
-					orbitAngleRad += MARCONI_ORBIT_ANGULAR_SPEED_RAD_PER_SEC * dt;
 					setBubbleProgress(bubbleGroup, progress);
 					emitTimelineProgress(progress);
-					requestMarconiCamera(frame.viewer, radiusPc, progress, orbitAngleRad);
 				},
 				getSnapshot() {
 					return {
@@ -321,15 +331,8 @@ function createRadioBubbleOriginAnimationPlugin({
 				mode = 'growing';
 				elapsedSecs = 0;
 				progress = 0;
-				orbitAngleRad = resolveOrbitAngle(context?.getViewState().observerPc);
 				setBubbleProgress(bubbleGroup, 0);
 				emitTimelineProgress(0);
-				void context?.actions.invoke(SKYKIT_ACTIONS.navigation.cancel, null, {
-					source: 'website.radioBubble.marconi',
-				});
-				if (context) {
-					requestMarconiCamera(context, radiusPc, 0, orbitAngleRad);
-				}
 				return;
 			}
 
@@ -407,14 +410,6 @@ function createSolarOrbitView(radiusPc, angleRad = 0) {
 		observerPc,
 		lookAt: { targetPc: SOLAR_ORIGIN_PC },
 	};
-}
-
-function requestMarconiCamera(target, finalRadiusPc, progress, angleRad) {
-	const observerPc = solarOrbitPosition(resolveMarconiOrbitRadius(finalRadiusPc, progress), angleRad);
-	target.requestViewState({
-		observerPc,
-		lookAt: { targetPc: SOLAR_ORIGIN_PC },
-	}, 'website.radioBubble.marconi');
 }
 
 function resolveMarconiOrbitRadius(finalRadiusPc, progress) {

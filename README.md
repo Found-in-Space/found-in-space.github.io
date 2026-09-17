@@ -17,10 +17,16 @@ The site is organised around four main routes:
 
 ```sh
 npm install
+npm test
 npm run dev
 ```
 
 Astro's dev server will start at `http://localhost:4321/` (or the next available port).
+
+Camera changes and SkyKit upgrades must preserve the
+[interactive transition contract](docs/camera-transitions.md). Run `npm test`
+and `npm run build` before submitting them. Pull requests and Pages deployment
+run the regression checks against the installed runtime.
 
 ### Local SkyKit alpha packages
 

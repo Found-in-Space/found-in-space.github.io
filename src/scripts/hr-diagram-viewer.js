@@ -168,7 +168,7 @@ const HR_CHAPTER_ORDER = Object.freeze([
 		'omega-cen',
 ]);
 
-const HR_SCENES = {
+export const HR_SCENES = {
 		'all-stars': createLookScene({
 			targetPc: INNER_GALACTIC_PLANE_TARGET_PC,
 			hr: {
@@ -268,21 +268,25 @@ function createOmegaReturnTravel(pointsPc, {
 	};
 }
 
-function createHrChapters(applyHrSceneState) {
+export function createHrChapters(applyHrSceneState) {
+	let latestActivation = 0;
 	return Object.fromEntries(HR_CHAPTER_ORDER.map((id) => [
 		id,
 		{
 			...HR_SCENES[id],
 			label: HR_SCENES[id].label ?? id,
 			async activate(ctx) {
+				const activation = ++latestActivation;
 				const activationScene = createHrActivationScene(id, ctx.previousSceneId);
 				await applyHrSceneState(createRouteAwareHrState(activationScene), 'website.hrDiagram.scene');
+				if (activation !== latestActivation) return;
 				await activateChapterCamera(ctx, {
 					...HR_SCENES[id],
 					travel: resolveHrChapterTravel(id, ctx.previousSceneId),
 				}, {
 					source: 'website.hrDiagram',
 					onArrive: async () => {
+						if (activation !== latestActivation) return;
 						const arrivalVolumeRadiusPc = positiveFiniteOrNull(activationScene?.hr?.arrivalVolumeRadiusPc);
 						const hrState = createRouteAwareHrState(activationScene, { arrival: true });
 						if (arrivalVolumeRadiusPc !== null) {
@@ -305,7 +309,7 @@ function createHrActivationScene(sceneId, previousSceneId) {
 	};
 }
 
-function resolveHrChapterTravel(sceneId, previousSceneId) {
+export function resolveHrChapterTravel(sceneId, previousSceneId) {
 	if (previousSceneId === 'ngc-752' && sceneId === 'omega-cen') {
 		return createOmegaForwardTravel();
 	}
@@ -413,6 +417,7 @@ export async function mountHrDiagramViewer(root) {
 	let activeMagLimit = DEFAULT_HR_MAG_LIMIT;
 	let activeRadius = DEFAULT_HR_VOLUME_RADIUS;
 	let disposed = false;
+	const navigation = createSkykitNavigationPlugin({ speed: 600, acceleration: 240, deceleration: 180 });
 	let cachedHudRoot = null;
 	let cachedHudRootKey = '';
 	let viewer = null;
@@ -459,7 +464,7 @@ export async function mountHrDiagramViewer(root) {
 			}),
 			hr,
 			source,
-			createSkykitNavigationPlugin({ speed: 600, acceleration: 240, deceleration: 180 }),
+			navigation,
 			createSkyGrabPlugin({
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
@@ -521,7 +526,7 @@ export async function mountHrDiagramViewer(root) {
 		if (!chapter || disposed) return null;
 		const previousSceneId = activeSceneId;
 		activeSceneId = sceneId;
-		await chapter.activate({ viewer, provider, renderer, previousSceneId });
+		await chapter.activate({ viewer, navigation, provider, renderer, previousSceneId });
 		return sceneId;
 	}
 
