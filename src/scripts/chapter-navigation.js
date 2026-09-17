@@ -2,6 +2,7 @@ import { SKYKIT_ACTIONS } from '@found-in-space/skykit';
 import { createOrbitTransferRoute } from '@found-in-space/spatial';
 
 const DEFAULT_NORMAL = Object.freeze({ x: 0, y: 0, z: 1 });
+const activeChapters = new WeakMap();
 
 export function createChapterViewpoints(chapters, order = Object.keys(chapters)) {
 	return order.map((id) => ({
@@ -13,13 +14,36 @@ export function createChapterViewpoints(chapters, order = Object.keys(chapters))
 export async function activateChapterCamera(ctx, chapter, options = {}) {
 	const { viewer } = ctx;
 	const source = options.source ?? 'website.chapter';
-	const onArrive = once(() => options.onArrive?.(chapter, ctx));
+	const activation = {};
+	activeChapters.set(viewer, activation);
+	const isCurrent = () => activeChapters.get(viewer) === activation;
+	const onArrive = once(() => {
+		if (isCurrent()) return options.onArrive?.(chapter, ctx);
+	});
+	const motion = ctx.navigation?.getSnapshot()?.navigation;
+	await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.cancel, null, { source });
+	if (!isCurrent()) return;
+	// SkyKit 0.2 queues navigation's next pose until the following update.
+	// Cancelling automation leaves that queued sample intact. Hold the displayed
+	// pose so an interrupted operation cannot write one more frame after cancel.
+	const current = viewer.getViewState();
+	viewer.requestViewState({
+		observerPc: current.observerPc,
+		orientationIcrs: current.orientationIcrs,
+	}, source);
 
-	if (chapter.view && typeof chapter.view === 'object') {
-		viewer.requestViewState(chapter.view, source);
-	}
+	// A scene view describes a destination, never the departure pose. In SkyKit
+	// 0.2, both lookAt and targetPc view patches immediately change orientation.
+	// Initial camera placement belongs only in createSkykitViewer({ view }).
+	const { observerPc, orientationIcrs, lookAt, targetPc, ...settings } = chapter.view ?? {};
+	if (Object.keys(settings).length) viewer.requestViewState(settings, source);
 
 	const transitionTo = chapter.navigation?.transitionTo;
+	if (chapter.camera?.type === 'orbit') {
+		await activateOrbitCamera(ctx, chapter, { ...options, onArrive, isCurrent, motion });
+		return;
+	}
+
 	if (transitionTo && typeof transitionTo === 'object') {
 		await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, {
 			...transitionTo,
@@ -28,8 +52,12 @@ export async function activateChapterCamera(ctx, chapter, options = {}) {
 		return;
 	}
 
-	if (chapter.camera?.type === 'orbit') {
-		await activateOrbitCamera(ctx, chapter, { ...options, onArrive });
+	if (observerPc || orientationIcrs || lookAt || targetPc) {
+		await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.transitionTo, {
+			...chapter.view,
+			durationSecs: positiveNumber(chapter.travel?.durationSecs, 5),
+			onArrive,
+		}, { source });
 		return;
 	}
 
@@ -62,20 +90,24 @@ async function activateOrbitCamera(ctx, chapter, options) {
 	const arrivalAction = normalizeOrbitAction(travel.arrivalAction, orbit);
 	const onArrive = options.onArrive;
 
-	await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.cancel, null, { source });
-	viewer.requestViewState({ targetPc: lookTarget }, source);
 	await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.lockAt, {
 		...lookTarget,
 		up: normal,
 		dwellSecs: Math.max(0, finiteNumber(camera.dwellSecs, 0)),
 		recenterSpeed: 0.06,
 	}, { source });
+	if (!options.isCurrent()) return;
 
 	const explicitPoints = normalizePointList(travel.pointsPc ?? travel.points);
 	if (explicitPoints.length >= 2) {
+		// Authored corridor points are waypoints ahead of the live observer.
+		// flyPolyline itself starts at points[0]; it does not fly to that point.
+		const start = viewer.getViewState().observerPc;
 		await viewer.actions.invoke(SKYKIT_ACTIONS.navigation.flyPolyline, {
-			points: explicitPoints,
+			points: [start, ...explicitPoints],
 			durationSecs,
+			currentSpeed: options.motion?.speedNavigationUnitsPerSecond ?? 0,
+			arrivalSpeed: Math.abs(arrivalAction.radius * arrivalAction.angularSpeedRadPerSec),
 			arrivalThreshold,
 			arrivalAction,
 			onArrive,
@@ -85,6 +117,12 @@ async function activateOrbitCamera(ctx, chapter, options) {
 
 	const route = createOrbitTransferRoute({
 		start: viewer.getViewState().observerPc,
+		sourceOrbit: options.motion?.movementAutomation?.type === 'orbit'
+			? {
+				...options.motion.movementAutomation,
+				angularSpeedRadPerSec: options.motion.movementAutomation.angularSpeed,
+			} : undefined,
+		approachVelocity: options.motion?.velocity ?? { x: 0, y: 0, z: 0 },
 		destinationOrbit: orbit,
 		durationSecs,
 		sampleStepSecs,
@@ -108,6 +146,7 @@ async function activateOrbitCamera(ctx, chapter, options) {
 		movement: { durationSecs },
 		orientationTransition: { durationSecs: Math.min(durationSecs, 2) },
 		onArrive: () => {
+			if (!options.isCurrent()) return;
 			void viewer.actions.invoke(SKYKIT_ACTIONS.navigation.orbit, orbit, { source });
 			onArrive();
 		},

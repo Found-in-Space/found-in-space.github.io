@@ -80,7 +80,7 @@ const CHAPTER_REVEAL = {
 	},
 };
 
-const SCENES = {
+export const SCENES = {
 	'sol-dimming': {
 		label: 'The Sun is dimming',
 		view: {
@@ -213,6 +213,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 		for (const label of Object.values(annotations.labels)) label.material.opacity = 0;
 	}
 	const chapters = createAstrophageChapters(annotations);
+	const navigation = createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 });
 	let disposed = false;
 
 	applyChapterVisibility('sol-dimming', annotations);
@@ -248,7 +249,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 				disposeObject: true,
 			}),
 			createAstrophageLineAnimationPlugin(annotations),
-			createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 }),
+			navigation,
 			createSkyGrabPlugin({
 				target: mount,
 				sensitivityRadiansPerPixel: 0.00075,
@@ -267,7 +268,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 	async function goTo(id) {
 		const chapter = chapters[id];
 		if (!chapter || disposed) return;
-		await chapter.activate({ viewer, provider, renderer, starField });
+		await chapter.activate({ viewer, navigation, provider, renderer, starField });
 	}
 
 	function resize() {
