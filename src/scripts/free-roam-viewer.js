@@ -190,7 +190,7 @@ export async function mountFreeRoamViewer(mount, options = {}) {
 			distancePc: CONSTELLATION_TARGET_DISTANCE_PC,
 		});
 		if (!look) return false;
-		viewer.requestViewState({ lookAt: { targetPc: look.targetPc } }, 'website.freeRoam.constellation');
+		// Let navigation slew from the current orientation; a view patch would snap first.
 		void viewer.actions.invoke(SKYKIT_ACTIONS.navigation.lookAt, {
 			...look.targetPc,
 			up: look.upIcrs,
