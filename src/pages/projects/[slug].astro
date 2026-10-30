@@ -1,0 +1,52 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import MadeByKaj from '../../components/MadeByKaj.astro';
+import { projects, siteHref, type Project } from '../../data/projects';
+
+export function getStaticPaths() {
+	return projects.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+interface Props { project: Project; }
+const { project } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Layout title={`${project.name} | Found in Space`} description={project.summary}>
+	<SiteHeader section={project.name} />
+	<main class="page page--narrow">
+		<nav class="breadcrumb" aria-label="Breadcrumb"><a href={`${basePath}explore/`}>Explore</a><span class="breadcrumb__sep" aria-hidden="true">/</span><span>{project.name}</span></nav>
+		<header class="hero hub-hero">
+			<p class="eyebrow">{project.name} · {project.topic}</p>
+			<h1>{project.title}</h1>
+			<p class="lede">{project.summary}</p>
+			<p><span class="tag">{project.status}</span></p>
+			<div class="action-links">
+				{project.explore && <a class="button button--primary" href={siteHref(project.explore.href, basePath)}>{project.explore.label}</a>}
+				{project.more && <a class="button button--ghost" href={siteHref(project.more.href, basePath)}>{project.more.label}</a>}
+			</div>
+		</header>
+		<article class="prose">
+			<h2>Getting started</h2>
+			<p>{project.access}</p>
+			<h2>What the experience is made from</h2>
+			<p>{project.material}</p>
+			<section class="panel callout">
+				<h3>{project.prompt}</h3>
+				<p>{project.tryThis}</p>
+			</section>
+			{project.question && <p><a href={siteHref(project.question.href, basePath)}>{project.question.label} →</a></p>}
+			<h2>Make something with the materials</h2>
+			{project.build ? <p>Follow the project’s guide for its tools, setup requirements, and current capabilities.
+				Keep the sources, assumptions, and representation choices with anything you adapt or make.</p> :
+				<p>Aeolian Measure’s tools and source are not publicly available yet. You can explore the wider
+					<a href={`${basePath}build/`}>collection of public materials</a> for other ways to start making.</p>}
+			{project.build && <ul>
+				<li><a href={siteHref(project.build.href, basePath)}>{project.build.label}</a></li>
+				{project.source && <li><a href={project.source.href}>{project.source.label}</a></li>}
+			</ul>}
+		</article>
+		<nav class="page-nav" aria-label="More ways to engage"><a href={`${basePath}explore/`}>← All experiences</a><a href={`${basePath}question/`}>Questions to investigate →</a></nav>
+		<MadeByKaj />
+	</main>
+</Layout>

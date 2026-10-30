@@ -196,7 +196,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 
 	onStatus('Creating SkyKit viewer...');
 	const initialAspectRatio = resolveAspectRatio(mount);
-	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+	const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: Boolean(options.capture) });
 	renderer.setClearColor(0x02040b, 1);
 	const camera = new THREE.PerspectiveCamera(VERTICAL_FOV_DEG, initialAspectRatio, 0.0001, 1000);
 	const provider = createStarOctreeProviderService({
@@ -208,6 +208,10 @@ export async function mountAstrophageViewer(mount, options = {}) {
 		exposure: 2500,
 	});
 	const annotations = buildAnnotations();
+	// Capture labels are drawn in screen space so nearby names stay legible.
+	if (options.capture) {
+		for (const label of Object.values(annotations.labels)) label.material.opacity = 0;
+	}
 	const chapters = createAstrophageChapters(annotations);
 	const navigation = createSkykitNavigationPlugin({ speed: 120, acceleration: 80, deceleration: 60 });
 	let disposed = false;
@@ -232,6 +236,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 				provider,
 				renderer: starField,
 				attributes: STAR_ATTRIBUTES,
+				updateOptions: options.capture ? { demand: 'force' } : undefined,
 				session: {
 					id: STAR_SESSION_ID,
 					strategy: createObserverShellStrategy(),
@@ -256,7 +261,7 @@ export async function mountAstrophageViewer(mount, options = {}) {
 	window.addEventListener('resize', resize);
 	window.addEventListener('beforeunload', destroy);
 	resize();
-	loop.start();
+	if (options.autoStart !== false) loop.start();
 
 	onStatus('Drag on the view to look around.');
 
@@ -294,7 +299,16 @@ export async function mountAstrophageViewer(mount, options = {}) {
 		});
 	}
 
-	return { viewer, goTo, dispose };
+	return {
+		viewer, goTo, dispose,
+		setCaptureScene: options.capture ? (id) => applyChapterVisibility(id, annotations) : undefined,
+		getCaptureLabels: options.capture ? () => Object.entries(annotations.labels)
+			.filter(([, label]) => label.visible)
+			.map(([key, label]) => ({
+				text: STARS[key].label,
+				position: label.position.clone().project(camera).toArray(),
+			})) : undefined,
+	};
 }
 
 function createAstrophageChapters(annotations) {

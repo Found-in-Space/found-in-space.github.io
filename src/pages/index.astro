@@ -2,401 +2,59 @@
 import MadeByKaj from '../components/MadeByKaj.astro';
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-
+import ProjectCard from '../components/ProjectCard.astro';
+import { projects } from '../data/projects';
 const basePath = import.meta.env.BASE_URL;
-const explorePath = `${basePath}explore/`;
-const teachPath = `${basePath}teach/`;
-const learnBuildPath = `${basePath}learn-build/`;
-const eclipseTrackerUrl = 'https://foundin.space/shadowline/tracker/202708/';
-const constellationFlyThroughPath = `${basePath}explore/constellations-and-3d-space/`;
-const hrDiagramPath = `${basePath}learn/topic/hr-diagram/`;
-const starterDataPath = `${basePath}build/download-the-star-data/`;
-const aboutPath = `${basePath}about/`;
 ---
 
-<Layout
-	title="Found in Space"
-	description="Found in Space turns open astronomical measurements into explorable 3D worlds: see what each view is made from, question the evidence, and build with it."
->
-	<SiteHeader section="Learning through data" />
-
+<Layout title="Found in Space — Explore. Question. Build." description="Think and create with scientific data and models. Explore stars, worlds and eclipses, follow the evidence, and find materials for making something of your own.">
+	<SiteHeader />
 	<main class="page">
-		<section class="hero home-hero">
-			<p class="eyebrow">See it. Question it. Build with it.</p>
-			<h1>Explore the nearby stars. Then look behind the view.</h1>
-			<p class="lede">
-				Found in Space starts with open astronomical measurements and turns them into
-				interactive 3D experiences. Explore the view, see how it was made, ask what the
-				evidence can and cannot show, and use the same data and code to build something of
-				your own.
-			</p>
-			<div class="hero__actions" aria-label="Primary routes">
-				<a class="button button--primary" href={explorePath}>Explore the stars</a>
-				<a class="button button--ghost" href={teachPath}>Teach with Found in Space</a>
-				<a class="button button--ghost" href={learnBuildPath}>Learn &amp; build with the data</a>
-			</div>
-		</section>
-
-		<section class="panel panel--featured home-feature" aria-labelledby="eclipse-tracker-title">
-			<div class="home-feature__copy">
-				<p class="panel__eyebrow">New · Eclipse tracker</p>
-				<h2 id="eclipse-tracker-title">Follow the 2 August 2027 total solar eclipse.</h2>
-				<p>
-					Watch the Moon’s shadow cross Earth, check the eclipse times for your location,
-					and preview what the Sun will look like. The tracker runs entirely in your
-					browser, and all of its code is open source.
-				</p>
-			</div>
-			<a class="button button--primary" href={eclipseTrackerUrl}>Open the eclipse tracker</a>
-		</section>
-
-		<section class="route-grid" aria-label="Choose a route">
-			<a class="panel panel--accent route-card" href={explorePath}>
-				<p class="panel__eyebrow">Explore the stars</p>
-				<h2>Start with wonder.</h2>
-				<p>
-					For anyone who wants to see the sky differently. Begin with familiar constellations,
-					then move through 3D star positions estimated from catalogue measurements and watch
-					the flat night sky open into depth.
-				</p>
-				<p class="route-card__meta">Best for: first-time visitors, visual exploration, public engagement</p>
-				<span class="route-card__cta">Browse the visual journeys</span>
-			</a>
-
-			<a class="panel route-card" href={teachPath}>
-				<p class="panel__eyebrow">Teach through inquiry</p>
-				<h2>Turn visuals into inquiry.</h2>
-				<p>
-					For teachers, lecturers and workshop leaders. Use guided visualisations, classroom
-					prompts and open-ended investigations to ask what the measurements show, what remains
-					uncertain, and how the representation shapes what we notice.
-				</p>
-				<p class="route-card__meta">Best for: activities, workshops, outreach, student projects</p>
-				<span class="route-card__cta">Open the teacher hub</span>
-			</a>
-
-			<a class="panel route-card" href={learnBuildPath}>
-				<p class="panel__eyebrow">Learn &amp; build</p>
-				<h2>Work with the data.</h2>
-				<p>
-					For students, pupils, curious coders and independent learners. Learn the astronomy and
-					data concepts, inspect the pipeline, or use the open data and code to build your own
-					visualisation, investigation or game.
-				</p>
-				<p class="route-card__meta">Best for: self-study, starter data, notebooks, code, projects</p>
-				<span class="route-card__cta">Find a starting point</span>
-			</a>
-		</section>
-
-		<section class="definition" aria-label="What is Found in Space?">
-			<div class="definition__copy">
-				<p class="eyebrow">What is Found in Space?</p>
-				<h2>Part planetarium, part classroom, part open science lab.</h2>
-			</div>
-			<div class="definition__body">
-				<p>
-					Found in Space begins with measurements from Gaia, Hipparcos and other catalogues. It
-					lets people explore the resulting view while keeping visible how those measurements
-					were selected, estimated and turned into a 3D world.
-				</p>
-				<p>
-					A scientific picture might be built from observations, derived measurements, models,
-					simulations or illustration. They can all be useful, but they are not the same. The aim
-					is to make those layers clear and explorable, so people can ask what each one can—and
-					cannot—tell us.
-				</p>
-				</div>
-			</section>
-
-			<section class="proof" aria-label="What the project includes">
-				<ul class="proof__list">
-					<li>Open astronomical measurements and derived data</li>
-					<li>Interactive 3D browser visualisations</li>
-					<li>Explanations of sources, assumptions and limitations</li>
-					<li>Guided questions and open-ended investigations</li>
-					<li>Open data pipeline, viewer and reusable code</li>
-				</ul>
-			</section>
-
-		<section class="start-points" aria-label="Suggested first steps">
-			<article class="panel">
-				<p class="panel__eyebrow">See it</p>
-				<h2>Constellations and 3D space</h2>
-				<p>
-					Start with Orion and see how a familiar sky pattern changes when each star is placed at
-					its estimated distance.
-				</p>
-				<a class="link--gold" href={constellationFlyThroughPath}>Open the fly-through</a>
+		<header class="hero hub-hero home-hero">
+			<p class="eyebrow">Tools for thinking and creating with data and models</p>
+			<h1>Explore. Question. Build.</h1>
+			<p class="lede">Scientific data and models are materials to make something with.
+				Discover the depth of a star field, change the scale of a world, or follow an eclipse.
+				Get curious about the evidence behind it. Make an investigation, a lesson, or an experience of your own.</p>
+		</header>
+		<section class="section-grid section-grid--three" aria-label="Choose your way in">
+			<article class="panel destination-card">
+				<p class="panel__eyebrow">Explore</p><h2>Follow your curiosity.</h2>
+				<p>Move, play, and notice what changes. Find an experience that gives you a new way to see something.</p>
+				<div class="destination-card__links"><a class="link--gold" href={`${basePath}explore/`}>Find an experience →</a></div>
 			</article>
-			<article class="panel">
-				<p class="panel__eyebrow">Question it</p>
-				<h2>The HR diagram</h2>
-				<p>
-					Plot temperature against luminosity, then ask what the structure tells you and what the
-					sample might be hiding.
-				</p>
-				<a class="link--gold" href={hrDiagramPath}>Open the lesson</a>
+			<article class="panel destination-card">
+				<p class="panel__eyebrow">Question</p><h2>Look into the evidence.</h2>
+				<p>What can this view tell you? Investigate the measurements, assumptions, and choices that shape it.</p>
+				<div class="destination-card__links"><a class="link--gold" href={`${basePath}question/`}>Find a question to investigate →</a></div>
 			</article>
-			<article class="panel">
-				<p class="panel__eyebrow">Build with it</p>
-				<h2>Build something visible</h2>
-				<p>
-					Begin with a small bright-star data guide before deciding whether to run the full
-					pipeline yourself.
-				</p>
-				<a class="link--gold" href={starterDataPath}>Open the guide</a>
+			<article class="panel destination-card">
+				<p class="panel__eyebrow">Build</p><h2>Make something of your own.</h2>
+				<p>Adapt an activity, compose a journey, or work with reusable data, models, and tools.</p>
+				<div class="destination-card__links"><a class="link--gold" href={`${basePath}build/`}>Find materials and tools →</a></div>
 			</article>
 		</section>
-
-		<section class="about-teaser" aria-label="About the project">
-			<p>
-				Found in Space is not just a star viewer. It is a way to see what the view is made
-				from, ask what it can tell us, and build with the material behind it.
-			</p>
-			<a class="button button--ghost" href={aboutPath}>About the project</a>
+		<section class="hub-section" aria-labelledby="projects-title">
+			<p class="eyebrow">Many ways to make science tangible</p>
+			<h2 id="projects-title">From star fields to musical experiments.</h2>
+			<p>Each project offers a different way to think and create with scientific material.
+				Some are ready to explore in a browser; others need setup or are still taking shape.</p>
+			<div class="section-grid section-grid--two">{projects.map((project) => <ProjectCard project={project} />)}</div>
 		</section>
-
+		<section class="hub-note prose" aria-labelledby="purpose-title">
+			<h2 id="purpose-title">An experience can open onto its materials.</h2>
+			<p>Enjoying a view or playing with an idea is a worthwhile place to start—and stay.
+				When you want to go further, follow the sources, explore a model’s assumptions,
+				or use the same materials to create something new. Exploring, questioning, and building are all ways in.</p>
+			<p>Our educational ambition is <strong>data and model literacy</strong>: recognising what we can ask,
+				what the evidence supports, and what we would need to find out next.</p>
+			<div class="action-links"><a class="button button--ghost" href={`${basePath}teach/`}>Teach with these materials</a><a class="link--gold" href={`${basePath}about/`}>About Found in Space →</a></div>
+		</section>
 		<MadeByKaj />
 	</main>
 </Layout>
-
 <style>
-	.page {
-		position: relative;
-		min-height: 100vh;
-	}
-
-	.home-hero {
-		max-width: 58rem;
-		padding-top: 4.5rem;
-		padding-bottom: 3.5rem;
-	}
-
-	h1,
-	h2,
-	h3 {
-		font-weight: 600;
-		letter-spacing: 0;
-	}
-
-	h1 {
-		max-width: 13ch;
-		margin: 0;
-		font-size: 4.8rem;
-		line-height: 1;
-	}
-
-	h2 {
-		margin: 0 0 0.8rem;
-		font-size: 1.7rem;
-		line-height: 1.12;
-		color: var(--fis-text);
-	}
-
-	p {
-		margin: 0;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	p + p {
-		margin-top: 1rem;
-	}
-
-	.hero__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.85rem;
-		margin-top: 2rem;
-	}
-
-	.home-feature {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		align-items: end;
-		gap: 2rem;
-		margin: 0 0 4rem;
-		padding: clamp(1.5rem, 3vw, 2.5rem);
-	}
-
-	.home-feature__copy {
-		max-width: 48rem;
-	}
-
-	.home-feature h2 {
-		max-width: 18ch;
-		font-size: clamp(2rem, 4vw, 3.25rem);
-		line-height: 1.04;
-	}
-
-	.home-feature .button {
-		white-space: nowrap;
-	}
-
-	.button--ghost {
-		background: var(--fis-panel);
-	}
-
-	.route-grid,
-	.start-points {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 1rem;
-	}
-
-	.route-grid {
-		margin: 0 0 4rem;
-	}
-
-	.route-card {
-		display: flex;
-		flex-direction: column;
-		min-height: 24rem;
-		text-decoration: none;
-		transition:
-			border-color 160ms ease,
-			transform 160ms ease;
-	}
-
-	.route-card:hover {
-		border-color: var(--fis-line-strong);
-		transform: translateY(-3px);
-	}
-
-	.route-card__meta {
-		margin-top: 1.2rem;
-		font-family: var(--fis-font-ui);
-		font-size: 0.9rem;
-		color: var(--fis-text-muted);
-	}
-
-	.route-card__cta {
-		display: block;
-		margin-top: auto;
-		padding-top: 1.4rem;
-		color: var(--fis-gold);
-		font-family: var(--fis-font-ui);
-		font-size: 0.94rem;
-	}
-
-	.definition {
-		display: grid;
-		grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-		gap: 3rem;
-		padding: 4rem 0;
-		border-top: 1px solid var(--fis-line);
-		border-bottom: 1px solid var(--fis-line);
-	}
-
-	.definition h2 {
-		max-width: 15ch;
-		font-size: 2.4rem;
-		line-height: 1.06;
-	}
-
-	.definition__body {
-		max-width: 42rem;
-		font-size: 1.12rem;
-	}
-
-	.proof {
-		padding: 2rem 0 3.4rem;
-	}
-
-	.proof__list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.7rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.proof__list li {
-		padding: 0.45rem 0.75rem;
-		border: 1px solid var(--fis-blue-subtle);
-		border-radius: 999px;
-		background: var(--fis-panel);
-		color: var(--fis-text-soft);
-		font-family: var(--fis-font-ui);
-		font-size: 0.9rem;
-	}
-
-	.start-points {
-		margin-bottom: 3rem;
-	}
-
-	.start-points .panel {
-		display: flex;
-		flex-direction: column;
-		gap: 0.7rem;
-	}
-
-	.start-points a {
-		margin-top: auto;
-		padding-top: 0.6rem;
-	}
-
-	.about-teaser {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1.5rem;
-		margin-bottom: 4rem;
-		padding: 1.5rem 0 0;
-		border-top: 1px solid var(--fis-line);
-	}
-
-	.about-teaser p {
-		max-width: 42rem;
-		font-size: 1.2rem;
-		color: var(--fis-text);
-	}
-
-	@media (max-width: 960px) {
-		h1 {
-			font-size: 3.8rem;
-		}
-
-		.route-grid,
-		.start-points,
-		.definition {
-			grid-template-columns: 1fr;
-		}
-
-		.route-card {
-			min-height: auto;
-		}
-
-		.home-feature {
-			grid-template-columns: 1fr;
-			align-items: start;
-		}
-
-		.definition {
-			gap: 1.5rem;
-		}
-	}
-
-	@media (max-width: 720px) {
-		.home-hero {
-			padding-top: 2.5rem;
-		}
-
-		h1 {
-			font-size: 3rem;
-		}
-
-		.hero__actions,
-		.about-teaser {
-			align-items: stretch;
-			flex-direction: column;
-		}
-
-		.hero__actions .button,
-		.home-feature .button,
-		.about-teaser .button {
-			width: 100%;
-		}
-	}
+	.home-hero { max-width: 63rem; }
+	.home-hero h1 { font-size: clamp(3rem, 7vw, 5.7rem); }
+	.home-hero .lede { max-width: 49rem; }
 </style>

@@ -2,204 +2,67 @@
 import MadeByKaj from '../components/MadeByKaj.astro';
 import Layout from '../layouts/Layout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-
 const basePath = import.meta.env.BASE_URL;
-const githubUrl = 'https://github.com/Found-in-Space';
-const kajUrl = 'https://www.k-si.com/';
 ---
 
-<Layout
-	title="About | Found in Space"
-	description="Why Found in Space exists: explore open astronomical measurements, question how the view was made, and build with the data and code behind it."
->
-	<SiteHeader section="About the project" />
-
-	<main class="page">
-		<section class="about-hero">
-			<p class="eyebrow">About</p>
-			<h1>Why Found in Space exists.</h1>
-			<p class="intro">
-				Found in Space is an open educational project. It exists to help people move from a
-				compelling scientific view into the evidence, assumptions and code behind it. Data and
-				models are materials to think with: things you can inspect, question and use to make
-				something new.
-			</p>
-		</section>
-
-		<section class="about-body" aria-label="About Found in Space">
-			<div class="panel panel--wide">
-				<h2>What this project is</h2>
-				<p>
-					The project begins with open astronomical measurements and derived data — starting
-					with ESA's extraordinary
-					<a href="https://www.cosmos.esa.int/web/gaia" rel="noopener noreferrer">Gaia mission</a>,
-					and adding other catalogues where they help complete the story — and makes that
-					material explorable through interactive visualisations, guided questions and clear
-					explanations.
-				</p>
-				<p>
-					It does not stop at presenting a finished view. The whole pipeline is on display:
-					how to find and download stellar catalogues, how to clean and process them, how to
-					analyse and index them for the browser, and how to turn them into something you can
-					actually explore. The project code is <a href={githubUrl}>open on GitHub</a>: the data
-					pipeline, spatial indexing, viewer runtime, and website can all be inspected and built on.
-				</p>
-				<p>
-					The site is part exhibit, part classroom, part lab. It might show you a constellation
-					and then pull the stars apart to reveal the depths behind the flat pattern. It might ask
-					you a question instead of giving you an answer, because the best way to understand
-					something is often to work it out for yourself.
-				</p>
-			</div>
-
-			<div class="panel">
-				<h2>Why Gaia?</h2>
-				<p>
-					Gaia has mapped around 1.8 billion astronomical sources, giving positions and
-					brightnesses across the sky, and parallaxes and proper motions for a huge subset of
-					them. That scale, precision, and openness make it an extraordinary foundation for
-					teaching and exploration.
-				</p>
-				<p>
-					Gaia is the starting point, not the boundary. Found in Space already draws on other
-					catalogues, distance estimates and carefully documented manual overrides. The
-					longer-term aim is to let observations, derived quantities, models, simulations and
-					illustration play different roles while keeping those roles clear.
-				</p>
-			</div>
-
-			<div class="panel">
-				<h2>Questions over answers</h2>
-				<p>
-					A lot of educational material tells you facts and asks you to remember them. Found in
-					Space tries something different: it sets up situations where curiosity can do the
-					work. Why do these stars look different colours? What happens to a constellation
-					when you leave Earth behind? How far away is "nearby" in astronomical terms?
-				</p>
-				<p>
-					The hope is that by exploring data directly — rotating a star field, comparing
-					measurements, following a guided journey — ideas click in a way that reading alone
-					can't quite achieve.
-				</p>
-			</div>
-
-			<div class="panel panel--wide">
-				<h2>Open everything</h2>
-				<p>
-					All the code behind Found in Space is published at
-					<a href={githubUrl}>github.com/Found-in-Space</a>: the data pipelines,
-					the spatial indexing, the streaming formats, the interactive viewer, and the website
-					itself. If you want to see how a visualisation works, you can read the source. If you
-					want to build on it, you can fork it.
-				</p>
-				<p>
-					This isn't openness for its own sake. It's because the process of turning raw
-					measurements into something people can explore is itself a lesson worth sharing. When
-					the sources, assumptions and limits remain visible, a finished view becomes something
-					people can question and build on.
-				</p>
-			</div>
-		</section>
-
-		<section class="about-personal">
-			<div class="panel panel--accent">
-				<h2>Who's behind this</h2>
-				<p>
-					Found in Space is built by <a href={kajUrl}>Kaj Siebert</a>, who trained as an
-					astrophysicist before spending two decades in data science and technology. The
-					project brings those threads back together: astronomy, data, code, visualisation,
-					and a long-standing interest in how people actually learn.
-				</p>
-				<p>
-					Kaj has spent the last decade running science outreach with CERN through
-					<a href="https://www.thebigbangcollective.com/" rel="noopener noreferrer">The Big Bang Collective</a>,
-					and has always believed that the best learning happens through play. Found in Space
-					carries that same spirit: serious data, but never a dry lecture. The aim is to build
-					something people can wander through, get curious about, and genuinely enjoy.
-				</p>
-			</div>
-		</section>
-
+<Layout title="About | Found in Space" description="Found in Space makes scientific data and models into materials people can explore, question and build with. Our educational ambition is data and model literacy.">
+	<SiteHeader section="About" />
+	<main class="page page--narrow">
+		<header class="hero hub-hero">
+			<p class="eyebrow">About Found in Space</p><h1>Materials to think and create with.</h1>
+			<p class="lede">We make scientific data and models into materials people can explore,
+				question, and build with—helping them understand how evidence becomes understanding,
+				and pursue questions of their own.</p>
+		</header>
+		<article class="prose">
+			<h2>Explore. Question. Build.</h2>
+			<p>Scientific material becomes tangible through star fields, worlds, eclipse predictions,
+				maps, and musical experiments. A representation gives us something to notice, play with,
+				and ask questions about. Astronomy is a strong starting point; other measured systems
+				and scientific models belong here too.</p>
+			<p>Exploring, questioning, and building are equally valid ways to participate. You can enjoy
+				an experience, investigate the evidence, or make something of your own. There is no required
+				sequence, and taking part does not require learning to code.</p>
+			<h2>The experience opens onto its materials.</h2>
+			<p>Behind a view are sources, measurements, transformations, assumptions, and decisions about
+				what to show. Our aim is to make those understandable at a useful depth, and make the
+				materials practical to reuse for another investigation, visualisation, lesson, game, or artwork.</p>
+			<p>A measured quantity, an inferred distance, an eclipse prediction, and an artistic mapping
+				are different kinds of material. Keeping those differences visible helps people judge what
+				a representation can tell them—and where a different measurement or model is needed.</p>
+			<h2>Data and model literacy is the educational ambition.</h2>
+			<p>We want to help people recognise which questions the available material can answer,
+				investigate them, and judge what the evidence supports. Curiosity, play, and making can
+				generate a worthwhile question, just as a structured investigation can help pursue one.</p>
+			<p>The <a href={`${basePath}teach/`}>teaching collection</a> offers astronomy activities and
+				adaptable prompts. Suggested levels and timings are starting points for educators’ judgement.
+				Claims about learning outcomes, use with younger children, and classroom effectiveness
+				require evaluation; they are ambitions to work towards.</p>
+			<h2>Why this matters as answers become easier to obtain.</h2>
+			<p>AI and other analytical tools can help people work with data. People still need enough
+				understanding to decide what matters, recognise what is answerable, and judge a result.
+				Those skills are useful whether an answer comes from a person, a model, or an automated tool.</p>
+			<h2>Open materials, with a clear account of availability.</h2>
+			<p>Public <a href="https://github.com/Found-in-Space">Found in Space repositories</a> include
+				data pipelines, catalogue publications, models, viewer components, and authoring tools.
+				Each project has its own setup, release status, and licence terms. Aeolian Measure is
+				currently in private development; its source and player are not publicly linked.</p>
+			<p>The <a href={`${basePath}build/`}>Build route</a> helps you find useful materials. The
+				<a href="https://github.com/Found-in-Space/.github/blob/main/docs/projects.md">developer project map</a>
+				explains the technical ecosystem and contribution routes.</p>
+			<h2>Related experiments</h2>
+			<p>Separately maintained projects share this approach:
+				<a href="https://github.com/kws/galaxy-js">Galaxy-JS</a> explores simplified gravitational
+				rules through galactic encounters, and <a href="https://github.com/kws/cern-map-overlay">CERN map overlays</a>
+				connect scientific dimensions to familiar places. They are related work, with their own repositories.</p>
+			<h2>Who is behind it?</h2>
+			<p>Found in Space is built by <a href="https://www.k-si.com/">Kaj Siebert</a>, who trained as
+				an astrophysicist before working in data science and technology. The project brings together
+				science, data, code, creative work, and an interest in how people learn.</p>
+			<p>Kaj’s science outreach with CERN through <a href="https://www.thebigbangcollective.com/">The Big Bang Collective</a>
+				shares the same spirit: make room for play, curiosity, and the pleasure of finding something out.</p>
+		</article>
+		<nav class="page-nav" aria-label="Find a starting point"><a href={`${basePath}explore/`}>Find an experience →</a><a href={`${basePath}build/`}>Find materials to build with →</a></nav>
 		<MadeByKaj />
 	</main>
 </Layout>
-
-<style>
-	.page {
-		position: relative;
-		min-height: 100vh;
-		padding-top: 3.5rem;
-	}
-
-	.about-hero {
-		max-width: 52rem;
-		padding: 4.2rem 0 2.4rem;
-	}
-
-	.intro {
-		max-width: 46rem;
-		font-size: 1.15rem;
-		line-height: 1.7;
-	}
-
-	h1,
-	h2 {
-		font-weight: 600;
-		letter-spacing: 0;
-	}
-
-	h1 {
-		margin: 0 0 1.2rem;
-		font-size: clamp(2.5rem, 6vw, 4.4rem);
-		line-height: 0.98;
-		max-width: 18ch;
-	}
-
-	h2 {
-		margin: 0 0 0.75rem;
-		font-size: 1.6rem;
-		line-height: 1.1;
-	}
-
-	p {
-		margin: 0;
-		line-height: 1.7;
-		color: var(--fis-text-soft);
-	}
-
-	p + p {
-		margin-top: 1rem;
-	}
-
-	a {
-		color: var(--fis-gold);
-		text-decoration-color: var(--fis-gold-subtle);
-	}
-
-	.about-body {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.about-personal {
-		margin-bottom: 4rem;
-	}
-
-	.panel {
-		padding: 1.5rem;
-	}
-
-	@media (max-width: 900px) {
-		.about-body {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	@media (max-width: 720px) {
-		.page {
-			padding-top: 2.25rem;
-		}
-	}
-</style>

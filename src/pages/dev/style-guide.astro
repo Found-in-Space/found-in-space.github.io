@@ -19,6 +19,29 @@ const basePath = import.meta.env.BASE_URL;
 			</p>
 		</header>
 
+		<section class="guide-section" id="route-hubs">
+			<h2>Public route hubs</h2>
+			<p>Use <code>.hero.hub-hero</code> for hub introductions and <code>.hub-section</code>
+				for sections. Add <code>.section-grid--two</code> or <code>.section-grid--three</code>
+				to a section grid. Destination cards share typography, status text and link spacing.</p>
+			<div class="section-grid section-grid--two">
+				<article class="panel destination-card">
+					<p class="panel__eyebrow">A way in</p>
+					<h3>Explore a measured world.</h3>
+					<p>A short description of what the visitor can do and the material behind it.</p>
+					<p class="destination-card__meta">Project name · Availability</p>
+					<div class="destination-card__links"><a class="link--gold" href={`${basePath}explore/`}>Explore →</a></div>
+				</article>
+				<article class="panel destination-card">
+					<p class="panel__eyebrow">Another way in</p>
+					<h3>Build with its materials.</h3>
+					<p>Give a useful destination, with an honest label for setup or release status.</p>
+					<div class="destination-card__links"><a class="link--gold" href={`${basePath}build/`}>Build →</a></div>
+				</article>
+			</div>
+			<p><code>.action-links</code> groups buttons; <code>.hub-note.prose</code> introduces a quieter text section.</p>
+		</section>
+
 		<!-- ── Colour palette ─────────────────────────── -->
 
 		<section class="guide-section" id="colours">

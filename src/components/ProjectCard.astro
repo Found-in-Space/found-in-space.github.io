@@ -1,0 +1,23 @@
+---
+import { siteHref, type Project } from '../data/projects';
+
+interface Props {
+	project: Project;
+	launch?: boolean;
+}
+const { project, launch = false } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<article class="panel destination-card" id={project.slug}>
+	<p class="panel__eyebrow">{project.topic}</p>
+	<h3>{project.title}</h3>
+	<p>{project.summary}</p>
+	<p class="destination-card__meta">{project.name} <span aria-hidden="true">·</span> {project.status}</p>
+	<div class="destination-card__links">
+		{launch && project.explore && <a class="link--gold" href={siteHref(project.explore.href, basePath)}>{project.explore.label} →</a>}
+		<a class="link--gold" href={`${basePath}projects/${project.slug}/`}>
+			{launch ? `About ${project.name} & its materials` : `Discover ${project.name}`} →
+		</a>
+	</div>
+</article>

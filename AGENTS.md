@@ -4,6 +4,22 @@
 
 Astro 6.x static site. No Tailwind or utility CSS framework.
 
+## Purpose and information architecture
+
+This is the public entry point for tools for thinking and creating with
+scientific data and models. Preserve **Explore. Question. Build.** as equally
+valid ways to participate. Teach remains a direct route for educators.
+
+Read `docs/site-structure.md` before changing the main routes or adding a project.
+Use `src/data/projects.ts` for shared project facts and availability. Link each
+experience to its materials, questions, and reuse routes. Keep the public pages
+self-contained; the GitHub developer guide holds the full repository inventory.
+
+Distinguish available browser experiences, local setup, alpha releases, and
+private development. Verify capabilities before claiming them. Teaching levels
+and timings are suggestions; do not claim evaluated learning outcomes without
+evidence. Preserve existing lesson and example URLs when changing hub pages.
+
 ## Styling: Use the shared design system
 
 Before adding a `<style>` block or inline `style=""` attribute to any `.astro` file,
